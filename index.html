@@ -1,1058 +1,1682 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Sarjana Checker</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            --bg: #090b10;
-            --card: #11151d;
-            --card-light: #171c25;
-            --border: #272e3a;
-            --text: #f5f7fa;
-            --muted: #8e98a8;
-            --primary: #7657ff;
-            --primary-dark: #6244e8;
-            --success: #42d392;
-            --danger: #ff5d73;
-        }
-
-        body {
-            min-height: 100vh;
-            background:
-                radial-gradient(
-                    circle at top,
-                    #171329 0%,
-                    #090b10 45%
-                );
-            color: var(--text);
-            font-family:
-                Inter,
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-        }
-
-        button,
-        input {
-            font: inherit;
-        }
-
-        button {
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .app {
-            width: 100%;
-            max-width: 720px;
-            margin: auto;
-            padding: 24px 14px 40px;
-        }
-
-        /* HEADER */
-
-        .header {
-            margin-bottom: 22px;
-        }
-
-        .title {
-            font-size: 25px;
-            font-weight: 800;
-            letter-spacing: -0.7px;
-        }
-
-        /* MODE */
-
-        .mode {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px;
-
-            padding: 5px;
-
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 15px;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Clash of Clans Tag Tracker</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #080b10;
+      --panel: #10151d;
+      --panel-2: #151b25;
+      --border: #242c38;
+      --text: #f4f7fb;
+      --muted: #8d98a8;
+
+      --accent: #7c5cff;
+      --accent-2: #a78bfa;
+
+      --green: #35d07f;
+      --yellow: #f5c451;
+      --red: #ff6577;
+      --blue: #45a7ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background:
+        radial-gradient(
+          circle at 50% -10%,
+          rgba(124, 92, 255, .16),
+          transparent 35%
+        ),
+        var(--bg);
+
+      color: var(--text);
+      font-family: "Plus Jakarta Sans", sans-serif;
+      min-height: 100vh;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 720px;
+      margin: auto;
+      padding: 20px 15px 50px;
+    }
+
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    .header {
+      margin-bottom: 24px;
+    }
+
+    .brand-title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+
+    /* =========================
+       SEARCH PANEL
+    ========================= */
+
+    .search-panel {
+      background:
+        linear-gradient(
+          145deg,
+          #121821,
+          #0d1118
+        );
+
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
 
-            margin-bottom: 14px;
-        }
+    .switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
 
-        .mode button {
-            border: 0;
-            border-radius: 11px;
+      background: #090c11;
+      padding: 4px;
+      border-radius: 11px;
 
-            padding: 12px;
+      margin-bottom: 14px;
+    }
 
-            background: transparent;
-            color: var(--muted);
+    .switch button {
+      border: 0;
+      background: transparent;
 
-            font-weight: 700;
-            cursor: pointer;
+      color: var(--muted);
 
-            transition: 0.2s;
-        }
+      padding: 9px;
 
-        .mode button.active {
-            background: var(--primary);
-            color: white;
-        }
+      border-radius: 8px;
 
-        /* SEARCH */
+      font-weight: 700;
+      font-size: 12px;
+    }
 
-        .search-card {
-            padding: 15px;
+    .switch button.active {
+      background: var(--accent);
+      color: white;
+    }
 
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 18px;
+    .search-row {
+      display: flex;
+      gap: 8px;
+    }
 
-            margin-bottom: 16px;
-        }
+    .search-row input {
+      flex: 1;
+      min-width: 0;
 
-        .search-label {
-            display: block;
+      background: #090d13;
+      color: white;
 
-            margin-bottom: 8px;
+      border: 1px solid var(--border);
+      outline: none;
 
-            color: var(--muted);
-            font-size: 13px;
-        }
+      border-radius: 11px;
 
-        .search-row {
-            display: flex;
-            gap: 8px;
-        }
+      padding: 12px 13px;
 
-        .search-input {
-            flex: 1;
-            min-width: 0;
+      font-size: 13px;
+    }
 
-            padding: 13px 14px;
+    .search-row input:focus {
+      border-color: var(--accent);
+    }
 
-            background: #0c0f15;
-            color: white;
+    .search-btn {
+      border: 0;
+      border-radius: 11px;
 
-            border: 1px solid var(--border);
-            border-radius: 12px;
+      padding: 0 17px;
 
-            outline: none;
-        }
+      background: var(--accent);
+      color: white;
 
-        .search-input:focus {
-            border-color: var(--primary);
-        }
+      font-weight: 800;
+      font-size: 12px;
+    }
 
-        .search-input::placeholder {
-            color: #626c7c;
-        }
+    .search-btn:active {
+      transform: scale(.97);
+    }
 
-        .search-button {
-            width: 52px;
-            border: 0;
-            border-radius: 12px;
+    .hint {
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 8px;
+    }
 
-            background: var(--primary);
-            color: white;
 
-            font-size: 18px;
-            font-weight: 700;
+    /* =========================
+       PAGE
+    ========================= */
 
-            cursor: pointer;
+    .page {
+      display: none;
+    }
 
-            transition: 0.15s;
-        }
+    .page.active {
+      display: block;
+    }
 
-        .search-button:active {
-            transform: scale(0.95);
-        }
 
-        /* STATUS */
+    /* =========================
+       PLAYER PROFILE
+    ========================= */
 
-        .status {
-            display: none;
+    .profile {
+      background:
+        linear-gradient(
+          145deg,
+          #141a23,
+          #0e131a
+        );
 
-            padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
 
-            background: rgba(118, 87, 255, 0.1);
-            border: 1px solid rgba(118, 87, 255, 0.25);
+      overflow: hidden;
 
-            border-radius: 12px;
+      margin-bottom: 14px;
+    }
 
-            color: #cfc6ff;
-            font-size: 13px;
+    .profile-top {
+      padding: 20px;
 
-            margin-bottom: 14px;
-        }
+      position: relative;
+    }
 
-        .status.show {
-            display: block;
-        }
+    .profile-top::after {
+      content: "";
 
-        /* RESULT */
+      position: absolute;
 
-        .result {
-            background: var(--card);
-            border: 1px solid var(--border);
+      width: 180px;
+      height: 180px;
 
-            border-radius: 20px;
+      right: -90px;
+      top: -90px;
 
-            overflow: hidden;
-        }
+      background: rgba(124, 92, 255, .15);
 
-        /* PLAYER */
+      filter: blur(40px);
 
-        .player-header {
-            padding: 18px;
+      border-radius: 50%;
+    }
 
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(118, 87, 255, 0.18),
-                    rgba(118, 87, 255, 0.02)
-                );
-        }
+    .player-name {
+      font-size: 25px;
+      font-weight: 800;
 
-        .player-name {
-            font-size: 21px;
-            font-weight: 800;
+      letter-spacing: -1px;
+    }
 
-            margin-bottom: 5px;
-        }
+    .player-tag {
+      color: var(--muted);
 
-        .player-xp {
-            color: #ffc857;
-            font-size: 13px;
-            font-weight: 700;
-        }
+      font-size: 11px;
 
-        .player-tag {
-            color: var(--muted);
-            font-size: 13px;
-        }
+      margin-top: 4px;
+    }
 
-        /* STATS */
+    .clan-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
 
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+      margin-top: 13px;
 
-            padding: 12px;
-        }
+      color: #c4b5fd;
 
-        .stat {
-            padding: 13px;
+      background: rgba(124, 92, 255, .09);
 
-            background: var(--card-light);
-            border: 1px solid var(--border);
+      border: 1px solid rgba(124, 92, 255, .2);
 
-            border-radius: 13px;
-        }
+      border-radius: 8px;
 
-        .stat-label {
-            color: var(--muted);
-            font-size: 11px;
+      padding: 7px 9px;
 
-            margin-bottom: 5px;
-        }
+      font-size: 11px;
+      font-weight: 700;
 
-        .stat-value {
-            font-size: 18px;
-            font-weight: 800;
-        }
+      cursor: pointer;
+    }
 
-        /* SECTION */
+    .clan-link span {
+      color: var(--muted);
+      font-weight: 500;
+    }
 
-        .section {
-            padding: 14px;
-            border-top: 1px solid var(--border);
-        }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
 
-        .section-title {
-            font-size: 14px;
-            font-weight: 800;
+      border-top: 1px solid var(--border);
+    }
 
-            margin-bottom: 11px;
-        }
+    .stat {
+      padding: 13px 10px;
 
-        /* HEROES */
+      text-align: center;
 
-        .heroes {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
+      border-right: 1px solid var(--border);
+    }
 
-        .hero {
-            display: flex;
-            align-items: center;
-            gap: 9px;
+    .stat:last-child {
+      border-right: 0;
+    }
 
-            padding: 9px;
+    .stat-value {
+      font-weight: 800;
+      font-size: 15px;
+    }
 
-            background: var(--card-light);
-            border: 1px solid var(--border);
+    .stat-label {
+      font-size: 9px;
+      color: var(--muted);
 
-            border-radius: 13px;
-        }
+      margin-top: 3px;
+    }
 
-        .hero-image {
-            width: 44px;
-            height: 44px;
 
-            object-fit: contain;
-        }
+    /* =========================
+       SECTION
+    ========================= */
 
-        .hero-name {
-            font-size: 12px;
-            font-weight: 700;
-        }
+    .section {
+      background: var(--panel);
 
-        .hero-level {
-            color: var(--muted);
-            font-size: 11px;
+      border: 1px solid var(--border);
 
-            margin-top: 3px;
-        }
+      border-radius: 17px;
 
-        /* EQUIPMENT */
+      padding: 16px;
 
-        .equipment {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
+      margin-bottom: 14px;
+    }
 
-        .equipment-item {
-            aspect-ratio: 1;
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+      margin-bottom: 14px;
+    }
 
-            background: var(--card-light);
-            border: 1px solid var(--border);
+    .section-title {
+      font-size: 13px;
+      font-weight: 800;
+    }
 
-            border-radius: 12px;
-        }
+    .section-value {
+      color: var(--accent-2);
 
-        .equipment-item img {
-            width: 75%;
-            height: 75%;
-            object-fit: contain;
-        }
+      font-size: 12px;
+      font-weight: 800;
+    }
 
-        /* CLAN */
 
-        .clan-header {
-            padding: 18px;
-        }
+    /* =========================
+       TH PROGRESS
+    ========================= */
 
-        .clan-name {
-            font-size: 20px;
-            font-weight: 800;
+    .progress-main {
+      height: 9px;
 
-            margin-bottom: 4px;
-        }
+      background: #080b10;
 
-        .clan-tag {
-            color: var(--muted);
-            font-size: 13px;
-        }
+      border-radius: 99px;
 
-        /* MEMBERS */
+      overflow: hidden;
 
-        .members {
-            display: flex;
-            flex-direction: column;
-            gap: 7px;
-        }
+      margin-bottom: 8px;
+    }
 
-        .member {
-            width: 100%;
+    .progress-fill {
+      height: 100%;
 
-            display: flex;
-            align-items: center;
-            gap: 10px;
+      width: 82%;
 
-            padding: 11px;
+      background:
+        linear-gradient(
+          90deg,
+          var(--accent),
+          var(--accent-2)
+        );
 
-            background: var(--card-light);
-            border: 1px solid var(--border);
+      border-radius: inherit;
+    }
 
-            border-radius: 13px;
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
 
-            color: white;
-            text-align: left;
+      font-size: 10px;
 
-            cursor: pointer;
+      color: var(--muted);
+    }
 
-            transition: 0.15s;
-        }
 
-        .member:hover {
-            border-color: var(--primary);
-        }
+    /* =========================
+       CATEGORY PROGRESS
+    ========================= */
 
-        .member:active {
-            transform: scale(0.99);
-        }
+    .category {
+      margin-top: 14px;
+    }
 
-        .member-rank {
-            width: 25px;
+    .category-top {
+      display: flex;
+      justify-content: space-between;
 
-            color: var(--muted);
-            font-size: 12px;
+      font-size: 11px;
 
-            text-align: center;
-        }
+      margin-bottom: 6px;
+    }
 
-        .member-info {
-            flex: 1;
-            min-width: 0;
-        }
+    .category-top span:last-child {
+      color: var(--muted);
+      font-weight: 700;
+    }
 
-        .member-name {
-            overflow: hidden;
+    .bar {
+      height: 6px;
 
-            color: var(--text);
-            font-size: 13px;
-            font-weight: 700;
+      background: #080b10;
 
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
+      border-radius: 99px;
 
-        .member-tag {
-            color: var(--muted);
-            font-size: 10px;
+      overflow: hidden;
+    }
 
-            margin-top: 3px;
-        }
+    .bar div {
+      height: 100%;
+      border-radius: inherit;
+    }
 
-        .member-th {
-            padding: 5px 7px;
+    .hero-bar {
+      width: 78%;
+      background: var(--blue);
+    }
 
-            background: rgba(118, 87, 255, 0.12);
-            color: #cfc6ff;
+    .equipment-bar {
+      width: 72%;
+      background: var(--accent);
+    }
 
-            border-radius: 7px;
+    .troop-bar {
+      width: 88%;
+      background: var(--green);
+    }
 
-            font-size: 11px;
-            font-weight: 800;
-        }
+    .defense-bar {
+      width: 81%;
+      background: var(--yellow);
+    }
 
-        .member-arrow {
-            width: 8px;
-            height: 8px;
+    .building-bar {
+      width: 92%;
+      background: #c084fc;
+    }
 
-            border-top: 2px solid var(--muted);
-            border-right: 2px solid var(--muted);
 
-            transform: rotate(45deg);
+    /* =========================
+       HERO
+    ========================= */
 
-            margin-right: 3px;
-        }
+    .hero-grid {
+      display: grid;
 
-        /* EMPTY */
+      grid-template-columns: 1fr 1fr;
 
-        .empty {
-            padding: 45px 20px;
+      gap: 8px;
+    }
 
-            color: var(--muted);
-            text-align: center;
-        }
+    .hero-card {
+      background: #0b0f15;
 
-        .empty-title {
-            color: white;
-            font-weight: 700;
+      border: 1px solid var(--border);
 
-            margin-bottom: 6px;
-        }
+      border-radius: 12px;
 
-        .empty-text {
-            font-size: 13px;
-            line-height: 1.5;
-        }
+      padding: 11px;
+    }
 
-        /* FOOTER */
+    .hero-name {
+      font-size: 10px;
+      color: var(--muted);
+    }
 
-        .footer {
-            padding-top: 20px;
+    .hero-level {
+      font-size: 16px;
 
-            color: #555e6d;
-            font-size: 11px;
+      font-weight: 800;
 
-            text-align: center;
-        }
+      margin-top: 4px;
+    }
 
-        /* DESKTOP */
+    .hero-max {
+      font-size: 9px;
 
-        @media (min-width: 600px) {
+      color: var(--green);
 
-            .app {
-                padding-top: 40px;
-            }
+      margin-top: 2px;
+    }
 
-            .heroes {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-    </style>
+
+    /* =========================
+       UPGRADE PRIORITY
+    ========================= */
+
+    .priority {
+      display: flex;
+      align-items: center;
+
+      gap: 11px;
+
+      padding: 11px;
+
+      background: #0b0f15;
+
+      border: 1px solid var(--border);
+
+      border-radius: 11px;
+
+      margin-top: 8px;
+    }
+
+    .priority-number {
+      width: 27px;
+      height: 27px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 8px;
+
+      background: rgba(124, 92, 255, .12);
+
+      color: var(--accent-2);
+
+      font-size: 11px;
+
+      font-weight: 800;
+
+      flex-shrink: 0;
+    }
+
+    .priority-name {
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .priority-desc {
+      font-size: 9px;
+
+      color: var(--muted);
+
+      margin-top: 3px;
+    }
+
+
+    /* =========================
+       CLAN
+    ========================= */
+
+    .clan-header {
+      background:
+        linear-gradient(
+          145deg,
+          #141a23,
+          #0e131a
+        );
+
+      border: 1px solid var(--border);
+
+      border-radius: 20px;
+
+      padding: 20px;
+
+      margin-bottom: 14px;
+    }
+
+    .clan-name {
+      font-size: 23px;
+
+      font-weight: 800;
+
+      letter-spacing: -.8px;
+    }
+
+    .clan-tag {
+      color: var(--muted);
+
+      font-size: 11px;
+
+      margin-top: 4px;
+    }
+
+    .clan-meta {
+      display: flex;
+
+      gap: 8px;
+
+      margin-top: 14px;
+
+      flex-wrap: wrap;
+    }
+
+    .meta {
+      background: #0b0f15;
+
+      border: 1px solid var(--border);
+
+      padding: 7px 9px;
+
+      border-radius: 8px;
+
+      font-size: 10px;
+
+      color: var(--muted);
+    }
+
+    .meta strong {
+      color: white;
+    }
+
+
+    /* =========================
+       MEMBER
+    ========================= */
+
+    .member {
+      width: 100%;
+
+      display: flex;
+      align-items: center;
+
+      gap: 11px;
+
+      background: #0b0f15;
+
+      border: 1px solid var(--border);
+
+      border-radius: 11px;
+
+      padding: 11px;
+
+      margin-bottom: 7px;
+
+      color: white;
+
+      text-align: left;
+    }
+
+    .member:hover {
+      border-color: rgba(124, 92, 255, .5);
+    }
+
+    .member-rank {
+      width: 25px;
+
+      color: var(--muted);
+
+      font-size: 10px;
+
+      text-align: center;
+    }
+
+    .member-info {
+      flex: 1;
+    }
+
+    .member-name {
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .member-detail {
+      font-size: 9px;
+
+      color: var(--muted);
+
+      margin-top: 3px;
+    }
+
+    .member-th {
+      font-size: 10px;
+
+      font-weight: 800;
+
+      color: var(--accent-2);
+    }
+
+
+    /* =========================
+       BACK BUTTON
+    ========================= */
+
+    .back-btn {
+      border: 1px solid var(--border);
+
+      background: transparent;
+
+      color: var(--muted);
+
+      border-radius: 9px;
+
+      padding: 8px 11px;
+
+      font-size: 10px;
+
+      font-weight: 700;
+
+      margin-bottom: 12px;
+    }
+
+    .back-btn:hover {
+      color: white;
+
+      border-color: #465064;
+    }
+
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    .footer {
+      text-align: center;
+
+      color: #505a69;
+
+      font-size: 9px;
+
+      margin-top: 25px;
+
+      line-height: 1.6;
+    }
+
+    .footer a {
+      display: inline-block;
+
+      margin-top: 5px;
+
+      color: #a78bfa;
+
+      text-decoration: none;
+
+      font-size: 9px;
+
+      font-weight: 700;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+
+    /* =========================
+       DESKTOP
+    ========================= */
+
+    @media (min-width: 600px) {
+
+      .app {
+        padding-top: 35px;
+      }
+
+      .hero-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+    }
+
+  </style>
 </head>
+
 
 <body>
 
 <div class="app">
 
-    <header class="header">
-        <h1 class="title">Sarjana Checker</h1>
-    </header>
+
+  <!-- HEADER -->
+
+  <header class="header">
+
+    <div class="brand-title">
+      Sarjana Checker
+    </div>
+
+    <div class="brand-sub">
+      Clash of Clans Account Analyzer
+    </div>
+
+  </header>
 
 
-    <div class="mode">
+  <!-- SEARCH -->
 
-        <button
-            id="playerMode"
-            class="active"
-            onclick="setMode('player')"
-        >
-            Player
-        </button>
+  <section class="search-panel">
 
-        <button
-            id="clanMode"
-            onclick="setMode('clan')"
-        >
-            Clan
-        </button>
+    <div class="switch">
+
+      <button
+        id="playerTab"
+        class="active"
+        onclick="setMode('player')"
+      >
+        PLAYER
+      </button>
+
+      <button
+        id="clanTab"
+        onclick="setMode('clan')"
+      >
+        CLAN
+      </button>
 
     </div>
 
 
-    <div class="search-card">
+    <div class="search-row">
 
-        <label
-            id="searchLabel"
-            class="search-label"
-        >
-            Player Tag
-        </label>
+      <input
+        id="searchInput"
+        type="text"
+        placeholder="Masukkan Player Tag"
+      >
 
-        <div class="search-row">
-
-            <input
-                id="searchInput"
-                class="search-input"
-                type="text"
-                autocomplete="off"
-                placeholder="Contoh: #9UG9LJV8Y"
-            >
-
-            <button
-                class="search-button"
-                onclick="searchData()"
-                aria-label="Cari"
-            >
-                Cari
-            </button>
-
-        </div>
+      <button
+        class="search-btn"
+        onclick="searchData()"
+      >
+        CHECK
+      </button>
 
     </div>
 
 
     <div
-        id="status"
-        class="status"
-    ></div>
+      class="hint"
+      id="searchHint"
+    >
+      Contoh: #9UG9LJV8Y
+    </div>
+
+  </section>
 
 
-    <div id="result"></div>
+  <!-- =========================
+       PLAYER PAGE
+  ========================= -->
+
+  <main
+    id="playerPage"
+    class="page active"
+  >
 
 
-    <footer class="footer">
-        Sarjana Checker · Clash of Clans
-    </footer>
+    <!-- PLAYER PROFILE -->
+
+    <div class="profile">
+
+      <div class="profile-top">
+
+        <div class="player-name">
+          HackeR
+        </div>
+
+        <div class="player-tag">
+          #9UG9LJV8Y · XP 276
+        </div>
+
+
+        <div
+          class="clan-link"
+          onclick="openClan()"
+        >
+          MAVERICS HAIBAR
+
+          <span>
+            · Clan Level 25
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div class="stats">
+
+        <div class="stat">
+
+          <div class="stat-value">
+            TH18
+          </div>
+
+          <div class="stat-label">
+            TOWN HALL
+          </div>
+
+        </div>
+
+
+        <div class="stat">
+
+          <div class="stat-value">
+            5,432
+          </div>
+
+          <div class="stat-label">
+            TROPHIES
+          </div>
+
+        </div>
+
+
+        <div class="stat">
+
+          <div class="stat-value">
+            1,234
+          </div>
+
+          <div class="stat-label">
+            WAR STARS
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- TH PROGRESS -->
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div class="section-title">
+          TH18 Progress
+        </div>
+
+        <div class="section-value">
+          82%
+        </div>
+
+      </div>
+
+
+      <div class="progress-main">
+
+        <div class="progress-fill"></div>
+
+      </div>
+
+
+      <div class="progress-info">
+
+        <span>
+          Current Town Hall
+        </span>
+
+        <span>
+          82% completed
+        </span>
+
+      </div>
+
+
+      <!-- HERO -->
+
+      <div class="category">
+
+        <div class="category-top">
+
+          <span>
+            Heroes
+          </span>
+
+          <span>
+            78%
+          </span>
+
+        </div>
+
+        <div class="bar">
+          <div class="hero-bar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- EQUIPMENT -->
+
+      <div class="category">
+
+        <div class="category-top">
+
+          <span>
+            Hero Equipment
+          </span>
+
+          <span>
+            72%
+          </span>
+
+        </div>
+
+        <div class="bar">
+          <div class="equipment-bar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- TROOPS -->
+
+      <div class="category">
+
+        <div class="category-top">
+
+          <span>
+            Troops & Spells
+          </span>
+
+          <span>
+            88%
+          </span>
+
+        </div>
+
+        <div class="bar">
+          <div class="troop-bar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- DEFENSE -->
+
+      <div class="category">
+
+        <div class="category-top">
+
+          <span>
+            Defenses
+          </span>
+
+          <span>
+            81%
+          </span>
+
+        </div>
+
+        <div class="bar">
+          <div class="defense-bar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- BUILDINGS -->
+
+      <div class="category">
+
+        <div class="category-top">
+
+          <span>
+            Buildings
+          </span>
+
+          <span>
+            92%
+          </span>
+
+        </div>
+
+        <div class="bar">
+          <div class="building-bar"></div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- HEROES -->
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div class="section-title">
+          Heroes
+        </div>
+
+        <div class="section-value">
+          78%
+        </div>
+
+      </div>
+
+
+      <div class="hero-grid">
+
+
+        <div class="hero-card">
+
+          <div class="hero-name">
+            Archer Queen
+          </div>
+
+          <div class="hero-level">
+            95
+          </div>
+
+          <div class="hero-max">
+            Max 100
+          </div>
+
+        </div>
+
+
+        <div class="hero-card">
+
+          <div class="hero-name">
+            Barbarian King
+          </div>
+
+          <div class="hero-level">
+            95
+          </div>
+
+          <div class="hero-max">
+            Max 100
+          </div>
+
+        </div>
+
+
+        <div class="hero-card">
+
+          <div class="hero-name">
+            Grand Warden
+          </div>
+
+          <div class="hero-level">
+            70
+          </div>
+
+          <div class="hero-max">
+            Max 75
+          </div>
+
+        </div>
+
+
+        <div class="hero-card">
+
+          <div class="hero-name">
+            Royal Champion
+          </div>
+
+          <div class="hero-level">
+            45
+          </div>
+
+          <div class="hero-max">
+            Max 50
+          </div>
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+
+    <!-- UPGRADE PRIORITY -->
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div class="section-title">
+          Upgrade Priority
+        </div>
+
+        <div class="section-value">
+          Analysis
+        </div>
+
+      </div>
+
+
+      <div class="priority">
+
+        <div class="priority-number">
+          01
+        </div>
+
+        <div>
+
+          <div class="priority-name">
+            Royal Champion
+          </div>
+
+          <div class="priority-desc">
+            5 level menuju batas maksimum TH18.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="priority">
+
+        <div class="priority-number">
+          02
+        </div>
+
+        <div>
+
+          <div class="priority-name">
+            Hero Equipment
+          </div>
+
+          <div class="priority-desc">
+            Masih terdapat equipment yang belum maksimal.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="priority">
+
+        <div class="priority-number">
+          03
+        </div>
+
+        <div>
+
+          <div class="priority-name">
+            Defenses
+          </div>
+
+          <div class="priority-desc">
+            Beberapa upgrade defense masih tersedia.
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =========================
+       CLAN PAGE
+  ========================= -->
+
+  <main
+    id="clanPage"
+    class="page"
+  >
+
+
+    <button
+      class="back-btn"
+      onclick="showPlayer()"
+    >
+      ← Kembali ke Player
+    </button>
+
+
+    <!-- CLAN HEADER -->
+
+    <div class="clan-header">
+
+      <div class="clan-name">
+        MAVERICS HAIBAR
+      </div>
+
+      <div class="clan-tag">
+        #2J0P2GR08
+      </div>
+
+
+      <div class="clan-meta">
+
+        <div class="meta">
+          Member <strong>50/50</strong>
+        </div>
+
+        <div class="meta">
+          Level <strong>25</strong>
+        </div>
+
+        <div class="meta">
+          War <strong>Active</strong>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- MEMBERS -->
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div class="section-title">
+          Clan Members
+        </div>
+
+        <div class="section-value">
+          50 Members
+        </div>
+
+      </div>
+
+
+      <button
+        class="member"
+        onclick="openMember('HackeR')"
+      >
+
+        <div class="member-rank">
+          01
+        </div>
+
+        <div class="member-info">
+
+          <div class="member-name">
+            HackeR
+          </div>
+
+          <div class="member-detail">
+            5,432 trophies · Leader
+          </div>
+
+        </div>
+
+        <div class="member-th">
+          TH18
+        </div>
+
+      </button>
+
+
+      <button
+        class="member"
+        onclick="openMember('Member 02')"
+      >
+
+        <div class="member-rank">
+          02
+        </div>
+
+        <div class="member-info">
+
+          <div class="member-name">
+            Member 02
+          </div>
+
+          <div class="member-detail">
+            5,101 trophies · Co-Leader
+          </div>
+
+        </div>
+
+        <div class="member-th">
+          TH18
+        </div>
+
+      </button>
+
+
+      <button
+        class="member"
+        onclick="openMember('Member 03')"
+      >
+
+        <div class="member-rank">
+          03
+        </div>
+
+        <div class="member-info">
+
+          <div class="member-name">
+            Member 03
+          </div>
+
+          <div class="member-detail">
+            4,982 trophies · Elder
+          </div>
+
+        </div>
+
+        <div class="member-th">
+          TH17
+        </div>
+
+      </button>
+
+
+      <button
+        class="member"
+        onclick="openMember('Member 04')"
+      >
+
+        <div class="member-rank">
+          04
+        </div>
+
+        <div class="member-info">
+
+          <div class="member-name">
+            Member 04
+          </div>
+
+          <div class="member-detail">
+            4,801 trophies · Member
+          </div>
+
+        </div>
+
+        <div class="member-th">
+          TH17
+        </div>
+
+      </button>
+
+
+      <button
+        class="member"
+        onclick="openMember('Member 05')"
+      >
+
+        <div class="member-rank">
+          05
+        </div>
+
+        <div class="member-info">
+
+          <div class="member-name">
+            Member 05
+          </div>
+
+          <div class="member-detail">
+            4,620 trophies · Member
+          </div>
+
+        </div>
+
+        <div class="member-th">
+          TH16
+        </div>
+
+      </button>
+
+
+    </section>
+
+  </main>
+
+
+  <!-- FOOTER -->
+
+  <div class="footer">
+
+    <div>
+      Clash of Clans Tag Tracker by: Mujib, S.Coc.
+    </div>
+
+    <a
+      href="https://tiktok.com/@mujib_syarif"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      TikTok: @mujib_syarif
+    </a>
+
+  </div>
+
 
 </div>
 
 
 <script>
 
-    let currentMode = "player";
+  let mode = "player";
 
 
-    function setMode(mode) {
+  /* =========================
+     MODE SWITCH
+  ========================= */
 
-        currentMode = mode;
+  function setMode(type) {
 
-        const playerButton =
-            document.getElementById("playerMode");
+    mode = type;
 
-        const clanButton =
-            document.getElementById("clanMode");
+    const playerTab =
+      document.getElementById("playerTab");
 
-        const label =
-            document.getElementById("searchLabel");
+    const clanTab =
+      document.getElementById("clanTab");
 
-        const input =
-            document.getElementById("searchInput");
+    const input =
+      document.getElementById("searchInput");
 
-
-        if (mode === "player") {
-
-            playerButton.classList.add("active");
-            clanButton.classList.remove("active");
-
-            label.textContent = "Player Tag";
-
-            input.placeholder =
-                "Contoh: #9UG9LJV8Y";
-
-        } else {
-
-            clanButton.classList.add("active");
-            playerButton.classList.remove("active");
-
-            label.textContent = "Clan Tag";
-
-            input.placeholder =
-                "Contoh: #2J0P2GR08";
-        }
+    const hint =
+      document.getElementById("searchHint");
 
 
-        input.value = "";
+    if (type === "player") {
 
-        clearResult();
+      playerTab.classList.add("active");
+
+      clanTab.classList.remove("active");
+
+      input.placeholder =
+        "Masukkan Player Tag";
+
+      hint.textContent =
+        "Contoh: #9UG9LJV8Y";
+
     }
 
 
-    function showStatus(message) {
+    else {
 
-        const status =
-            document.getElementById("status");
+      clanTab.classList.add("active");
 
-        status.textContent = message;
+      playerTab.classList.remove("active");
 
-        status.classList.add("show");
+      input.placeholder =
+        "Masukkan Clan Tag";
+
+      hint.textContent =
+        "Contoh: #2J0P2GR08";
+
+    }
+
+  }
+
+
+  /* =========================
+     SEARCH
+  ========================= */
+
+  function searchData() {
+
+    const value =
+      document
+        .getElementById("searchInput")
+        .value
+        .trim();
+
+
+    if (!value) {
+      return;
     }
 
 
-    function clearResult() {
+    if (mode === "player") {
 
-        document.getElementById(
-            "result"
-        ).innerHTML = "";
+      showPlayer();
 
-        document.getElementById(
-            "status"
-        ).classList.remove("show");
     }
 
+    else {
 
-    function searchData() {
+      openClan();
 
-        const input =
-            document.getElementById("searchInput");
-
-        const tag =
-            input.value.trim();
-
-
-        if (!tag) {
-
-            showStatus(
-                "Masukkan tag terlebih dahulu."
-            );
-
-            return;
-        }
-
-
-        showStatus(
-            "Mode demo. API belum disambungkan."
-        );
-
-
-        if (currentMode === "player") {
-
-            showPlayerDemo(tag);
-
-        } else {
-
-            showClanDemo(tag);
-        }
     }
 
+  }
 
-    function showPlayerDemo(tag) {
 
-        document.getElementById("result").innerHTML = `
+  /* =========================
+     SHOW PLAYER
+  ========================= */
 
-            <div class="result">
+  function showPlayer() {
 
-                <div class="player-header">
-
-                    <div class="player-name">
-                        HackeR
-                        <span class="player-xp">
-                            XP 276
-                        </span>
-                    </div>
-
-                    <div class="player-tag">
-                        ${escapeHtml(tag)}
-                    </div>
-
-                </div>
-
-
-                <div class="stats">
-
-                    <div class="stat">
-
-                        <div class="stat-label">
-                            Town Hall
-                        </div>
-
-                        <div class="stat-value">
-                            TH18
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat">
-
-                        <div class="stat-label">
-                            Trophy
-                        </div>
-
-                        <div class="stat-value">
-                            5,432
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat">
-
-                        <div class="stat-label">
-                            Builder
-                        </div>
-
-                        <div class="stat-value">
-                            2,890
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat">
-
-                        <div class="stat-label">
-                            War Stars
-                        </div>
-
-                        <div class="stat-value">
-                            1,234
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="section">
-
-                    <div class="section-title">
-                        Heroes
-                    </div>
-
-
-                    <div class="heroes">
-
-                        ${hero(
-                            "Archer Queen",
-                            "assets/heroes/wwe_aq_pose01_no_shadow.png",
-                            "Level 95"
-                        )}
-
-                        ${hero(
-                            "Barbarian King",
-                            "assets/heroes/wwe_bk_pose03_shadow.png",
-                            "Level 95"
-                        )}
-
-                        ${hero(
-                            "Grand Warden",
-                            "assets/heroes/wwe_gw_pose02_shadow.png",
-                            "Level 70"
-                        )}
-
-                        ${hero(
-                            "Royal Champion",
-                            "assets/heroes/wwe_rc_pose04_shadow.png",
-                            "Level 45"
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <div class="section">
-
-                    <div class="section-title">
-                        Hero Equipment
-                    </div>
-
-
-                    <div class="equipment">
-
-                        ${equipment(
-                            "Hero_Equipment_AQ_Frozen_Arrow.png"
-                        )}
-
-                        ${equipment(
-                            "Hero_Equipment_AQ_Giant_Arrow.png"
-                        )}
-
-                        ${equipment(
-                            "Hero_Equipment_BK_Rage_Vial.png"
-                        )}
-
-                        ${equipment(
-                            "Hero_Equipment_GW_Fireball.png"
-                        )}
-
-                    </div>
-
-                </div>
-
-            </div>
-        `;
-    }
-
-
-    function hero(name, image, level) {
-
-        return `
-
-            <div class="hero">
-
-                <img
-                    class="hero-image"
-                    src="${image}"
-                    alt="${escapeHtml(name)}"
-                    onerror="this.style.display='none'"
-                >
-
-                <div>
-
-                    <div class="hero-name">
-                        ${escapeHtml(name)}
-                    </div>
-
-                    <div class="hero-level">
-                        ${level}
-                    </div>
-
-                </div>
-
-            </div>
-
-        `;
-    }
-
-
-    function equipment(filename) {
-
-        return `
-
-            <div class="equipment-item">
-
-                <img
-                    src="assets/equipment/${filename}"
-                    alt="Equipment"
-                    onerror="this.style.display='none'"
-                >
-
-            </div>
-
-        `;
-    }
-
-
-    function showClanDemo(tag) {
-
-        const members = [
-
-            ["1", "HackeR", "#9UG9LJV8Y", "TH18"],
-            ["2", "MVR MUJIB", "#AAAA1111", "TH18"],
-            ["3", "SULTAN", "#BBBB2222", "TH17"],
-            ["4", "Mr.HABIBI", "#CCCC3333", "TH17"],
-            ["5", "Han Li", "#DDDD4444", "TH17"],
-            ["6", "Anak Presiden", "#EEEE5555", "TH16"],
-            ["7", "FAYLINE", "#FFFF6666", "TH16"],
-            ["8", "firdanz", "#GGGG7777", "TH16"]
-        ];
-
-
-        document.getElementById("result").innerHTML = `
-
-            <div class="result">
-
-                <div class="clan-header">
-
-                    <div class="clan-name">
-                        MAVERICS HAIBAR
-                    </div>
-
-                    <div class="clan-tag">
-                        ${escapeHtml(tag)}
-                    </div>
-
-                </div>
-
-
-                <div class="stats">
-
-                    <div class="stat">
-
-                        <div class="stat-label">
-                            Members
-                        </div>
-
-                        <div class="stat-value">
-                            50 / 50
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat">
-
-                        <div class="stat-label">
-                            Clan Level
-                        </div>
-
-                        <div class="stat-value">
-                            25
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="section">
-
-                    <div class="section-title">
-                        Member List
-                    </div>
-
-
-                    <div class="members">
-
-                        ${members.map(member => `
-
-                            <button
-                                class="member"
-                                onclick="openMember('${member[2]}')"
-                            >
-
-                                <div class="member-rank">
-                                    ${member[0]}
-                                </div>
-
-                                <div class="member-info">
-
-                                    <div class="member-name">
-                                        ${escapeHtml(member[1])}
-                                    </div>
-
-                                    <div class="member-tag">
-                                        ${member[2]}
-                                    </div>
-
-                                </div>
-
-                                <div class="member-th">
-                                    ${member[3]}
-                                </div>
-
-                                <div class="member-arrow"></div>
-
-                            </button>
-
-                        `).join("")}
-
-                    </div>
-
-                </div>
-
-            </div>
-        `;
-    }
-
-
-    function openMember(tag) {
-
-        setMode("player");
-
-        document.getElementById(
-            "searchInput"
-        ).value = tag;
-
-        showStatus(
-            "Membuka data Player..."
-        );
-
-        showPlayerDemo(tag);
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-    }
-
-
-    function escapeHtml(text) {
-
-        const div =
-            document.createElement("div");
-
-        div.textContent = text;
-
-        return div.innerHTML;
-    }
+    document
+      .getElementById("playerPage")
+      .classList.add("active");
 
 
     document
-        .getElementById("searchInput")
-        .addEventListener(
-            "keydown",
-            function(event) {
+      .getElementById("clanPage")
+      .classList.remove("active");
 
-                if (event.key === "Enter") {
-                    searchData();
-                }
 
-            }
-        );
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  }
+
+
+  /* =========================
+     OPEN CLAN
+  ========================= */
+
+  function openClan() {
+
+    document
+      .getElementById("playerPage")
+      .classList.remove("active");
+
+
+    document
+      .getElementById("clanPage")
+      .classList.add("active");
+
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  }
+
+
+  /* =========================
+     OPEN MEMBER
+  ========================= */
+
+  function openMember(name) {
+
+    document
+      .getElementById("playerPage")
+      .classList.add("active");
+
+
+    document
+      .getElementById("clanPage")
+      .classList.remove("active");
+
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  }
+
+
+  /* =========================
+     ENTER KEY
+  ========================= */
+
+  document
+    .getElementById("searchInput")
+    .addEventListener(
+      "keydown",
+      function(event) {
+
+        if (event.key === "Enter") {
+
+          searchData();
+
+        }
+
+      }
+    );
 
 </script>
 
