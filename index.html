@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sarjana Checker</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #090b10;
+            --card: #11151d;
+            --card-light: #171c25;
+            --border: #272e3a;
+            --text: #f5f7fa;
+            --muted: #8e98a8;
+            --primary: #7657ff;
+            --primary-dark: #6244e8;
+            --success: #42d392;
+            --danger: #ff5d73;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at top,
+                    #171329 0%,
+                    #090b10 45%
+                );
+            color: var(--text);
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 720px;
+            margin: auto;
+            padding: 24px 14px 40px;
+        }
+
+        /* HEADER */
+
+        .header {
+            margin-bottom: 22px;
+        }
+
+        .title {
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: -0.7px;
+        }
+
+        /* MODE */
+
+        .mode {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+
+            padding: 5px;
+
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+
+            margin-bottom: 14px;
+        }
+
+        .mode button {
+            border: 0;
+            border-radius: 11px;
+
+            padding: 12px;
+
+            background: transparent;
+            color: var(--muted);
+
+            font-weight: 700;
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .mode button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* SEARCH */
+
+        .search-card {
+            padding: 15px;
+
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+
+            margin-bottom: 16px;
+        }
+
+        .search-label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 0;
+
+            padding: 13px 14px;
+
+            background: #0c0f15;
+            color: white;
+
+            border: 1px solid var(--border);
+            border-radius: 12px;
+
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+
+        .search-input::placeholder {
+            color: #626c7c;
+        }
+
+        .search-button {
+            width: 52px;
+            border: 0;
+            border-radius: 12px;
+
+            background: var(--primary);
+            color: white;
+
+            font-size: 18px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            transition: 0.15s;
+        }
+
+        .search-button:active {
+            transform: scale(0.95);
+        }
+
+        /* STATUS */
+
+        .status {
+            display: none;
+
+            padding: 12px 14px;
+
+            background: rgba(118, 87, 255, 0.1);
+            border: 1px solid rgba(118, 87, 255, 0.25);
+
+            border-radius: 12px;
+
+            color: #cfc6ff;
+            font-size: 13px;
+
+            margin-bottom: 14px;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        /* RESULT */
+
+        .result {
+            background: var(--card);
+            border: 1px solid var(--border);
+
+            border-radius: 20px;
+
+            overflow: hidden;
+        }
+
+        /* PLAYER */
+
+        .player-header {
+            padding: 18px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(118, 87, 255, 0.18),
+                    rgba(118, 87, 255, 0.02)
+                );
+        }
+
+        .player-name {
+            font-size: 21px;
+            font-weight: 800;
+
+            margin-bottom: 5px;
+        }
+
+        .player-xp {
+            color: #ffc857;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .player-tag {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* STATS */
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+
+            padding: 12px;
+        }
+
+        .stat {
+            padding: 13px;
+
+            background: var(--card-light);
+            border: 1px solid var(--border);
+
+            border-radius: 13px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 11px;
+
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        /* SECTION */
+
+        .section {
+            padding: 14px;
+            border-top: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+
+            margin-bottom: 11px;
+        }
+
+        /* HEROES */
+
+        .heroes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .hero {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            padding: 9px;
+
+            background: var(--card-light);
+            border: 1px solid var(--border);
+
+            border-radius: 13px;
+        }
+
+        .hero-image {
+            width: 44px;
+            height: 44px;
+
+            object-fit: contain;
+        }
+
+        .hero-name {
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .hero-level {
+            color: var(--muted);
+            font-size: 11px;
+
+            margin-top: 3px;
+        }
+
+        /* EQUIPMENT */
+
+        .equipment {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .equipment-item {
+            aspect-ratio: 1;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: var(--card-light);
+            border: 1px solid var(--border);
+
+            border-radius: 12px;
+        }
+
+        .equipment-item img {
+            width: 75%;
+            height: 75%;
+            object-fit: contain;
+        }
+
+        /* CLAN */
+
+        .clan-header {
+            padding: 18px;
+        }
+
+        .clan-name {
+            font-size: 20px;
+            font-weight: 800;
+
+            margin-bottom: 4px;
+        }
+
+        .clan-tag {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* MEMBERS */
+
+        .members {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .member {
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            padding: 11px;
+
+            background: var(--card-light);
+            border: 1px solid var(--border);
+
+            border-radius: 13px;
+
+            color: white;
+            text-align: left;
+
+            cursor: pointer;
+
+            transition: 0.15s;
+        }
+
+        .member:hover {
+            border-color: var(--primary);
+        }
+
+        .member:active {
+            transform: scale(0.99);
+        }
+
+        .member-rank {
+            width: 25px;
+
+            color: var(--muted);
+            font-size: 12px;
+
+            text-align: center;
+        }
+
+        .member-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .member-name {
+            overflow: hidden;
+
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 700;
+
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .member-tag {
+            color: var(--muted);
+            font-size: 10px;
+
+            margin-top: 3px;
+        }
+
+        .member-th {
+            padding: 5px 7px;
+
+            background: rgba(118, 87, 255, 0.12);
+            color: #cfc6ff;
+
+            border-radius: 7px;
+
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .member-arrow {
+            width: 8px;
+            height: 8px;
+
+            border-top: 2px solid var(--muted);
+            border-right: 2px solid var(--muted);
+
+            transform: rotate(45deg);
+
+            margin-right: 3px;
+        }
+
+        /* EMPTY */
+
+        .empty {
+            padding: 45px 20px;
+
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .empty-title {
+            color: white;
+            font-weight: 700;
+
+            margin-bottom: 6px;
+        }
+
+        .empty-text {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* FOOTER */
+
+        .footer {
+            padding-top: 20px;
+
+            color: #555e6d;
+            font-size: 11px;
+
+            text-align: center;
+        }
+
+        /* DESKTOP */
+
+        @media (min-width: 600px) {
+
+            .app {
+                padding-top: 40px;
+            }
+
+            .heroes {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <header class="header">
+        <h1 class="title">Sarjana Checker</h1>
+    </header>
+
+
+    <div class="mode">
+
+        <button
+            id="playerMode"
+            class="active"
+            onclick="setMode('player')"
+        >
+            Player
+        </button>
+
+        <button
+            id="clanMode"
+            onclick="setMode('clan')"
+        >
+            Clan
+        </button>
+
+    </div>
+
+
+    <div class="search-card">
+
+        <label
+            id="searchLabel"
+            class="search-label"
+        >
+            Player Tag
+        </label>
+
+        <div class="search-row">
+
+            <input
+                id="searchInput"
+                class="search-input"
+                type="text"
+                autocomplete="off"
+                placeholder="Contoh: #9UG9LJV8Y"
+            >
+
+            <button
+                class="search-button"
+                onclick="searchData()"
+                aria-label="Cari"
+            >
+                Cari
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="status"
+        class="status"
+    ></div>
+
+
+    <div id="result"></div>
+
+
+    <footer class="footer">
+        Sarjana Checker · Clash of Clans
+    </footer>
+
+</div>
+
+
+<script>
+
+    let currentMode = "player";
+
+
+    function setMode(mode) {
+
+        currentMode = mode;
+
+        const playerButton =
+            document.getElementById("playerMode");
+
+        const clanButton =
+            document.getElementById("clanMode");
+
+        const label =
+            document.getElementById("searchLabel");
+
+        const input =
+            document.getElementById("searchInput");
+
+
+        if (mode === "player") {
+
+            playerButton.classList.add("active");
+            clanButton.classList.remove("active");
+
+            label.textContent = "Player Tag";
+
+            input.placeholder =
+                "Contoh: #9UG9LJV8Y";
+
+        } else {
+
+            clanButton.classList.add("active");
+            playerButton.classList.remove("active");
+
+            label.textContent = "Clan Tag";
+
+            input.placeholder =
+                "Contoh: #2J0P2GR08";
+        }
+
+
+        input.value = "";
+
+        clearResult();
+    }
+
+
+    function showStatus(message) {
+
+        const status =
+            document.getElementById("status");
+
+        status.textContent = message;
+
+        status.classList.add("show");
+    }
+
+
+    function clearResult() {
+
+        document.getElementById(
+            "result"
+        ).innerHTML = "";
+
+        document.getElementById(
+            "status"
+        ).classList.remove("show");
+    }
+
+
+    function searchData() {
+
+        const input =
+            document.getElementById("searchInput");
+
+        const tag =
+            input.value.trim();
+
+
+        if (!tag) {
+
+            showStatus(
+                "Masukkan tag terlebih dahulu."
+            );
+
+            return;
+        }
+
+
+        showStatus(
+            "Mode demo. API belum disambungkan."
+        );
+
+
+        if (currentMode === "player") {
+
+            showPlayerDemo(tag);
+
+        } else {
+
+            showClanDemo(tag);
+        }
+    }
+
+
+    function showPlayerDemo(tag) {
+
+        document.getElementById("result").innerHTML = `
+
+            <div class="result">
+
+                <div class="player-header">
+
+                    <div class="player-name">
+                        HackeR
+                        <span class="player-xp">
+                            XP 276
+                        </span>
+                    </div>
+
+                    <div class="player-tag">
+                        ${escapeHtml(tag)}
+                    </div>
+
+                </div>
+
+
+                <div class="stats">
+
+                    <div class="stat">
+
+                        <div class="stat-label">
+                            Town Hall
+                        </div>
+
+                        <div class="stat-value">
+                            TH18
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat">
+
+                        <div class="stat-label">
+                            Trophy
+                        </div>
+
+                        <div class="stat-value">
+                            5,432
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat">
+
+                        <div class="stat-label">
+                            Builder
+                        </div>
+
+                        <div class="stat-value">
+                            2,890
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat">
+
+                        <div class="stat-label">
+                            War Stars
+                        </div>
+
+                        <div class="stat-value">
+                            1,234
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section">
+
+                    <div class="section-title">
+                        Heroes
+                    </div>
+
+
+                    <div class="heroes">
+
+                        ${hero(
+                            "Archer Queen",
+                            "assets/heroes/wwe_aq_pose01_no_shadow.png",
+                            "Level 95"
+                        )}
+
+                        ${hero(
+                            "Barbarian King",
+                            "assets/heroes/wwe_bk_pose03_shadow.png",
+                            "Level 95"
+                        )}
+
+                        ${hero(
+                            "Grand Warden",
+                            "assets/heroes/wwe_gw_pose02_shadow.png",
+                            "Level 70"
+                        )}
+
+                        ${hero(
+                            "Royal Champion",
+                            "assets/heroes/wwe_rc_pose04_shadow.png",
+                            "Level 45"
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="section">
+
+                    <div class="section-title">
+                        Hero Equipment
+                    </div>
+
+
+                    <div class="equipment">
+
+                        ${equipment(
+                            "Hero_Equipment_AQ_Frozen_Arrow.png"
+                        )}
+
+                        ${equipment(
+                            "Hero_Equipment_AQ_Giant_Arrow.png"
+                        )}
+
+                        ${equipment(
+                            "Hero_Equipment_BK_Rage_Vial.png"
+                        )}
+
+                        ${equipment(
+                            "Hero_Equipment_GW_Fireball.png"
+                        )}
+
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+    }
+
+
+    function hero(name, image, level) {
+
+        return `
+
+            <div class="hero">
+
+                <img
+                    class="hero-image"
+                    src="${image}"
+                    alt="${escapeHtml(name)}"
+                    onerror="this.style.display='none'"
+                >
+
+                <div>
+
+                    <div class="hero-name">
+                        ${escapeHtml(name)}
+                    </div>
+
+                    <div class="hero-level">
+                        ${level}
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+    }
+
+
+    function equipment(filename) {
+
+        return `
+
+            <div class="equipment-item">
+
+                <img
+                    src="assets/equipment/${filename}"
+                    alt="Equipment"
+                    onerror="this.style.display='none'"
+                >
+
+            </div>
+
+        `;
+    }
+
+
+    function showClanDemo(tag) {
+
+        const members = [
+
+            ["1", "HackeR", "#9UG9LJV8Y", "TH18"],
+            ["2", "MVR MUJIB", "#AAAA1111", "TH18"],
+            ["3", "SULTAN", "#BBBB2222", "TH17"],
+            ["4", "Mr.HABIBI", "#CCCC3333", "TH17"],
+            ["5", "Han Li", "#DDDD4444", "TH17"],
+            ["6", "Anak Presiden", "#EEEE5555", "TH16"],
+            ["7", "FAYLINE", "#FFFF6666", "TH16"],
+            ["8", "firdanz", "#GGGG7777", "TH16"]
+        ];
+
+
+        document.getElementById("result").innerHTML = `
+
+            <div class="result">
+
+                <div class="clan-header">
+
+                    <div class="clan-name">
+                        MAVERICS HAIBAR
+                    </div>
+
+                    <div class="clan-tag">
+                        ${escapeHtml(tag)}
+                    </div>
+
+                </div>
+
+
+                <div class="stats">
+
+                    <div class="stat">
+
+                        <div class="stat-label">
+                            Members
+                        </div>
+
+                        <div class="stat-value">
+                            50 / 50
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat">
+
+                        <div class="stat-label">
+                            Clan Level
+                        </div>
+
+                        <div class="stat-value">
+                            25
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section">
+
+                    <div class="section-title">
+                        Member List
+                    </div>
+
+
+                    <div class="members">
+
+                        ${members.map(member => `
+
+                            <button
+                                class="member"
+                                onclick="openMember('${member[2]}')"
+                            >
+
+                                <div class="member-rank">
+                                    ${member[0]}
+                                </div>
+
+                                <div class="member-info">
+
+                                    <div class="member-name">
+                                        ${escapeHtml(member[1])}
+                                    </div>
+
+                                    <div class="member-tag">
+                                        ${member[2]}
+                                    </div>
+
+                                </div>
+
+                                <div class="member-th">
+                                    ${member[3]}
+                                </div>
+
+                                <div class="member-arrow"></div>
+
+                            </button>
+
+                        `).join("")}
+
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+    }
+
+
+    function openMember(tag) {
+
+        setMode("player");
+
+        document.getElementById(
+            "searchInput"
+        ).value = tag;
+
+        showStatus(
+            "Membuka data Player..."
+        );
+
+        showPlayerDemo(tag);
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }
+
+
+    function escapeHtml(text) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent = text;
+
+        return div.innerHTML;
+    }
+
+
+    document
+        .getElementById("searchInput")
+        .addEventListener(
+            "keydown",
+            function(event) {
+
+                if (event.key === "Enter") {
+                    searchData();
+                }
+
+            }
+        );
+
+</script>
+
+</body>
+</html>
