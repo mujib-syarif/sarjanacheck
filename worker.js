@@ -1,3 +1,4 @@
+// Sarjana Checker API
 const COC_API = "https://api.clashofclans.com/v1";
 const ALLOWED_ORIGIN = "https://mujibsyarif.github.io";
 
