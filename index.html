@@ -3,386 +3,1004 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Sarjana Checker</title>
 
 <style>
-*{box-sizing:border-box}
+
+/* =========================================================
+   RESET
+========================================================= */
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
 body{
   margin:0;
-  font-family:Inter,Arial,sans-serif;
   background:#080b12;
-  color:#f4f7fb;
+  color:#f5f7fb;
+  font-family:Inter,Arial,Helvetica,sans-serif;
 }
-.container{
+
+
+/* =========================================================
+   APP
+========================================================= */
+
+.app{
   width:min(1100px,94%);
-  margin:auto;
+  margin:0 auto;
+  padding:35px 0 25px;
 }
-header{
-  padding:28px 0 20px;
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header{
+  margin-bottom:22px;
 }
-.logo{
-  font-size:28px;
+
+.brand-title{
+  font-size:30px;
   font-weight:900;
+  letter-spacing:-.5px;
 }
-.subtitle{
-  color:#8e98aa;
+
+.brand-sub{
   margin-top:5px;
+  color:#7f8ba0;
+  font-size:14px;
 }
-.search{
-  display:flex;
-  gap:10px;
-  margin:20px 0;
-}
-.search input{
-  flex:1;
-  background:#111722;
-  border:1px solid #293242;
-  color:white;
-  border-radius:12px;
+
+
+/* =========================================================
+   SEARCH PANEL
+========================================================= */
+
+.search-panel{
+  background:#10151f;
+  border:1px solid #202938;
+  border-radius:18px;
   padding:15px;
-  font-size:16px;
-  outline:none;
+  margin-bottom:18px;
 }
-.search button{
+
+.switch{
+  display:flex;
+  gap:5px;
+  margin-bottom:12px;
+}
+
+.switch button{
   border:0;
-  border-radius:12px;
-  padding:0 22px;
-  background:#fff;
-  color:#080b12;
+  background:transparent;
+  color:#7e899c;
+  padding:9px 15px;
+  border-radius:9px;
   font-weight:800;
   cursor:pointer;
 }
-.card{
+
+.switch button.active{
+  background:#26304a;
+  color:#fff;
+}
+
+.search-row{
+  display:flex;
+  gap:10px;
+}
+
+.search-row input{
+  flex:1;
+  min-width:0;
+  border:1px solid #293344;
+  background:#0b1018;
+  color:#fff;
+  outline:none;
+  border-radius:11px;
+  padding:14px;
+  font-size:15px;
+}
+
+.search-row input:focus{
+  border-color:#397de8;
+}
+
+.search-btn{
+  border:0;
+  background:#fff;
+  color:#080b12;
+  border-radius:11px;
+  padding:0 23px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.search-btn:hover{
+  background:#dfe6f0;
+}
+
+.hint{
+  margin-top:8px;
+  color:#687487;
+  font-size:11px;
+}
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.page{
+  display:none;
+}
+
+.page.active{
+  display:block;
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+.profile{
   background:#10151f;
   border:1px solid #202938;
   border-radius:18px;
   padding:20px;
   margin-bottom:18px;
 }
-.player-head{
+
+.profile-top{
   display:flex;
-  gap:16px;
-  align-items:center;
+  flex-direction:column;
+  align-items:flex-start;
 }
-.player-avatar{
-  width:76px;
-  height:76px;
-  border-radius:16px;
-  background:#171e2a;
+
+.player-name-row{
   display:flex;
   align-items:center;
-  justify-content:center;
-  overflow:hidden;
+  gap:8px;
+  flex-wrap:wrap;
 }
-.player-avatar img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-}
+
 .player-name{
-  font-size:25px;
+  font-size:26px;
   font-weight:900;
+  letter-spacing:-.3px;
 }
-.tag{
-  color:#8792a6;
-  font-size:14px;
-  margin-top:4px;
+
+
+/* =========================================================
+   XP BADGE
+========================================================= */
+
+.xp-badge{
+  background:#2f80ed;
+  color:#fff;
+  border-radius:6px;
+  padding:4px 7px;
+  font-size:11px;
+  line-height:1;
+  font-weight:900;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 1px 5px rgba(47,128,237,.25);
 }
-.clan{
+
+.player-tag{
+  margin-top:5px;
+  color:#7f8ba0;
+  font-size:13px;
+}
+
+
+/* =========================================================
+   CLAN LINK
+========================================================= */
+
+.clan-link{
   margin-top:10px;
-  color:#c8d0dc;
+  padding:0;
+  border:0;
+  background:none;
+  color:#4f9cff;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+  text-align:left;
 }
-.th{
-  margin-left:auto;
-  background:#202b3c;
-  border-radius:12px;
-  padding:10px 13px;
-  font-weight:900;
+
+.clan-link span{
+  color:#7f8ba0;
+  font-weight:500;
 }
+
+.clan-link:hover{
+  text-decoration:underline;
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
 .stats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:10px;
   margin-top:20px;
 }
+
 .stat{
   background:#0b1018;
+  border:1px solid #161e2b;
   border-radius:12px;
-  padding:15px;
+  padding:14px;
 }
-.stat-label{
-  font-size:12px;
-  color:#7f899b;
-}
+
 .stat-value{
-  margin-top:5px;
   font-size:20px;
   font-weight:900;
 }
+
+.stat-label{
+  margin-top:4px;
+  color:#707c90;
+  font-size:10px;
+  font-weight:700;
+}
+
+
+/* =========================================================
+   SECTION
+========================================================= */
+
+.section{
+  background:#10151f;
+  border:1px solid #202938;
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:18px;
+}
+
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
+}
+
 .section-title{
   font-size:20px;
   font-weight:900;
-  margin-bottom:14px;
 }
+
+.section-value{
+  color:#7f8ba0;
+  font-size:12px;
+}
+
+
+/* =========================================================
+   MAIN HERO PROGRESS
+========================================================= */
+
+.progress-main{
+  height:6px;
+  background:#202938;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.progress-fill{
+  height:100%;
+  background:#397de8;
+}
+
+.progress-info{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:7px;
+  color:#697589;
+  font-size:10px;
+}
+
+
+/* =========================================================
+   HERO GRID
+========================================================= */
+
 .hero-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
 }
-.hero{
+
+.hero-card{
   background:#0b1018;
   border:1px solid #202938;
-  border-radius:15px;
-  padding:14px;
+  border-radius:14px;
+  padding:13px;
+  min-width:0;
+}
+
+.hero-card-top{
   display:flex;
-  gap:12px;
   align-items:center;
+  gap:10px;
 }
-.hero.locked{
-  opacity:.45;
-}
-.hero-img{
-  width:58px;
-  height:58px;
-  flex-shrink:0;
+
+.hero-image{
+  width:50px;
+  height:50px;
+  flex:0 0 50px;
   display:flex;
   align-items:center;
   justify-content:center;
 }
-.hero-img img{
+
+.hero-image img{
   width:100%;
   height:100%;
   object-fit:contain;
 }
-.hero-name{
-  font-weight:800;
+
+.hero-info{
+  min-width:0;
 }
+
+.hero-name{
+  font-size:13px;
+  font-weight:900;
+  line-height:1.15;
+}
+
 .hero-level{
   margin-top:4px;
-  color:#aeb7c6;
-  font-size:13px;
+  color:#c3cad5;
+  font-size:12px;
 }
-.progress{
-  height:5px;
-  margin-top:8px;
+
+.hero-max{
+  color:#6f7a8d;
+  font-size:10px;
+  margin-top:2px;
+}
+
+.hero-progress{
+  height:4px;
+  margin-top:10px;
   background:#202938;
-  border-radius:5px;
+  border-radius:10px;
   overflow:hidden;
 }
-.progress span{
+
+.hero-progress span{
   display:block;
   height:100%;
-  background:#fff;
+  background:#397de8;
 }
-.equipment-info{
-  color:#8e98aa;
-  font-size:13px;
-  margin-top:-8px;
-  margin-bottom:15px;
-}
+
+
+/* =========================================================
+   EQUIPMENT GRID
+========================================================= */
+
 .equipment-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  grid-template-columns:repeat(5,minmax(0,1fr));
   gap:10px;
 }
-.equipment{
+
+.equipment-card{
   background:#0b1018;
   border:1px solid #202938;
   border-radius:14px;
-  padding:12px;
-  min-height:105px;
+  padding:11px;
+  min-width:0;
 }
-.equipment.locked{
-  opacity:.42;
+
+.equipment-card.locked{
+  opacity:.38;
 }
+
 .equipment-top{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:9px;
+  min-width:0;
 }
-.equipment-img{
+
+.equipment-image{
   width:48px;
   height:48px;
-  flex-shrink:0;
+  flex:0 0 48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
-.equipment-img img{
+
+.equipment-image img{
   width:100%;
   height:100%;
   object-fit:contain;
 }
+
+.equipment-info{
+  min-width:0;
+}
+
 .equipment-name{
+  font-size:12px;
+  font-weight:900;
+  line-height:1.15;
+  word-break:break-word;
+}
+
+.equipment-hero{
+  color:#6f7a8d;
+  font-size:9px;
+  margin-top:3px;
+}
+
+.equipment-status{
+  margin-top:9px;
+  color:#aab4c4;
+  font-size:11px;
+  font-weight:500;
+}
+
+.equipment-status.owned{
+  color:#fff;
+  font-weight:900;
+}
+
+.equipment-status.locked-text{
+  color:#687386;
+}
+
+
+/* =========================================================
+   PRIORITY / ACCOUNT DATA
+========================================================= */
+
+.priority{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  background:#0b1018;
+  border:1px solid #1b2432;
+  border-radius:11px;
+  padding:12px;
+  margin-top:8px;
+}
+
+.priority-name{
   font-size:13px;
   font-weight:800;
 }
-.equipment-hero{
-  color:#737e91;
+
+.priority-desc{
+  margin-top:3px;
+  color:#727e91;
   font-size:11px;
-  margin-top:2px;
 }
-.equipment-status{
-  margin-top:9px;
-  font-size:12px;
+
+
+/* =========================================================
+   CLAN PAGE
+========================================================= */
+
+.back-btn{
+  border:1px solid #293344;
+  background:#10151f;
   color:#aeb7c6;
+  border-radius:10px;
+  padding:9px 13px;
+  cursor:pointer;
+  margin-bottom:12px;
 }
-.equipment-status.owned{
+
+.back-btn:hover{
   color:#fff;
-  font-weight:700;
+  border-color:#465064;
 }
-.equipment-status.lock{
-  color:#697386;
-}
-.empty{
-  text-align:center;
-  color:#7f899b;
-  padding:30px;
-}
-.loading{
-  text-align:center;
-  padding:35px;
-  color:#8e98aa;
-}
-.error{
-  background:#251318;
-  border:1px solid #5b2834;
-  color:#ff9eac;
-  border-radius:12px;
-  padding:15px;
+
+.clan-header{
+  background:#10151f;
+  border:1px solid #202938;
+  border-radius:18px;
+  padding:20px;
   margin-bottom:18px;
 }
-.hidden{
-  display:none;
+
+.clan-name{
+  font-size:25px;
+  font-weight:900;
 }
-footer{
-  text-align:center;
-  padding:30px 0;
+
+.clan-tag{
+  margin-top:5px;
+  color:#7e899c;
+  font-size:13px;
+}
+
+.clan-stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:18px;
+}
+
+.member-list{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.member{
+  width:100%;
+  border:1px solid #202938;
+  background:#0b1018;
+  color:#fff;
+  border-radius:12px;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  cursor:pointer;
+  text-align:left;
+}
+
+.member:hover{
+  border-color:#397de8;
+}
+
+.member-rank{
+  width:28px;
   color:#687386;
+  font-size:11px;
+  font-weight:900;
+}
+
+.member-info{
+  flex:1;
+  min-width:0;
+}
+
+.member-name{
+  font-size:13px;
+  font-weight:900;
+}
+
+.member-detail{
+  margin-top:3px;
+  color:#6f7a8d;
+  font-size:10px;
+}
+
+.member-th{
+  color:#aeb7c6;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+/* =========================================================
+   LOADING / ERROR
+========================================================= */
+
+.loading-box{
+  background:#10151f;
+  border:1px solid #202938;
+  border-radius:18px;
+  padding:35px;
+  text-align:center;
+  color:#7f8ba0;
+}
+
+.error-box{
+  background:#191015;
+  border:1px solid #512530;
+  color:#ff9eaa;
+  border-radius:14px;
+  padding:15px;
+}
+
+.error-title{
+  font-weight:900;
+}
+
+.error-desc{
+  margin-top:5px;
+  color:#a97880;
   font-size:12px;
 }
-@media(max-width:700px){
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer{
+  text-align:center;
+  color:#505b6d;
+  font-size:10px;
+  line-height:1.6;
+  margin-top:25px;
+}
+
+.footer a{
+  display:inline-block;
+  margin-top:3px;
+  color:#4f9cff;
+  text-decoration:none;
+  font-weight:800;
+}
+
+.footer a:hover{
+  text-decoration:underline;
+}
+
+
+/* =========================================================
+   DESKTOP
+========================================================= */
+
+@media(min-width:900px){
+
+  .app{
+    padding-top:35px;
+  }
+
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media(max-width:899px){
+
+  .hero-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+
+  .equipment-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:599px){
+
+  .app{
+    width:94%;
+    padding-top:20px;
+  }
+
+  .brand-title{
+    font-size:25px;
+  }
+
+  .brand-sub{
+    font-size:12px;
+  }
+
+  .search-row{
+    gap:7px;
+  }
+
+  .search-btn{
+    padding:0 15px;
+  }
+
+  .profile,
+  .section,
+  .clan-header{
+    padding:14px;
+    border-radius:15px;
+  }
+
+  .player-name{
+    font-size:21px;
+  }
+
   .stats{
     grid-template-columns:repeat(2,1fr);
   }
-  .player-head{
-    align-items:flex-start;
+
+  /*
+   * MOBILE HERO = 2 KOLOM
+   */
+
+  .hero-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
   }
-  .th{
-    margin-left:auto;
+
+  .hero-card{
+    padding:10px;
   }
-  .search button{
-    padding:0 15px;
+
+  .hero-card-top{
+    gap:7px;
   }
+
+  .hero-image{
+    width:42px;
+    height:42px;
+    flex-basis:42px;
+  }
+
+  .hero-name{
+    font-size:11px;
+  }
+
+  .hero-level{
+    font-size:10px;
+  }
+
+  .hero-max{
+    font-size:9px;
+  }
+
+  /*
+   * MOBILE EQUIPMENT = 2 KOLOM
+   */
+
+  .equipment-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .equipment-card{
+    padding:9px;
+  }
+
+  .equipment-top{
+    gap:7px;
+  }
+
+  .equipment-image{
+    width:40px;
+    height:40px;
+    flex-basis:40px;
+  }
+
+  .equipment-name{
+    font-size:10px;
+  }
+
+  .equipment-hero{
+    font-size:8px;
+  }
+
+  .equipment-status{
+    font-size:10px;
+    margin-top:7px;
+  }
+
+  .clan-stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .section-title{
+    font-size:17px;
+  }
+
+  .section-value{
+    font-size:10px;
+  }
+
 }
+
+
+/* =========================================================
+   VERY SMALL PHONE
+========================================================= */
+
+@media(max-width:360px){
+
+  .equipment-image{
+    width:34px;
+    height:34px;
+    flex-basis:34px;
+  }
+
+  .equipment-name{
+    font-size:9px;
+  }
+
+  .equipment-status{
+    font-size:9px;
+  }
+
+  .hero-image{
+    width:36px;
+    height:36px;
+    flex-basis:36px;
+  }
+
+}
+
 </style>
 </head>
 
+
 <body>
 
-<div class="container">
+<div class="app">
 
-<header>
-  <div class="logo">Sarjana Checker</div>
-  <div class="subtitle">Clash of Clans Player Analyzer</div>
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="header">
+
+  <div class="brand-title">
+    Sarjana Checker
+  </div>
+
+  <div class="brand-sub">
+    Clash of Clans Account Analyzer
+  </div>
+
 </header>
 
-<div class="search">
-  <input id="tagInput" placeholder="Masukkan Player Tag, contoh #9UG9LJV8Y">
-  <button onclick="checkPlayer()">Check</button>
-</div>
 
-<div id="error" class="error hidden"></div>
-<div id="loading" class="loading hidden">Mengambil data player...</div>
+<!-- =====================================================
+     SEARCH
+===================================================== -->
 
-<main id="result" class="hidden">
+<section class="search-panel">
 
-  <div class="card">
+  <div class="switch">
 
-    <div class="player-head">
+    <button
+      id="playerTab"
+      class="active"
+      onclick="setMode('player')"
+    >
+      PLAYER
+    </button>
 
-      <div class="player-avatar">
-        <img id="playerAvatar" src="" alt="">
-      </div>
-
-      <div>
-        <div class="player-name" id="playerName">-</div>
-        <div class="tag" id="playerTag">-</div>
-        <div class="clan" id="playerClan">-</div>
-      </div>
-
-      <div class="th" id="playerTH">TH -</div>
-
-    </div>
-
-    <div class="stats">
-
-      <div class="stat">
-        <div class="stat-label">XP Level</div>
-        <div class="stat-value" id="xp">-</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-label">Trophies</div>
-        <div class="stat-value" id="trophies">-</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-label">War Stars</div>
-        <div class="stat-value" id="warStars">-</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-label">Donations</div>
-        <div class="stat-value" id="donations">-</div>
-      </div>
-
-    </div>
+    <button
+      id="clanTab"
+      onclick="setMode('clan')"
+    >
+      CLAN
+    </button>
 
   </div>
 
 
-  <div class="card">
+  <div class="search-row">
 
-    <div class="section-title">
-      Hero Progress
-    </div>
+    <input
+      id="searchInput"
+      type="text"
+      placeholder="Masukkan Player Tag"
+      autocomplete="off"
+    >
 
-    <div id="heroGrid" class="hero-grid"></div>
-
-  </div>
-
-
-  <div id="equipmentSection" class="card">
-
-    <div class="section-title">
-      Hero Equipment
-    </div>
-
-    <div id="equipmentInfo" class="equipment-info"></div>
-
-    <div id="equipmentGrid" class="equipment-grid"></div>
+    <button
+      class="search-btn"
+      onclick="searchData()"
+    >
+      CHECK
+    </button>
 
   </div>
+
+
+  <div
+    class="hint"
+    id="searchHint"
+  >
+    Contoh: #9UG9LJV8Y
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     PLAYER PAGE
+===================================================== -->
+
+<main
+  id="playerPage"
+  class="page active"
+>
+
+  <div id="playerContent"></div>
 
 </main>
 
-<footer>
-  Clash of Clans Tag Tracker by: Mujib, S.Coc.<br>
-  TikTok: @mujib_syarif
+
+<!-- =====================================================
+     CLAN PAGE
+===================================================== -->
+
+<main
+  id="clanPage"
+  class="page"
+>
+
+  <button
+    class="back-btn"
+    onclick="showPlayer()"
+  >
+    ← Kembali ke Player
+  </button>
+
+  <div id="clanContent"></div>
+
+</main>
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer class="footer">
+
+  <div>
+    Clash of Clans Tag Tracker by: Mujib, S.Coc.
+  </div>
+
+  <a
+    href="https://www.tiktok.com/@mujib_syarif"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    TikTok: @mujib_syarif
+  </a>
+
 </footer>
+
 
 </div>
 
 
 <script>
 
+/* ========================================================
+   API
+======================================================== */
+
 const API_BASE =
   "https://sarjana-checker-api.basenama.workers.dev";
 
 
-/*
-|--------------------------------------------------------------------------
-| HERO CONFIG
-|--------------------------------------------------------------------------
-*/
+let mode = "player";
+
+let currentPlayer = null;
+
+let currentClan = null;
+
+
+/* ========================================================
+   HERO CONFIG
+======================================================== */
 
 const HEROES = [
 
@@ -431,72 +1049,135 @@ const HEROES = [
 ];
 
 
-/*
-|--------------------------------------------------------------------------
-| MAX HERO LEVEL PER TOWN HALL
-|--------------------------------------------------------------------------
-*/
+/* ========================================================
+   HERO MAX LEVEL
+======================================================== */
 
 const HERO_MAX = {
 
-  4:  {BK:1},
-  5:  {BK:1},
-  6:  {BK:1},
+  4:{
+    BK:1
+  },
 
-  7:  {BK:10},
+  5:{
+    BK:1
+  },
 
-  8:  {BK:20,AQ:10},
+  6:{
+    BK:1
+  },
 
-  9:  {BK:30,AQ:30,MP:10},
+  7:{
+    BK:10
+  },
 
-  10: {BK:40,AQ:40,MP:20},
+  8:{
+    BK:20,
+    AQ:10
+  },
 
-  11: {BK:50,AQ:50,MP:30,GW:20},
+  9:{
+    BK:30,
+    AQ:30,
+    MP:10
+  },
 
-  12: {BK:65,AQ:65,MP:40,GW:40},
+  10:{
+    BK:40,
+    AQ:40,
+    MP:20
+  },
 
-  13: {BK:75,AQ:75,MP:50,GW:50,RC:25},
+  11:{
+    BK:50,
+    AQ:50,
+    MP:30,
+    GW:20
+  },
 
-  14: {BK:85,AQ:85,MP:60,GW:60,RC:30},
+  12:{
+    BK:65,
+    AQ:65,
+    MP:40,
+    GW:40
+  },
 
-  15: {BK:90,AQ:90,MP:70,GW:65,RC:40,DD:10},
+  13:{
+    BK:75,
+    AQ:75,
+    MP:50,
+    GW:50,
+    RC:25
+  },
 
-  16: {BK:95,AQ:95,MP:80,GW:70,RC:45,DD:15},
+  14:{
+    BK:85,
+    AQ:85,
+    MP:60,
+    GW:60,
+    RC:30
+  },
 
-  17: {BK:100,AQ:100,MP:90,GW:75,RC:50,DD:20},
+  15:{
+    BK:90,
+    AQ:90,
+    MP:70,
+    GW:65,
+    RC:40,
+    DD:10
+  },
 
-  18: {BK:110,AQ:110,MP:95,GW:85,RC:55,DD:25}
+  16:{
+    BK:95,
+    AQ:95,
+    MP:80,
+    GW:70,
+    RC:45,
+    DD:15
+  },
+
+  17:{
+    BK:100,
+    AQ:100,
+    MP:90,
+    GW:75,
+    RC:50,
+    DD:20
+  },
+
+  18:{
+    BK:110,
+    AQ:110,
+    MP:95,
+    GW:85,
+    RC:55,
+    DD:25
+  }
 
 };
 
 
-/*
-|--------------------------------------------------------------------------
-| 42 EQUIPMENT
-|--------------------------------------------------------------------------
-|
-| unlockTH:
-| - equipment default/common mengikuti hero atau Blacksmith
-| - epic menggunakan TH unlock yang diketahui
-|
-|--------------------------------------------------------------------------
-*/
+/* ========================================================
+   EQUIPMENT CATALOG
+======================================================== */
 
 const EQUIPMENT = [
 
-  /* BARBARIAN KING */
+  /* =========================
+     BARBARIAN KING
+  ========================= */
 
   {
     name:"Barbarian Puppet",
     hero:"Barbarian King",
-    unlockTH:4,
+    unlockTH:8,
     image:"assets/equipment/Hero_Equipment_BK_Barbarian_Puppet.png"
   },
 
   {
     name:"Rage Vial",
     hero:"Barbarian King",
-    unlockTH:4,
+    unlockTH:8,
     image:"assets/equipment/Hero_Equipment_BK_Rage_Vial.png"
   },
 
@@ -543,7 +1224,9 @@ const EQUIPMENT = [
   },
 
 
-  /* ARCHER QUEEN */
+  /* =========================
+     ARCHER QUEEN
+  ========================= */
 
   {
     name:"Archer Puppet",
@@ -602,7 +1285,9 @@ const EQUIPMENT = [
   },
 
 
-  /* MINION PRINCE */
+  /* =========================
+     MINION PRINCE
+  ========================= */
 
   {
     name:"Henchmen Puppet",
@@ -647,7 +1332,9 @@ const EQUIPMENT = [
   },
 
 
-  /* GRAND WARDEN */
+  /* =========================
+     GRAND WARDEN
+  ========================= */
 
   {
     name:"Eternal Tome",
@@ -673,7 +1360,7 @@ const EQUIPMENT = [
   {
     name:"Healing Tome",
     hero:"Grand Warden",
-    unlockTH:13,
+    unlockTH:12,
     image:"assets/equipment/Hero_Equipment_GW_Healing_Tome.png"
   },
 
@@ -699,7 +1386,9 @@ const EQUIPMENT = [
   },
 
 
-  /* ROYAL CHAMPION */
+  /* =========================
+     ROYAL CHAMPION
+  ========================= */
 
   {
     name:"Royal Gem",
@@ -751,7 +1440,9 @@ const EQUIPMENT = [
   },
 
 
-  /* DRAGON DUKE */
+  /* =========================
+     DRAGON DUKE
+  ========================= */
 
   {
     name:"Fire Heart",
@@ -798,11 +1489,9 @@ const EQUIPMENT = [
 ];
 
 
-/*
-|--------------------------------------------------------------------------
-| HELPERS
-|--------------------------------------------------------------------------
-*/
+/* ========================================================
+   HELPERS
+======================================================== */
 
 function escapeHTML(value){
 
@@ -816,12 +1505,33 @@ function escapeHTML(value){
 }
 
 
-function normalizeTag(tag){
+function formatNumber(value){
 
-  tag = tag.trim().toUpperCase();
+  const number =
+    Number(value);
 
-  if(!tag.startsWith("#")){
-    tag = "#" + tag;
+  if(!Number.isFinite(number)){
+    return "-";
+  }
+
+  return number.toLocaleString("en-US");
+
+}
+
+
+function cleanTag(value){
+
+  let tag =
+    String(value || "")
+      .trim()
+      .toUpperCase();
+
+  if(
+    tag &&
+    !tag.startsWith("#")
+  ){
+    tag =
+      "#" + tag;
   }
 
   return tag;
@@ -829,462 +1539,1657 @@ function normalizeTag(tag){
 }
 
 
-function showError(message){
+function normalizeName(value){
 
-  const el = document.getElementById("error");
-
-  el.textContent = message;
-  el.classList.remove("hidden");
-
-}
-
-
-function hideError(){
-
-  document.getElementById("error")
-    .classList.add("hidden");
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g," ");
 
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| HERO DATA
-|--------------------------------------------------------------------------
-*/
+/* ========================================================
+   API REQUEST
+======================================================== */
 
-function renderHeroes(player){
+async function apiGet(endpoint,tag){
 
-  const th = player.townHallLevel || 1;
+  const clean =
+    cleanTag(tag);
 
-  const apiHeroes = player.heroes || [];
+  const url =
+    `${API_BASE}/${endpoint}?tag=${encodeURIComponent(clean)}`;
 
-  const heroGrid =
-    document.getElementById("heroGrid");
+  const response =
+    await fetch(url);
 
-  heroGrid.innerHTML = "";
+  let data = null;
 
-  const caps = HERO_MAX[th] || {};
+  try{
 
-  HEROES.forEach(hero => {
+    data =
+      await response.json();
 
-    if(th < hero.unlockTH){
-      return;
-    }
+  }catch(error){
 
-    const apiHero =
-      apiHeroes.find(
-        h => h.name === hero.key
-      );
-
-    let level = apiHero?.level ?? 0;
-
-    /*
-     * BK TH4-6 memang tersedia,
-     * tetapi level maksimalnya 1.
-     */
-
-    if(hero.short === "BK" && th <= 6){
-      level = apiHero?.level ?? 1;
-    }
-
-    const max =
-      caps[hero.short] ?? level;
-
-    const percentage =
-      max > 0
-      ? Math.min(100,(level/max)*100)
-      : 0;
-
-    const card =
-      document.createElement("div");
-
-    card.className = "hero";
-
-    card.innerHTML = `
-
-      <div class="hero-img">
-
-        <img
-          src="${hero.image}"
-          alt="${escapeHTML(hero.key)}"
-          onerror="this.style.display='none'"
-        >
-
-      </div>
-
-      <div style="flex:1">
-
-        <div class="hero-name">
-          ${escapeHTML(hero.key)}
-        </div>
-
-        <div class="hero-level">
-          Level ${level} / ${max}
-        </div>
-
-        <div class="progress">
-          <span style="width:${percentage}%"></span>
-        </div>
-
-      </div>
-
-    `;
-
-    heroGrid.appendChild(card);
-
-  });
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| EQUIPMENT
-|--------------------------------------------------------------------------
-*/
-
-function renderEquipment(player){
-
-  const th =
-    player.townHallLevel || 1;
-
-  const section =
-    document.getElementById("equipmentSection");
-
-  const grid =
-    document.getElementById("equipmentGrid");
-
-  const info =
-    document.getElementById("equipmentInfo");
-
-
-  /*
-   * Blacksmith baru ada mulai TH8.
-   */
-
-  if(th < 8){
-
-    section.classList.add("hidden");
-
-    return;
-
-  }
-
-  section.classList.remove("hidden");
-
-  info.textContent =
-    `Equipment tersedia mulai TH8. Total katalog: ${EQUIPMENT.length} item.`;
-
-  grid.innerHTML = "";
-
-
-  const apiEquipment = [];
-
-  /*
-   * API equipment berada di dalam data heroes.
-   */
-
-  (player.heroes || []).forEach(hero => {
-
-    (hero.equipment || []).forEach(item => {
-
-      apiEquipment.push({
-        ...item,
-        hero:hero.name
-      });
-
-    });
-
-  });
-
-
-  EQUIPMENT.forEach(item => {
-
-    const owned =
-      apiEquipment.find(
-        x => x.name === item.name
-      );
-
-    const locked =
-      th < item.unlockTH;
-
-
-    let status = "";
-
-    if(locked){
-
-      status =
-        `Terkunci · TH${item.unlockTH}`;
-
-    }else if(owned){
-
-      const level =
-        owned.level ?? "-";
-
-      const max =
-        owned.maxLevel ?? "-";
-
-      status =
-        `Lv ${level} / ${max}`;
-
-    }else{
-
-      status =
-        "Belum dimiliki";
-
-    }
-
-
-    const card =
-      document.createElement("div");
-
-    card.className =
-      "equipment" +
-      (locked ? " locked" : "");
-
-
-    card.innerHTML = `
-
-      <div class="equipment-top">
-
-        <div class="equipment-img">
-
-          <img
-            src="${item.image}"
-            alt="${escapeHTML(item.name)}"
-            onerror="
-              this.style.display='none';
-            "
-          >
-
-        </div>
-
-        <div>
-
-          <div class="equipment-name">
-            ${escapeHTML(item.name)}
-          </div>
-
-          <div class="equipment-hero">
-            ${escapeHTML(item.hero)}
-          </div>
-
-        </div>
-
-      </div>
-
-      <div class="
-        equipment-status
-        ${owned && !locked ? "owned" : ""}
-        ${locked ? "lock" : ""}
-      ">
-        ${escapeHTML(status)}
-      </div>
-
-    `;
-
-    grid.appendChild(card);
-
-  });
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| PLAYER
-|--------------------------------------------------------------------------
-*/
-
-function renderPlayer(player){
-
-  document
-    .getElementById("playerName")
-    .textContent =
-      player.name || "-";
-
-
-  document
-    .getElementById("playerTag")
-    .textContent =
-      player.tag || "-";
-
-
-  document
-    .getElementById("playerTH")
-    .textContent =
-      "TH " + (player.townHallLevel || "-");
-
-
-  document
-    .getElementById("xp")
-    .textContent =
-      player.expLevel ?? "-";
-
-
-  document
-    .getElementById("trophies")
-    .textContent =
-      player.trophies ?? "-";
-
-
-  document
-    .getElementById("warStars")
-    .textContent =
-      player.warStars ?? "-";
-
-
-  document
-    .getElementById("donations")
-    .textContent =
-      player.donations ?? "-";
-
-
-  const clan =
-    player.clan;
-
-
-  document
-    .getElementById("playerClan")
-    .textContent =
-      clan
-      ? `${clan.name} · ${clan.tag}`
-      : "Tidak memiliki clan";
-
-
-  renderHeroes(player);
-
-  renderEquipment(player);
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| API
-|--------------------------------------------------------------------------
-*/
-
-async function checkPlayer(){
-
-  hideError();
-
-  const input =
-    document.getElementById("tagInput");
-
-  const tag =
-    normalizeTag(input.value);
-
-
-  if(tag.length < 4){
-
-    showError(
-      "Masukkan Player Tag terlebih dahulu."
+    throw new Error(
+      "Respons API tidak valid."
     );
 
+  }
+
+
+  if(!response.ok){
+
+    const message =
+      data?.details?.message ||
+      data?.error ||
+      `HTTP ${response.status}`;
+
+    throw new Error(message);
+
+  }
+
+  return data;
+
+}
+
+
+/* ========================================================
+   MODE PLAYER / CLAN
+======================================================== */
+
+function setMode(type){
+
+  mode = type;
+
+  const playerTab =
+    document.getElementById("playerTab");
+
+  const clanTab =
+    document.getElementById("clanTab");
+
+  const input =
+    document.getElementById("searchInput");
+
+  const hint =
+    document.getElementById("searchHint");
+
+
+  if(type === "player"){
+
+    playerTab.classList.add("active");
+
+    clanTab.classList.remove("active");
+
+    input.placeholder =
+      "Masukkan Player Tag";
+
+    hint.textContent =
+      "Contoh: #9UG9LJV8Y";
+
+    showPlayer(false);
+
+  }else{
+
+    clanTab.classList.add("active");
+
+    playerTab.classList.remove("active");
+
+    input.placeholder =
+      "Masukkan Clan Tag";
+
+    hint.textContent =
+      "Contoh: #2J0P2GR08";
+
+    showClan(false);
+
+  }
+
+}
+
+
+/* ========================================================
+   SEARCH
+======================================================== */
+
+async function searchData(){
+
+  const input =
+    document.getElementById("searchInput");
+
+  const value =
+    cleanTag(input.value);
+
+  if(
+    !value ||
+    value === "#"
+  ){
+
     return;
 
   }
 
 
-  const loading =
-    document.getElementById("loading");
+  if(mode === "player"){
 
-  const result =
-    document.getElementById("result");
+    await loadPlayer(value);
+
+  }else{
+
+    await loadClan(value);
+
+  }
+
+}
 
 
-  loading.classList.remove("hidden");
+/* ========================================================
+   LOADING
+======================================================== */
 
-  result.classList.add("hidden");
+function setLoading(message){
+
+  const target =
+    mode === "player"
+      ? "playerContent"
+      : "clanContent";
+
+  document.getElementById(target).innerHTML = `
+
+    <div class="loading-box">
+
+      ${escapeHTML(message)}
+
+    </div>
+
+  `;
+
+}
+
+
+/* ========================================================
+   ERROR
+======================================================== */
+
+function setError(message){
+
+  const target =
+    mode === "player"
+      ? "playerContent"
+      : "clanContent";
+
+  document.getElementById(target).innerHTML = `
+
+    <div class="error-box">
+
+      <div class="error-title">
+        Gagal mengambil data
+      </div>
+
+      <div class="error-desc">
+        ${escapeHTML(message)}
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ========================================================
+   SHOW PLAYER
+======================================================== */
+
+function showPlayer(scroll = true){
+
+  document
+    .getElementById("playerPage")
+    .classList.add("active");
+
+  document
+    .getElementById("clanPage")
+    .classList.remove("active");
+
+
+  if(scroll){
+
+    window.scrollTo({
+      top:0,
+      behavior:"smooth"
+    });
+
+  }
+
+}
+
+
+/* ========================================================
+   SHOW CLAN
+======================================================== */
+
+function showClan(scroll = true){
+
+  document
+    .getElementById("playerPage")
+    .classList.remove("active");
+
+  document
+    .getElementById("clanPage")
+    .classList.add("active");
+
+
+  if(scroll){
+
+    window.scrollTo({
+      top:0,
+      behavior:"smooth"
+    });
+
+  }
+
+}
+
+
+/* ========================================================
+   LOAD PLAYER
+======================================================== */
+
+async function loadPlayer(tag){
+
+  mode = "player";
+
+  showPlayer(false);
+
+  setLoading(
+    "Mengambil data player..."
+  );
 
 
   try{
 
-    const url =
-      `${API_BASE}/player?tag=${encodeURIComponent(tag)}`;
-
-
-    const response =
-      await fetch(url);
-
-
-    if(!response.ok){
-
-      let message =
-        `Gagal mengambil data. HTTP ${response.status}`;
-
-      try{
-
-        const errorData =
-          await response.json();
-
-        if(errorData.error){
-          message = errorData.error;
-        }
-
-      }catch(e){}
-
-      throw new Error(message);
-
-    }
-
-
     const player =
-      await response.json();
+      await apiGet(
+        "player",
+        tag
+      );
 
+    currentPlayer =
+      player;
 
     renderPlayer(player);
 
-    result.classList.remove("hidden");
-
-
   }catch(error){
 
-    showError(
-      error.message ||
-      "Terjadi kesalahan saat mengambil data player."
+    setError(
+      error.message
     );
-
-  }finally{
-
-    loading.classList.add("hidden");
 
   }
 
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| ENTER KEY
-|--------------------------------------------------------------------------
-*/
+/* ========================================================
+   LOAD CLAN
+======================================================== */
+
+async function loadClan(tag){
+
+  mode = "clan";
+
+  showClan(false);
+
+  setLoading(
+    "Mengambil data clan..."
+  );
+
+
+  try{
+
+    const clan =
+      await apiGet(
+        "clan",
+        tag
+      );
+
+    currentClan =
+      clan;
+
+    renderClan(clan);
+
+  }catch(error){
+
+    setError(
+      error.message
+    );
+
+  }
+
+}
+
+
+/* ========================================================
+   GET PLAYER EQUIPMENT
+======================================================== */
+
+function getPlayerEquipment(player){
+
+  const result = [];
+
+
+  /*
+   * FORMAT UTAMA
+   */
+
+  if(
+    Array.isArray(
+      player.heroEquipment
+    )
+  ){
+
+    result.push(
+      ...player.heroEquipment
+    );
+
+  }
+
+
+  /*
+   * FORMAT ALTERNATIF
+   */
+
+  if(
+    Array.isArray(
+      player.heroEquipments
+    )
+  ){
+
+    result.push(
+      ...player.heroEquipments
+    );
+
+  }
+
+
+  /*
+   * FORMAT ALTERNATIF LAGI
+   */
+
+  if(
+    Array.isArray(
+      player.equipment
+    )
+  ){
+
+    result.push(
+      ...player.equipment
+    );
+
+  }
+
+
+  /*
+   * FALLBACK:
+   * beberapa proxy/API wrapper
+   * bisa meletakkan equipment
+   * di object heroes.
+   */
+
+  if(
+    Array.isArray(
+      player.heroes
+    )
+  ){
+
+    for(
+      const hero of player.heroes
+    ){
+
+      if(
+        !Array.isArray(
+          hero.equipment
+        )
+      ){
+
+        continue;
+
+      }
+
+
+      for(
+        const item of hero.equipment
+      ){
+
+        if(!item){
+          continue;
+        }
+
+
+        result.push({
+
+          ...item,
+
+          hero:
+            item.hero ||
+            hero.name ||
+            ""
+
+        });
+
+      }
+
+    }
+
+  }
+
+
+  /*
+   * DEDUPLICATE
+   */
+
+  const unique =
+    new Map();
+
+
+  for(
+    const item of result
+  ){
+
+    if(
+      !item ||
+      !item.name
+    ){
+
+      continue;
+
+    }
+
+
+    const key =
+      normalizeName(
+        item.name
+      );
+
+
+    unique.set(
+      key,
+      item
+    );
+
+  }
+
+
+  return [
+    ...unique.values()
+  ];
+
+}
+
+
+/* ========================================================
+   FIND EQUIPMENT
+======================================================== */
+
+function findOwnedEquipment(
+  playerEquipment,
+  catalogItem
+){
+
+  const target =
+    normalizeName(
+      catalogItem.name
+    );
+
+
+  return playerEquipment.find(
+    item => {
+
+      const apiName =
+        normalizeName(
+          item.name
+        );
+
+      return apiName === target;
+
+    }
+  );
+
+}
+
+
+/* ========================================================
+   RENDER PLAYER
+======================================================== */
+
+function renderPlayer(player){
+
+  const th =
+    Number(
+      player.townHallLevel || 0
+    );
+
+
+  const heroes =
+    Array.isArray(
+      player.heroes
+    )
+      ? player.heroes
+      : [];
+
+
+  const visibleHeroes =
+    HEROES.filter(
+      hero =>
+        th >= hero.unlockTH
+    );
+
+
+  /*
+   * HERO PROGRESS
+   */
+
+  let totalPercent = 0;
+
+  let heroCount = 0;
+
+
+  for(
+    const heroConfig of visibleHeroes
+  ){
+
+    const apiHero =
+      heroes.find(
+        hero =>
+          normalizeName(hero.name) ===
+          normalizeName(heroConfig.key)
+      );
+
+
+    if(!apiHero){
+      continue;
+    }
+
+
+    const level =
+      Number(
+        apiHero.level || 0
+      );
+
+
+    const max =
+      Number(
+        apiHero.maxLevel ||
+        HERO_MAX[th]?.[heroConfig.short] ||
+        level ||
+        1
+      );
+
+
+    if(max > 0){
+
+      totalPercent +=
+        Math.min(
+          level / max,
+          1
+        ) * 100;
+
+      heroCount++;
+
+    }
+
+  }
+
+
+  const heroPercent =
+    heroCount
+      ? Math.round(
+          totalPercent /
+          heroCount
+        )
+      : 0;
+
+
+  /*
+   * CLAN
+   */
+
+  const clan =
+    player.clan || null;
+
+
+  const clanHTML =
+    clan
+
+      ? `
+
+        <button
+          class="clan-link"
+          onclick="
+            loadClan('${escapeHTML(clan.tag)}')
+          "
+        >
+
+          ${escapeHTML(clan.name)}
+
+          <span>
+            · Clan Level
+            ${escapeHTML(
+              clan.clanLevel ?? "-"
+            )}
+          </span>
+
+        </button>
+
+      `
+
+      : `
+
+        <div class="clan-link">
+          Tidak bergabung dengan clan
+        </div>
+
+      `;
+
+
+  /*
+   * HERO CARDS
+   */
+
+  const heroCards =
+    visibleHeroes.map(
+      config => {
+
+        const apiHero =
+          heroes.find(
+            hero =>
+              normalizeName(hero.name) ===
+              normalizeName(config.key)
+          );
+
+
+        let level =
+          Number(
+            apiHero?.level || 0
+          );
+
+
+        let max =
+          Number(
+            apiHero?.maxLevel ||
+            HERO_MAX[th]?.[config.short] ||
+            level ||
+            1
+          );
+
+
+        /*
+         * BK TH4-TH6
+         */
+
+        if(
+          config.short === "BK" &&
+          th <= 6
+        ){
+
+          level =
+            apiHero?.level ??
+            1;
+
+          max = 1;
+
+        }
+
+
+        const percent =
+          max > 0
+            ? Math.min(
+                100,
+                (level / max) * 100
+              )
+            : 0;
+
+
+        return `
+
+          <div class="hero-card">
+
+            <div class="hero-card-top">
+
+              <div class="hero-image">
+
+                <img
+                  src="${config.image}"
+                  alt="${escapeHTML(config.key)}"
+                  onerror="
+                    this.style.display='none';
+                  "
+                >
+
+              </div>
+
+
+              <div class="hero-info">
+
+                <div class="hero-name">
+
+                  ${escapeHTML(
+                    config.key
+                  )}
+
+                </div>
+
+                <div class="hero-level">
+
+                  Level
+                  ${escapeHTML(level)}
+                  /
+                  ${escapeHTML(max)}
+
+                </div>
+
+                <div class="hero-max">
+
+                  ${level >= max
+                    ? "MAX"
+                    : "Progress"}
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="hero-progress">
+
+              <span
+                style="
+                  width:${percent}%
+                "
+              ></span>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }
+    ).join("");
+
+
+  /*
+   * EQUIPMENT
+   */
+
+  renderEquipment(
+    player,
+    th
+  );
+
+
+  /*
+   * PLAYER CONTENT
+   */
+
+  document
+    .getElementById(
+      "playerContent"
+    )
+    .innerHTML = `
+
+      <div class="profile">
+
+        <div class="profile-top">
+
+          <div class="player-name-row">
+
+            <div class="player-name">
+
+              ${escapeHTML(
+                player.name ||
+                "-"
+              )}
+
+            </div>
+
+
+            <div class="xp-badge">
+
+              XP
+              ${escapeHTML(
+                player.expLevel ??
+                "-"
+              )}
+
+            </div>
+
+          </div>
+
+
+          <div class="player-tag">
+
+            ${escapeHTML(
+              player.tag ||
+              "-"
+            )}
+
+          </div>
+
+
+          ${clanHTML}
+
+        </div>
+
+
+        <div class="stats">
+
+          <div class="stat">
+
+            <div class="stat-value">
+
+              TH
+              ${escapeHTML(th)}
+
+            </div>
+
+            <div class="stat-label">
+              TOWN HALL
+            </div>
+
+          </div>
+
+
+          <div class="stat">
+
+            <div class="stat-value">
+
+              ${formatNumber(
+                player.trophies
+              )}
+
+            </div>
+
+            <div class="stat-label">
+              TROPHIES
+            </div>
+
+          </div>
+
+
+          <div class="stat">
+
+            <div class="stat-value">
+
+              ${formatNumber(
+                player.bestTrophies
+              )}
+
+            </div>
+
+            <div class="stat-label">
+              BEST TROPHIES
+            </div>
+
+          </div>
+
+
+          <div class="stat">
+
+            <div class="stat-value">
+
+              ${formatNumber(
+                player.warStars
+              )}
+
+            </div>
+
+            <div class="stat-label">
+              WAR STARS
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <section class="section">
+
+        <div class="section-head">
+
+          <div class="section-title">
+            Hero Progress
+          </div>
+
+          <div class="section-value">
+            ${heroPercent}%
+          </div>
+
+        </div>
+
+
+        <div class="progress-main">
+
+          <div
+            class="progress-fill"
+            style="
+              width:${heroPercent}%
+            "
+          ></div>
+
+        </div>
+
+
+        <div class="progress-info">
+
+          <span>
+            Rata-rata level hero
+          </span>
+
+          <span>
+            ${heroPercent}%
+          </span>
+
+        </div>
+
+      </section>
+
+
+      <section class="section">
+
+        <div class="section-head">
+
+          <div class="section-title">
+            Heroes
+          </div>
+
+          <div class="section-value">
+
+            ${visibleHeroes.length}
+            Hero
+
+          </div>
+
+        </div>
+
+
+        <div class="hero-grid">
+
+          ${heroCards}
+
+        </div>
+
+      </section>
+
+
+      <section class="section">
+
+        <div class="section-head">
+
+          <div class="section-title">
+            Account Data
+          </div>
+
+          <div class="section-value">
+            Statistik
+          </div>
+
+        </div>
+
+
+        <div class="priority">
+
+          <div>
+
+            <div class="priority-name">
+              Attack Wins
+            </div>
+
+            <div class="priority-desc">
+
+              ${formatNumber(
+                player.attackWins
+              )}
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="priority">
+
+          <div>
+
+            <div class="priority-name">
+              Defense Wins
+            </div>
+
+            <div class="priority-desc">
+
+              ${formatNumber(
+                player.defenseWins
+              )}
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="priority">
+
+          <div>
+
+            <div class="priority-name">
+              Donations
+            </div>
+
+            <div class="priority-desc">
+
+              ${formatNumber(
+                player.donations
+              )}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    `;
+
+
+  /*
+   * EQUIPMENT SECTION SUDAH DIBUAT
+   * DI DALAM RENDER EQUIPMENT
+   */
+
+  const equipmentSection =
+    document.getElementById(
+      "equipmentSection"
+    );
+
+
+  if(equipmentSection){
+
+    document
+      .getElementById(
+        "playerContent"
+      )
+      .appendChild(
+        equipmentSection
+      );
+
+  }
+
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+
+/* ========================================================
+   RENDER EQUIPMENT
+======================================================== */
+
+function renderEquipment(
+  player,
+  th
+){
+
+  /*
+   * Hapus section lama
+   */
+
+  const old =
+    document.getElementById(
+      "equipmentSection"
+    );
+
+  if(old){
+    old.remove();
+  }
+
+
+  /*
+   * Equipment baru tersedia mulai TH8
+   */
+
+  if(th < 8){
+
+    return;
+
+  }
+
+
+  const playerEquipment =
+    getPlayerEquipment(
+      player
+    );
+
+
+  let ownedCount = 0;
+
+
+  const cards =
+    EQUIPMENT.map(
+      equipment => {
+
+        const locked =
+          th <
+          equipment.unlockTH;
+
+
+        const owned =
+          findOwnedEquipment(
+            playerEquipment,
+            equipment
+          );
+
+
+        if(
+          owned &&
+          !locked
+        ){
+
+          ownedCount++;
+
+        }
+
+
+        let status = "";
+
+
+        if(locked){
+
+          status =
+            `
+              <div class="
+                equipment-status
+                locked-text
+              ">
+                Terkunci · TH${equipment.unlockTH}
+              </div>
+            `;
+
+        }else if(owned){
+
+          const level =
+            owned.level ??
+            "-";
+
+          const max =
+            owned.maxLevel ??
+            "-";
+
+
+          status =
+            `
+              <div class="
+                equipment-status
+                owned
+              ">
+
+                Lv ${escapeHTML(level)}
+                /
+                ${escapeHTML(max)}
+
+              </div>
+            `;
+
+        }else{
+
+          /*
+           * Ini berarti item memang tidak
+           * ditemukan dalam equipment player.
+           */
+
+          status =
+            `
+              <div class="equipment-status">
+
+                Belum dimiliki
+
+              </div>
+            `;
+
+        }
+
+
+        return `
+
+          <div
+            class="
+              equipment-card
+              ${locked ? "locked" : ""}
+            "
+          >
+
+            <div class="equipment-top">
+
+              <div class="equipment-image">
+
+                <img
+                  src="${equipment.image}"
+                  alt="${escapeHTML(
+                    equipment.name
+                  )}"
+                  onerror="
+                    this.style.display='none';
+                  "
+                >
+
+              </div>
+
+
+              <div class="equipment-info">
+
+                <div class="equipment-name">
+
+                  ${escapeHTML(
+                    equipment.name
+                  )}
+
+                </div>
+
+
+                <div class="equipment-hero">
+
+                  ${escapeHTML(
+                    equipment.hero
+                  )}
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            ${status}
+
+          </div>
+
+        `;
+
+      }
+    ).join("");
+
+
+  const section =
+    document.createElement(
+      "section"
+    );
+
+
+  section.id =
+    "equipmentSection";
+
+
+  section.className =
+    "section";
+
+
+  section.innerHTML = `
+
+    <div class="section-head">
+
+      <div class="section-title">
+        Hero Equipment
+      </div>
+
+      <div class="section-value">
+
+        ${ownedCount}
+        /
+        ${EQUIPMENT.length}
+        Dimiliki
+
+      </div>
+
+    </div>
+
+
+    <div
+      style="
+        color:#697589;
+        font-size:10px;
+        margin-top:-7px;
+        margin-bottom:14px;
+      "
+    >
+
+      Total katalog:
+      ${EQUIPMENT.length}
+      equipment
+
+    </div>
+
+
+    <div class="equipment-grid">
+
+      ${cards}
+
+    </div>
+
+  `;
+
+
+  /*
+   * Penting:
+   * renderPlayer membuat profile + hero +
+   * account dulu, kemudian section ini
+   * ditambahkan paling bawah.
+   */
+
+  setTimeout(() => {
+
+    const content =
+      document.getElementById(
+        "playerContent"
+      );
+
+    if(content){
+
+      content.appendChild(
+        section
+      );
+
+    }
+
+  },0);
+
+}
+
+
+/* ========================================================
+   RENDER CLAN
+======================================================== */
+
+function renderClan(clan){
+
+  const members =
+    Array.isArray(
+      clan.memberList
+    )
+      ? clan.memberList
+      : [];
+
+
+  const membersHTML =
+    members.length
+
+      ? members.map(
+          (member,index) => `
+
+            <button
+              class="member"
+              onclick="
+                loadPlayer(
+                  '${escapeHTML(member.tag)}'
+                )
+              "
+            >
+
+              <div class="member-rank">
+
+                ${String(
+                  index + 1
+                ).padStart(2,"0")}
+
+              </div>
+
+
+              <div class="member-info">
+
+                <div class="member-name">
+
+                  ${escapeHTML(
+                    member.name
+                  )}
+
+                </div>
+
+
+                <div class="member-detail">
+
+                  ${formatNumber(
+                    member.trophies
+                  )}
+                  trophies
+
+                  ·
+
+                  ${escapeHTML(
+                    member.role ||
+                    "Member"
+                  )}
+
+                </div>
+
+              </div>
+
+
+              <div class="member-th">
+
+                TH
+                ${escapeHTML(
+                  member.townHallLevel ??
+                  "-"
+                )}
+
+              </div>
+
+            </button>
+
+          `
+        ).join("")
+
+      : `
+
+        <div class="priority">
+
+          <div>
+
+            <div class="priority-name">
+              Member tidak tersedia.
+            </div>
+
+          </div>
+
+        </div>
+
+      `;
+
+
+  document
+    .getElementById(
+      "clanContent"
+    )
+    .innerHTML = `
+
+      <div class="clan-header">
+
+        <div class="clan-name">
+
+          ${escapeHTML(
+            clan.name ||
+            "-"
+          )}
+
+        </div>
+
+
+        <div class="clan-tag">
+
+          ${escapeHTML(
+            clan.tag ||
+            "-"
+          )}
+
+        </div>
+
+
+        <div class="clan-stats">
+
+          <div class="stat">
+
+            <div class="stat-value">
+
+              ${escapeHTML(
+                clan.clanLevel ??
+                "-"
+              )}
+
+            </div>
+
+            <div class="stat-label">
+              CLAN LEVEL
+            </div>
+
+          </div>
+
+
+          <div class="stat">
+
+            <div class="stat-value">
+
+              ${formatNumber(
+                clan.members
+              )}
+
+            </div>
+
+            <div class="stat-label">
+              MEMBERS
+            </div>
+
+          </div>
+
+
+          <div class="stat">
+
+            <div class="stat-value">
+
+              ${formatNumber(
+                clan.clanPoints
+              )}
+
+            </div>
+
+            <div class="stat-label">
+              CLAN POINTS
+            </div>
+
+          </div>
+
+
+          <div class="stat">
+
+            <div class="stat-value">
+
+              ${formatNumber(
+                clan.clanCapitalPoints
+              )}
+
+            </div>
+
+            <div class="stat-label">
+              CAPITAL POINTS
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <section class="section">
+
+        <div class="section-head">
+
+          <div class="section-title">
+            Clan Members
+          </div>
+
+          <div class="section-value">
+
+            ${members.length}
+            Members
+
+          </div>
+
+        </div>
+
+
+        <div class="member-list">
+
+          ${membersHTML}
+
+        </div>
+
+      </section>
+
+    `;
+
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+
+/* ========================================================
+   ENTER KEY
+======================================================== */
 
 document
-  .getElementById("tagInput")
+  .getElementById(
+    "searchInput"
+  )
   .addEventListener(
     "keydown",
     event => {
 
-      if(event.key === "Enter"){
-        checkPlayer();
+      if(
+        event.key === "Enter"
+      ){
+
+        searchData();
+
       }
 
     }
   );
 
 
-/*
-|--------------------------------------------------------------------------
-| DEFAULT TAG
-|--------------------------------------------------------------------------
-*/
+/* ========================================================
+   DEFAULT
+======================================================== */
 
 document
-  .getElementById("tagInput")
-  .value = "#9UG9LJV8Y";
+  .getElementById(
+    "searchInput"
+  )
+  .value =
+    "#9UG9LJV8Y";
+
 
 </script>
 
