@@ -1,5 +1,5 @@
 // Sarjana Checker API
-const COC_API = "https://api.clashofclans.com/v1";
+const COC_API = "https://cocproxy.royaleapi.dev/v1";
 const ALLOWED_ORIGIN = "https://mujibsyarif.github.io";
 
 function headers(origin) {
