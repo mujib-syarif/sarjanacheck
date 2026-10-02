@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0d11">
 
 <title>Sarjana Checker</title>
 
@@ -11,27 +12,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-
 :root{
-  --bg:#07090d;
-  --panel:#10141b;
-  --panel2:#151a22;
-  --panel3:#0b0f14;
-  --border:#252d38;
+  --bg:#080b10;
+  --panel:#10151d;
+  --panel2:#151b25;
+  --panel3:#0b0f15;
+  --border:#252d3a;
+  --text:#f5f7fb;
+  --muted:#8f99a8;
 
-  --text:#f5f7fa;
-  --muted:#8994a3;
+  --gold:#f5c451;
+  --gold2:#ffd86a;
 
-  --gold:#f0bd55;
-  --gold2:#ffd979;
+  --purple:#8b6cff;
+  --purple2:#b19cff;
 
-  --purple:#7658ff;
-  --purple2:#a895ff;
-
-  --green:#36d582;
-  --blue:#4da8ff;
-  --red:#ff6578;
-  --orange:#ff9e45;
+  --green:#35d07f;
+  --red:#ff6577;
+  --blue:#45a7ff;
 }
 
 *{
@@ -40,27 +38,18 @@
   padding:0;
 }
 
-html{
-  scroll-behavior:smooth;
-}
-
 body{
-  min-height:100vh;
   background:
     radial-gradient(
-      circle at 50% -15%,
-      rgba(240,189,85,.12),
+      circle at 50% -10%,
+      rgba(245,196,81,.09),
       transparent 32%
-    ),
-    radial-gradient(
-      circle at 100% 30%,
-      rgba(118,88,255,.08),
-      transparent 30%
     ),
     var(--bg);
 
   color:var(--text);
   font-family:"Plus Jakarta Sans",sans-serif;
+  min-height:100vh;
 }
 
 button,
@@ -77,95 +66,182 @@ a{
   color:inherit;
 }
 
-/* =========================
-   APP
-========================= */
-
 .app{
   width:100%;
-  max-width:760px;
+  max-width:900px;
   margin:auto;
-  padding:22px 14px 50px;
+  padding:14px 13px 50px;
 }
 
-/* =========================
+
+/* =====================================================
    HEADER
-========================= */
+===================================================== */
 
 .header{
-  text-align:center;
-  margin-bottom:22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+  padding:4px 2px;
 }
 
 .brand{
   display:flex;
   align-items:center;
-  justify-content:center;
-  gap:12px;
+  gap:10px;
+  min-width:0;
 }
 
 .brand-logo{
-  width:58px;
-  height:58px;
-  object-fit:contain;
-  border-radius:15px;
-  filter:
-    drop-shadow(0 5px 18px rgba(240,189,85,.18));
-}
-
-.brand-text{
-  text-align:left;
+  width:46px;
+  height:46px;
+  border-radius:12px;
+  object-fit:cover;
+  border:1px solid var(--border);
+  background:#111722;
 }
 
 .brand-title{
-  font-size:25px;
+  font-size:21px;
   font-weight:800;
-  letter-spacing:-1px;
+  letter-spacing:-.8px;
 }
 
 .brand-sub{
+  font-size:9px;
   color:var(--muted);
-  font-size:10px;
-  margin-top:3px;
+  margin-top:2px;
 }
 
-/* =========================
+
+/* =====================================================
+   MENU
+===================================================== */
+
+.menu-wrap{
+  position:relative;
+}
+
+.menu-btn{
+  width:42px;
+  height:42px;
+
+  border:1px solid var(--border);
+  border-radius:12px;
+
+  background:var(--panel);
+  color:white;
+
+  font-size:21px;
+  line-height:1;
+}
+
+.menu{
+  position:absolute;
+
+  right:0;
+  top:48px;
+
+  width:190px;
+
+  background:#111720;
+
+  border:1px solid var(--border);
+  border-radius:14px;
+
+  padding:7px;
+
+  z-index:50;
+
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.45);
+
+  display:none;
+}
+
+.menu.open{
+  display:block;
+}
+
+.menu button{
+  display:block;
+
+  width:100%;
+
+  border:0;
+
+  background:transparent;
+
+  color:#dfe5ee;
+
+  text-align:left;
+
+  padding:11px 10px;
+
+  border-radius:9px;
+
+  font-size:11px;
+  font-weight:700;
+}
+
+.menu button:hover{
+  background:#1a2130;
+}
+
+.menu .menu-active{
+  background:rgba(245,196,81,.1);
+  color:var(--gold2);
+}
+
+
+/* =====================================================
    SEARCH
-========================= */
+===================================================== */
 
 .search-panel{
   background:
     linear-gradient(
       145deg,
-      rgba(22,27,36,.96),
-      rgba(12,16,22,.96)
+      #121821,
+      #0d1118
     );
 
   border:1px solid var(--border);
-  border-radius:18px;
-  padding:14px;
-  margin-bottom:16px;
 
-  box-shadow:
-    0 12px 35px rgba(0,0,0,.18);
+  border-radius:17px;
+
+  padding:13px;
+
+  margin-bottom:14px;
 }
 
 .switch{
   display:grid;
+
   grid-template-columns:1fr 1fr;
+
   gap:5px;
 
-  background:#080b10;
+  background:#090c11;
+
   padding:4px;
+
   border-radius:11px;
-  margin-bottom:12px;
+
+  margin-bottom:11px;
 }
 
 .switch button{
   border:0;
+
   background:transparent;
+
   color:var(--muted);
-  padding:9px;
+
+  padding:8px;
+
   border-radius:8px;
 
   font-size:11px;
@@ -174,7 +250,7 @@ a{
 
 .switch button.active{
   background:var(--purple);
-  color:#fff;
+  color:white;
 }
 
 .search-row{
@@ -183,17 +259,20 @@ a{
 }
 
 .search-row input{
-  min-width:0;
   flex:1;
+  min-width:0;
 
-  background:#090d12;
-  color:#fff;
+  background:#090d13;
+
+  color:white;
 
   border:1px solid var(--border);
-  outline:none;
+
+  outline:0;
 
   border-radius:10px;
-  padding:12px;
+
+  padding:11px 12px;
 
   font-size:12px;
 }
@@ -204,35 +283,31 @@ a{
 
 .search-btn{
   border:0;
+
   border-radius:10px;
 
-  padding:0 16px;
+  padding:0 15px;
 
-  background:
-    linear-gradient(
-      135deg,
-      var(--purple),
-      #6346ef
-    );
+  background:var(--purple);
 
-  color:#fff;
-  font-size:11px;
+  color:white;
+
   font-weight:800;
-}
-
-.search-btn:active{
-  transform:scale(.97);
+  font-size:11px;
 }
 
 .hint{
   color:var(--muted);
+
   font-size:9px;
+
   margin-top:7px;
 }
 
-/* =========================
+
+/* =====================================================
    PAGE
-========================= */
+===================================================== */
 
 .page{
   display:none;
@@ -242,203 +317,155 @@ a{
   display:block;
 }
 
-/* =========================
-   COMMON
-========================= */
 
+/* =====================================================
+   PROFILE
+===================================================== */
+
+.profile,
+.clan-header,
 .section{
   background:
     linear-gradient(
       145deg,
-      rgba(17,22,29,.98),
-      rgba(12,16,22,.98)
-    );
-
-  border:1px solid var(--border);
-  border-radius:17px;
-
-  padding:15px;
-  margin-bottom:13px;
-}
-
-.section-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-
-  margin-bottom:13px;
-}
-
-.section-title{
-  font-size:13px;
-  font-weight:800;
-}
-
-.section-value{
-  color:var(--gold2);
-  font-size:10px;
-  font-weight:800;
-}
-
-.empty{
-  color:var(--muted);
-  font-size:11px;
-  padding:8px 0;
-}
-
-.back-btn{
-  border:1px solid var(--border);
-  background:#0d1117;
-  color:var(--muted);
-
-  border-radius:9px;
-  padding:8px 11px;
-
-  font-size:10px;
-  font-weight:700;
-
-  margin-bottom:12px;
-}
-
-.back-btn:hover{
-  color:#fff;
-  border-color:#465163;
-}
-
-/* =========================
-   PLAYER PROFILE
-========================= */
-
-.profile{
-  overflow:hidden;
-
-  background:
-    linear-gradient(
-      145deg,
-      #171d26,
+      #141a23,
       #0e131a
     );
 
   border:1px solid var(--border);
-  border-radius:20px;
 
-  margin-bottom:13px;
+  border-radius:18px;
 
-  box-shadow:
-    0 15px 40px rgba(0,0,0,.2);
+  margin-bottom:12px;
 }
 
-.profile-top{
-  position:relative;
-  padding:20px;
+.profile{
   overflow:hidden;
 }
 
-.profile-top::after{
+.profile-top{
+  padding:18px;
+
+  position:relative;
+}
+
+.profile-top:after{
   content:"";
+
   position:absolute;
 
-  width:190px;
-  height:190px;
+  width:180px;
+  height:180px;
 
-  right:-90px;
+  right:-100px;
   top:-100px;
+
+  background:rgba(139,108,255,.13);
+
+  filter:blur(40px);
 
   border-radius:50%;
 
-  background:rgba(240,189,85,.09);
-  filter:blur(30px);
+  pointer-events:none;
 }
 
-.profile-main{
-  position:relative;
-  z-index:1;
-}
-
-.player-name{
-  font-size:24px;
-  font-weight:800;
-  letter-spacing:-1px;
-}
-
-.player-tag{
-  color:var(--muted);
-  font-size:10px;
-  margin-top:4px;
-}
-
-.player-badges{
+.player-line{
   display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  margin-top:12px;
+
+  align-items:flex-start;
+
+  justify-content:space-between;
+
+  gap:10px;
 }
 
-.badge{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
+.player-name,
+.clan-name{
+  font-size:22px;
 
-  padding:6px 8px;
+  font-weight:800;
 
-  background:#0a0e14;
-  border:1px solid var(--border);
+  letter-spacing:-.8px;
+}
 
-  border-radius:7px;
-
+.player-tag,
+.clan-tag{
   color:var(--muted);
-  font-size:9px;
+
+  font-size:10px;
+
+  margin-top:3px;
 }
 
-.badge strong{
-  color:#fff;
+.role-pill{
+  display:inline-flex;
+
+  align-items:center;
+
+  border:1px solid rgba(245,196,81,.25);
+
+  background:rgba(245,196,81,.08);
+
+  color:var(--gold2);
+
+  border-radius:99px;
+
+  padding:5px 8px;
+
+  font-size:9px;
+
+  font-weight:800;
+
+  white-space:nowrap;
 }
 
 .clan-link{
-  display:flex;
+  display:inline-flex;
+
   align-items:center;
-  gap:8px;
 
-  width:max-content;
-  max-width:100%;
+  gap:6px;
 
-  margin-top:12px;
+  margin-top:11px;
 
-  background:rgba(118,88,255,.09);
-  border:1px solid rgba(118,88,255,.25);
+  color:#cfc5ff;
 
-  color:#c9bfff;
+  background:rgba(139,108,255,.09);
 
-  border-radius:9px;
+  border:1px solid rgba(139,108,255,.22);
+
+  border-radius:8px;
+
   padding:7px 9px;
 
   font-size:10px;
+
   font-weight:700;
-
-  text-align:left;
 }
 
-.clan-link:hover{
-  background:rgba(118,88,255,.16);
+.clan-link span{
+  color:var(--muted);
+
+  font-weight:500;
 }
 
-.clan-mini-logo{
-  width:28px;
-  height:28px;
-  object-fit:contain;
-}
+
+/* =====================================================
+   STATS
+===================================================== */
 
 .stats{
   display:grid;
+
   grid-template-columns:repeat(3,1fr);
 
   border-top:1px solid var(--border);
 }
 
 .stat{
+  padding:11px 8px;
+
   text-align:center;
-  padding:12px 6px;
 
   border-right:1px solid var(--border);
 }
@@ -448,392 +475,381 @@ a{
 }
 
 .stat-value{
-  font-size:14px;
   font-weight:800;
+
+  font-size:14px;
 }
 
 .stat-label{
-  color:var(--muted);
   font-size:8px;
+
+  color:var(--muted);
+
   margin-top:3px;
 }
 
-/* =========================
-   PROGRESS
-========================= */
 
-.progress-wrap{
-  margin-bottom:12px;
+/* =====================================================
+   SECTION
+===================================================== */
+
+.section{
+  padding:14px;
 }
 
-.progress-label{
+.section-head{
   display:flex;
+
   justify-content:space-between;
 
+  align-items:center;
+
+  gap:8px;
+
+  margin-bottom:11px;
+}
+
+.section-title{
+  font-size:12px;
+
+  font-weight:800;
+}
+
+.section-value{
+  color:var(--gold2);
+
   font-size:10px;
-  margin-bottom:6px;
+
+  font-weight:800;
 }
 
-.progress-label span:last-child{
+.subhead{
+  font-size:9px;
+
   color:var(--muted);
+
+  margin:-4px 0 10px;
 }
 
-.progress{
-  height:7px;
+
+/* =====================================================
+   PROGRESS
+===================================================== */
+
+.progress-main{
+  height:8px;
+
   background:#080b10;
+
   border-radius:99px;
+
   overflow:hidden;
+
+  margin-bottom:7px;
 }
 
-.progress > div{
+.progress-fill{
   height:100%;
-  border-radius:inherit;
 
   background:
     linear-gradient(
       90deg,
-      var(--gold),
-      var(--gold2)
+      var(--purple),
+      var(--purple2)
     );
+
+  border-radius:inherit;
 }
 
-/* =========================
+.progress-info{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:8px;
+
+  font-size:9px;
+
+  color:var(--muted);
+}
+
+
+/* =====================================================
    HERO
-========================= */
+===================================================== */
 
 .hero-grid{
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
+
+  grid-template-columns:repeat(2,1fr);
+
+  gap:7px;
 }
 
 .hero-card{
-  display:flex;
-  align-items:center;
-  gap:9px;
+  background:#0b0f15;
 
-  background:#0a0e13;
   border:1px solid var(--border);
 
   border-radius:12px;
-  padding:10px;
+
+  padding:9px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:8px;
+
+  min-width:0;
 }
 
-.hero-img{
-  width:43px;
-  height:43px;
+.hero-icon,
+.gear-icon{
+  width:38px;
+  height:38px;
+
+  border-radius:9px;
+
   object-fit:contain;
+
   flex-shrink:0;
+
+  background:#121823;
+
+  border:1px solid #202837;
+
+  padding:3px;
+}
+
+.hero-icon-fallback{
+  display:grid;
+
+  place-items:center;
+
+  font-size:20px;
 }
 
 .hero-info{
   min-width:0;
+
+  flex:1;
 }
 
 .hero-name{
-  color:var(--muted);
   font-size:9px;
+
+  color:#c8d0dc;
+
   white-space:nowrap;
+
   overflow:hidden;
+
   text-overflow:ellipsis;
 }
 
 .hero-level{
-  font-size:15px;
+  font-size:14px;
+
   font-weight:800;
+
   margin-top:2px;
 }
 
 .hero-max{
+  font-size:8px;
+
   color:var(--green);
-  font-size:8px;
-  margin-top:2px;
+
+  margin-top:1px;
 }
 
-.hero-progress{
-  height:4px;
-  background:#151a21;
-  border-radius:99px;
-  overflow:hidden;
-  margin-top:5px;
-}
 
-.hero-progress div{
-  height:100%;
-  background:var(--blue);
-}
-
-/* =========================
+/* =====================================================
    EQUIPMENT
-========================= */
+===================================================== */
 
-.equipment-grid{
+.gear-grid{
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-}
 
-.equipment-card{
-  background:#0a0e13;
-  border:1px solid var(--border);
-  border-radius:11px;
+  grid-template-columns:repeat(2,1fr);
 
-  padding:9px;
-
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
-.equipment-img{
-  width:38px;
-  height:38px;
-  object-fit:contain;
-  flex-shrink:0;
-}
-
-.equipment-info{
-  min-width:0;
-}
-
-.equipment-name{
-  font-size:9px;
-  font-weight:700;
-
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.equipment-hero{
-  color:var(--muted);
-  font-size:8px;
-  margin-top:2px;
-}
-
-.equipment-level{
-  color:var(--gold2);
-  font-size:9px;
-  font-weight:800;
-  margin-top:3px;
-}
-
-/* =========================
-   ACCOUNT STATS
-========================= */
-
-.data-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
   gap:7px;
 }
 
-.data-card{
-  background:#0a0e13;
+.gear-card{
+  background:#0b0f15;
+
   border:1px solid var(--border);
 
-  border-radius:10px;
-  padding:10px;
+  border-radius:11px;
+
+  padding:8px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  min-width:0;
 }
 
-.data-label{
-  color:var(--muted);
+.gear-name{
+  font-size:9px;
+
+  font-weight:700;
+
+  white-space:nowrap;
+
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+}
+
+.gear-level{
   font-size:8px;
+
+  color:var(--muted);
+
+  margin-top:2px;
 }
 
-.data-value{
-  font-size:13px;
+.rarity{
+  font-size:7px;
+
   font-weight:800;
+
   margin-top:3px;
+
+  text-transform:uppercase;
 }
 
-/* =========================
-   UPGRADE
-========================= */
+.rarity.common{
+  color:#9aa4b3;
+}
+
+.rarity.epic{
+  color:#c084fc;
+}
+
+
+/* =====================================================
+   EMPTY / INFO
+===================================================== */
+
+.empty{
+  padding:12px;
+
+  background:var(--panel3);
+
+  border:1px dashed var(--border);
+
+  border-radius:10px;
+
+  color:var(--muted);
+
+  font-size:10px;
+}
 
 .priority{
   display:flex;
+
   align-items:center;
-  gap:10px;
+
+  gap:9px;
 
   padding:10px;
 
-  background:#0a0e13;
+  background:var(--panel3);
+
   border:1px solid var(--border);
 
   border-radius:10px;
+
   margin-top:7px;
-}
-
-.priority:first-child{
-  margin-top:0;
-}
-
-.priority-number{
-  width:25px;
-  height:25px;
-
-  display:grid;
-  place-items:center;
-
-  border-radius:7px;
-
-  background:rgba(240,189,85,.1);
-  color:var(--gold2);
-
-  font-size:10px;
-  font-weight:800;
-
-  flex-shrink:0;
 }
 
 .priority-name{
   font-size:10px;
+
   font-weight:700;
 }
 
 .priority-desc{
-  color:var(--muted);
   font-size:8px;
+
+  color:var(--muted);
+
   margin-top:2px;
 }
 
-/* =========================
-   INFO NOTE
-========================= */
 
-.note{
-  color:var(--muted);
-  font-size:9px;
-  line-height:1.55;
+/* =====================================================
+   TWO COLUMN
+===================================================== */
 
-  background:#0a0e13;
-  border:1px solid var(--border);
+.two-col{
+  display:grid;
 
-  border-radius:10px;
-  padding:10px;
+  grid-template-columns:1fr 1fr;
+
+  gap:10px;
 }
 
-/* =========================
-   CLAN HEADER
-========================= */
+
+/* =====================================================
+   CLAN
+===================================================== */
 
 .clan-header{
-  position:relative;
-
-  background:
-    linear-gradient(
-      145deg,
-      #171d26,
-      #0d1218
-    );
-
-  border:1px solid var(--border);
-  border-radius:20px;
-
   padding:17px;
-
-  margin-bottom:13px;
-}
-
-.clan-top{
-  display:flex;
-  align-items:center;
-  gap:13px;
-}
-
-.clan-logo{
-  width:72px;
-  height:72px;
-  object-fit:contain;
-  flex-shrink:0;
-
-  filter:drop-shadow(0 5px 15px rgba(240,189,85,.12));
-}
-
-.clan-name{
-  font-size:21px;
-  font-weight:800;
-  letter-spacing:-.7px;
-}
-
-.clan-tag{
-  color:var(--muted);
-  font-size:9px;
-  margin-top:3px;
 }
 
 .clan-meta{
   display:flex;
-  flex-wrap:wrap;
+
   gap:6px;
-  margin-top:14px;
+
+  margin-top:11px;
+
+  flex-wrap:wrap;
 }
 
 .meta{
-  background:#0a0e13;
+  background:#0b0f15;
+
   border:1px solid var(--border);
 
+  padding:6px 8px;
+
   border-radius:8px;
-  padding:7px 9px;
+
+  font-size:9px;
 
   color:var(--muted);
-  font-size:8px;
 }
 
 .meta strong{
-  color:#fff;
+  color:white;
 }
 
-/* =========================
-   CLAN SORT
-========================= */
 
-.sort-row{
-  display:flex;
-  gap:7px;
-  margin-bottom:11px;
-}
-
-.sort-row select{
-  flex:1;
-
-  background:#0a0e13;
-  color:#fff;
-
-  border:1px solid var(--border);
-  border-radius:9px;
-
-  padding:9px;
-
-  outline:none;
-  font-size:9px;
-}
-
-.sort-dir{
-  width:42px;
-
-  background:#0a0e13;
-  color:var(--gold2);
-
-  border:1px solid var(--border);
-  border-radius:9px;
-
-  font-weight:800;
-}
-
-/* =========================
-   MEMBER
-========================= */
+/* =====================================================
+   MEMBERS
+===================================================== */
 
 .member{
   width:100%;
 
   display:flex;
+
   align-items:center;
+
   gap:9px;
 
-  background:#0a0e13;
+  background:#0b0f15;
+
   border:1px solid var(--border);
 
   border-radius:10px;
@@ -842,152 +858,421 @@ a{
 
   margin-bottom:6px;
 
-  color:#fff;
+  color:white;
+
   text-align:left;
 }
 
 .member:hover{
-  border-color:rgba(118,88,255,.5);
-  background:#0c1118;
+  border-color:rgba(139,108,255,.5);
 }
 
 .member-rank{
   width:23px;
+
   color:var(--muted);
-  font-size:8px;
+
+  font-size:9px;
+
   text-align:center;
 }
 
-.member-logo{
-  width:31px;
-  height:31px;
-  object-fit:contain;
-}
-
 .member-info{
-  min-width:0;
   flex:1;
+
+  min-width:0;
 }
 
 .member-name{
   font-size:10px;
+
   font-weight:700;
 
   white-space:nowrap;
+
   overflow:hidden;
+
   text-overflow:ellipsis;
 }
 
 .member-detail{
-  color:var(--muted);
   font-size:8px;
-  margin-top:3px;
-}
 
-.member-role{
-  color:var(--gold2);
+  color:var(--muted);
+
+  margin-top:2px;
 }
 
 .member-th{
-  color:var(--purple2);
   font-size:9px;
+
   font-weight:800;
+
+  color:var(--gold2);
 }
 
-/* =========================
-   LOADING
-========================= */
 
-.loading{
-  text-align:center;
-  padding:30px 10px;
+/* =====================================================
+   BUTTON
+===================================================== */
+
+.back-btn,
+.secondary-btn{
+  border:1px solid var(--border);
+
+  background:transparent;
+
   color:var(--muted);
+
+  border-radius:9px;
+
+  padding:8px 10px;
+
+  font-size:9px;
+
+  font-weight:700;
+
+  margin-bottom:10px;
+}
+
+
+/* =====================================================
+   CWL
+===================================================== */
+
+.cwl-toolbar{
+  display:flex;
+
+  gap:7px;
+
+  align-items:center;
+
+  margin-bottom:10px;
+}
+
+.cwl-toolbar input{
+  flex:1;
+
+  background:#090d13;
+
+  color:white;
+
+  border:1px solid var(--border);
+
+  outline:0;
+
+  border-radius:9px;
+
+  padding:9px 10px;
+
   font-size:10px;
 }
 
-.spinner{
-  width:25px;
-  height:25px;
+.cwl-toolbar button{
+  border:0;
 
-  border:3px solid #242b36;
-  border-top-color:var(--gold);
+  background:var(--purple);
 
-  border-radius:50%;
+  color:white;
 
-  margin:0 auto 10px;
+  border-radius:9px;
 
-  animation:spin .8s linear infinite;
+  padding:9px 11px;
+
+  font-size:9px;
+
+  font-weight:800;
 }
 
-@keyframes spin{
-  to{
-    transform:rotate(360deg);
-  }
+.cwl-tabs{
+  display:flex;
+
+  gap:6px;
+
+  overflow:auto;
+
+  padding-bottom:4px;
+
+  margin-bottom:10px;
 }
 
-/* =========================
+.cwl-tab{
+  flex:0 0 auto;
+
+  border:1px solid var(--border);
+
+  background:#0b0f15;
+
+  color:var(--muted);
+
+  border-radius:8px;
+
+  padding:7px 9px;
+
+  font-size:8px;
+
+  font-weight:800;
+}
+
+.cwl-tab.active{
+  background:rgba(245,196,81,.1);
+
+  color:var(--gold2);
+
+  border-color:rgba(245,196,81,.25);
+}
+
+
+/* =====================================================
+   TABLE
+===================================================== */
+
+.table-wrap{
+  overflow-x:auto;
+
+  border:1px solid var(--border);
+
+  border-radius:11px;
+}
+
+.table{
+  width:100%;
+
+  border-collapse:collapse;
+
+  min-width:560px;
+}
+
+.table th,
+.table td{
+  padding:8px 7px;
+
+  border-bottom:1px solid #1c2330;
+
+  text-align:left;
+
+  font-size:8px;
+
+  white-space:nowrap;
+}
+
+.table th{
+  color:var(--muted);
+
+  font-weight:800;
+
+  background:#0c1118;
+}
+
+.table tr:last-child td{
+  border-bottom:0;
+}
+
+.th-grid{
+  display:flex;
+
+  gap:4px;
+
+  flex-wrap:wrap;
+}
+
+.th-chip{
+  padding:3px 5px;
+
+  border-radius:5px;
+
+  background:#151c27;
+
+  color:#dbe2ed;
+
+  font-size:7px;
+
+  font-weight:800;
+}
+
+
+/* =====================================================
+   WAR
+===================================================== */
+
+.war-card{
+  background:#0b0f15;
+
+  border:1px solid var(--border);
+
+  border-radius:11px;
+
+  padding:10px;
+
+  margin-bottom:7px;
+}
+
+.war-top{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:8px;
+}
+
+.war-round{
+  font-size:9px;
+
+  font-weight:800;
+
+  color:var(--gold2);
+}
+
+.war-state{
+  font-size:8px;
+
+  color:var(--muted);
+}
+
+.war-match{
+  display:grid;
+
+  grid-template-columns:1fr auto 1fr;
+
+  gap:8px;
+
+  align-items:center;
+
+  margin-top:9px;
+}
+
+.war-team{
+  min-width:0;
+}
+
+.war-team:last-child{
+  text-align:right;
+}
+
+.war-team-name{
+  font-size:9px;
+
+  font-weight:800;
+
+  white-space:nowrap;
+
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+}
+
+.war-score{
+  font-size:15px;
+
+  font-weight:800;
+}
+
+.war-vs{
+  color:var(--muted);
+
+  font-size:8px;
+}
+
+.war-sub{
+  font-size:8px;
+
+  color:var(--muted);
+
+  margin-top:2px;
+}
+
+.win{
+  color:var(--green);
+}
+
+.loss{
+  color:var(--red);
+}
+
+.draw{
+  color:var(--gold2);
+}
+
+
+/* =====================================================
    FOOTER
-========================= */
+===================================================== */
 
 .footer{
   text-align:center;
 
-  color:#596372;
+  color:#505a69;
+
   font-size:8px;
 
-  line-height:1.8;
-  margin-top:25px;
+  margin-top:22px;
+
+  line-height:1.7;
 }
 
 .footer a{
-  color:var(--gold2);
+  color:#a78bfa;
+
   text-decoration:none;
 
   font-weight:700;
+
+  margin:0 4px;
 }
 
-.footer a:hover{
-  text-decoration:underline;
-}
 
-.footer-links{
-  display:flex;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top:5px;
-}
+/* =====================================================
+   RESPONSIVE
+===================================================== */
 
-/* =========================
-   DESKTOP
-========================= */
-
-@media(min-width:600px){
+@media(min-width:650px){
 
   .app{
-    padding-top:35px;
+    padding-top:25px;
   }
 
   .hero-grid{
     grid-template-columns:repeat(3,1fr);
   }
 
-  .equipment-grid{
+  .gear-grid{
     grid-template-columns:repeat(3,1fr);
   }
 
 }
 
+@media(max-width:430px){
+
+  .player-name,
+  .clan-name{
+    font-size:19px;
+  }
+
+  .two-col{
+    grid-template-columns:1fr;
+  }
+
+  .gear-grid{
+    grid-template-columns:1fr;
+  }
+
+  .hero-grid{
+    grid-template-columns:1fr 1fr;
+  }
+
+}
 </style>
 </head>
+
 
 <body>
 
 <div class="app">
 
-<!-- =========================
+
+<!-- =====================================================
      HEADER
-========================= -->
+===================================================== -->
 
 <header class="header">
 
@@ -1000,7 +1285,7 @@ a{
       onerror="this.style.display='none'"
     >
 
-    <div class="brand-text">
+    <div>
 
       <div class="brand-title">
         Sarjana Checker
@@ -1014,14 +1299,57 @@ a{
 
   </div>
 
+
+  <div class="menu-wrap">
+
+    <button
+      class="menu-btn"
+      onclick="toggleMenu()"
+      aria-label="Menu"
+    >
+      ⋮
+    </button>
+
+
+    <div
+      id="menu"
+      class="menu"
+    >
+
+      <button
+        class="menu-active"
+        onclick="menuPlayer()"
+      >
+        👤 Player Checker
+      </button>
+
+      <button
+        onclick="menuClan()"
+      >
+        🏰 Clan Checker
+      </button>
+
+      <button
+        onclick="menuCWL()"
+      >
+        ⚔️ CWL Breakdown
+      </button>
+
+    </div>
+
+  </div>
+
 </header>
 
 
-<!-- =========================
+<!-- =====================================================
      SEARCH
-========================= -->
+===================================================== -->
 
-<section class="search-panel">
+<section
+  class="search-panel"
+  id="searchPanel"
+>
 
   <div class="switch">
 
@@ -1033,6 +1361,7 @@ a{
       PLAYER
     </button>
 
+
     <button
       id="clanTab"
       onclick="setMode('clan')"
@@ -1042,12 +1371,12 @@ a{
 
   </div>
 
+
   <div class="search-row">
 
     <input
       id="searchInput"
       type="text"
-      autocomplete="off"
       placeholder="Masukkan Player Tag"
     >
 
@@ -1060,6 +1389,7 @@ a{
 
   </div>
 
+
   <div
     class="hint"
     id="searchHint"
@@ -1070,9 +1400,9 @@ a{
 </section>
 
 
-<!-- =========================
+<!-- =====================================================
      PLAYER PAGE
-========================= -->
+===================================================== -->
 
 <main
   id="playerPage"
@@ -1084,9 +1414,9 @@ a{
 </main>
 
 
-<!-- =========================
+<!-- =====================================================
      CLAN PAGE
-========================= -->
+===================================================== -->
 
 <main
   id="clanPage"
@@ -1097,7 +1427,7 @@ a{
     class="back-btn"
     onclick="showPlayer()"
   >
-    ← Kembali ke Player
+    ← Kembali
   </button>
 
   <div id="clanContent"></div>
@@ -1105,21 +1435,31 @@ a{
 </main>
 
 
-<!-- =========================
+<!-- =====================================================
+     CWL PAGE
+===================================================== -->
+
+<main
+  id="cwlPage"
+  class="page"
+>
+
+  <div id="cwlContent"></div>
+
+</main>
+
+
+<!-- =====================================================
      FOOTER
-========================= -->
+===================================================== -->
 
 <footer class="footer">
 
   <div>
-    Sarjana Checker · Clash of Clans Account Analyzer
+    Clash of Clans Tag Tracker by: Mujib, S.Coc.
   </div>
 
   <div>
-    by Mujib, S.Coc.
-  </div>
-
-  <div class="footer-links">
 
     <a
       href="https://mujib-syarif.basenama.workers.dev"
@@ -1128,6 +1468,8 @@ a{
     >
       BaseNama
     </a>
+
+    ·
 
     <a
       href="https://tiktok.com/@mujib_syarif"
@@ -1140,6 +1482,7 @@ a{
   </div>
 
 </footer>
+
 
 </div>
 
@@ -1157,7 +1500,146 @@ const API_BASE =
 let mode = "player";
 
 let currentPlayer = null;
+
 let currentClan = null;
+
+let cwlData = null;
+
+let cwlRound = "overview";
+
+
+/* =====================================================
+   HERO LIST
+===================================================== */
+
+const HOME_HEROES = [
+
+  "Barbarian King",
+
+  "Archer Queen",
+
+  "Minion Prince",
+
+  "Grand Warden",
+
+  "Royal Champion",
+
+  "Dragon Duke"
+
+];
+
+
+const BUILDER_HEROES = [
+
+  "Battle Machine",
+
+  "Battle Copter"
+
+];
+
+
+/* =====================================================
+   HOME VILLAGE HERO MAX
+===================================================== */
+
+const HOME_MAX = {
+
+  "Barbarian King": {
+    4:1,
+    5:1,
+    6:1,
+    7:10,
+    8:20,
+    9:30,
+    10:40,
+    11:50,
+    12:65,
+    13:75,
+    14:85,
+    15:90,
+    16:95,
+    17:100,
+    18:110
+  },
+
+  "Archer Queen": {
+    9:30,
+    10:40,
+    11:50,
+    12:65,
+    13:75,
+    14:85,
+    15:90,
+    16:95,
+    17:100,
+    18:110
+  },
+
+  "Minion Prince": {
+    9:10,
+    10:20,
+    11:30,
+    12:40,
+    13:50,
+    14:60,
+    15:70,
+    16:80,
+    17:90,
+    18:95
+  },
+
+  "Grand Warden": {
+    11:20,
+    12:40,
+    13:50,
+    14:60,
+    15:65,
+    16:70,
+    17:75,
+    18:85
+  },
+
+  "Royal Champion": {
+    13:25,
+    14:30,
+    15:40,
+    16:45,
+    17:50,
+    18:55
+  },
+
+  "Dragon Duke": {
+    15:10,
+    16:15,
+    17:20,
+    18:25
+  }
+
+};
+
+
+/* =====================================================
+   BUILDER BASE HERO MAX
+===================================================== */
+
+const BUILDER_MAX = {
+
+  "Battle Machine": {
+    5:5,
+    6:10,
+    7:20,
+    8:25,
+    9:30,
+    10:35
+  },
+
+  "Battle Copter": {
+    8:25,
+    9:30,
+    10:35
+  }
+
+};
 
 
 /* =====================================================
@@ -1172,125 +1654,17 @@ const HERO_ASSETS = {
   "Archer Queen":
     "assets/heroes/AnimeFury_AQ_01.png",
 
+  "Minion Prince":
+    "assets/heroes/AnimeFury_MP_01.png",
+
   "Grand Warden":
     "assets/heroes/AnimeFury_GW_01.png",
 
   "Royal Champion":
     "assets/heroes/AnimeFury_RC_02.png",
 
-  "Minion Prince":
-    "assets/heroes/AnimeFury_MP_01.png",
-
   "Dragon Duke":
     "assets/heroes/DD_AnimeFury.png"
-
-};
-
-
-/* =====================================================
-   HERO MAX BY TOWN HALL
-===================================================== */
-
-const HERO_MAX = {
-
-  4:{
-    "Barbarian King":1
-  },
-
-  5:{
-    "Barbarian King":1
-  },
-
-  6:{
-    "Barbarian King":1
-  },
-
-  7:{
-    "Barbarian King":10
-  },
-
-  8:{
-    "Barbarian King":20,
-    "Archer Queen":10
-  },
-
-  9:{
-    "Barbarian King":30,
-    "Archer Queen":30,
-    "Minion Prince":10
-  },
-
-  10:{
-    "Barbarian King":40,
-    "Archer Queen":40,
-    "Minion Prince":20
-  },
-
-  11:{
-    "Barbarian King":50,
-    "Archer Queen":50,
-    "Minion Prince":30,
-    "Grand Warden":20
-  },
-
-  12:{
-    "Barbarian King":65,
-    "Archer Queen":65,
-    "Minion Prince":40,
-    "Grand Warden":40
-  },
-
-  13:{
-    "Barbarian King":75,
-    "Archer Queen":75,
-    "Minion Prince":50,
-    "Grand Warden":50,
-    "Royal Champion":25
-  },
-
-  14:{
-    "Barbarian King":85,
-    "Archer Queen":85,
-    "Minion Prince":60,
-    "Grand Warden":60,
-    "Royal Champion":30
-  },
-
-  15:{
-    "Barbarian King":90,
-    "Archer Queen":90,
-    "Minion Prince":70,
-    "Grand Warden":65,
-    "Royal Champion":40,
-    "Dragon Duke":10
-  },
-
-  16:{
-    "Barbarian King":95,
-    "Archer Queen":95,
-    "Minion Prince":80,
-    "Grand Warden":70,
-    "Royal Champion":45,
-    "Dragon Duke":15
-  },
-
-  17:{
-    "Barbarian King":100,
-    "Archer Queen":100,
-    "Minion Prince":90,
-    "Grand Warden":75,
-    "Royal Champion":50,
-    "Dragon Duke":20
-  },
-
-  18:{
-    "Barbarian King":110,
-    "Archer Queen":110,
-    "Minion Prince":95,
-    "Grand Warden":85,
-    "Royal Champion":55,
-    "Dragon Duke":25
-  }
 
 };
 
@@ -1322,11 +1696,18 @@ const EQUIPMENT_ASSETS = {
   "Stick Horse":
     "assets/equipment/HeroGear_BK_StickFireHorse.png",
 
-  "Archer Puppet":
-    "assets/equipment/Hero_Equipment_AQ_Archer_Puppet.png",
+  "Stick Fire Horse":
+    "assets/equipment/HeroGear_BK_StickFireHorse.png",
+
 
   "Frozen Arrow":
     "assets/equipment/Hero_Equipment_AQ_Frozen_Arrow.png",
+
+  "Magic Mirror":
+    "assets/equipment/Hero_Equipment_AQ_Magic_Mirror.png",
+
+  "Archer Puppet":
+    "assets/equipment/Hero_Equipment_AQ_Archer_Puppet.png",
 
   "Giant Arrow":
     "assets/equipment/Hero_Equipment_AQ_Giant_Arrow.png",
@@ -1337,14 +1718,31 @@ const EQUIPMENT_ASSETS = {
   "Invisibility Vial":
     "assets/equipment/Hero_Equipment_AQ_Invisibility_Vial.png",
 
-  "Magic Mirror":
-    "assets/equipment/Hero_Equipment_AQ_Magic_Mirror.png",
-
-  "Monolith":
-    "assets/equipment/Hero_Equipment_AQ_MonolithArrow.png",
+  "Action Figure":
+    "assets/equipment/Hero_Equipment_AQ_WWEActionFigure.png",
 
   "WWE Action Figure":
     "assets/equipment/Hero_Equipment_AQ_WWEActionFigure.png",
+
+  "Monolith Arrow":
+    "assets/equipment/Hero_Equipment_AQ_MonolithArrow.png",
+
+
+  "Dark Orb":
+    "assets/equipment/Hero_Equipment_MP_DarkOrb.png",
+
+  "Henchman Puppet":
+    "assets/equipment/Hero_Equipment_MP_Henchman.png",
+
+  "Power Pump":
+    "assets/equipment/Hero_Equipment_MP_PowerPump.png",
+
+  "Iron Pants":
+    "assets/equipment/HeroEquipment_MP_IronPants.png",
+
+  "Dark Crown":
+    "assets/equipment/HeroGear_MP_DarkCrown_2k.png",
+
 
   "Eternal Tome":
     "assets/equipment/Hero_Equipment_GW_Eternal_Tome.png",
@@ -1364,17 +1762,9 @@ const EQUIPMENT_ASSETS = {
   "Lavaloon Puppet":
     "assets/equipment/icon_gear_GW_LavaloonPuppet.png",
 
-  "Dark Orb":
-    "assets/equipment/Hero_Equipment_MP_DarkOrb.png",
 
-  "Henchman Doll":
-    "assets/equipment/Hero_Equipment_MP_Henchman.png",
-
-  "Power Pump":
-    "assets/equipment/Hero_Equipment_MP_PowerPump.png",
-
-  "Iron Pants":
-    "assets/equipment/HeroEquipment_MP_IronPants.png",
+  "Rocket Spear":
+    "assets/equipment/HeroGear_RoyalChampion_RocketSpear_Equipment_02.png",
 
   "Electro Boots":
     "assets/equipment/Hero_Equipment_RC_ElectroBoots.png",
@@ -1385,7 +1775,7 @@ const EQUIPMENT_ASSETS = {
   "Haste Vial":
     "assets/equipment/Hero_Equipment_RC_Haste_Vial.png",
 
-  "Hog Rider Puppet":
+  "Hog Rider Doll":
     "assets/equipment/Hero_Equipment_RC_Hog_Rider_Doll.png",
 
   "Royal Gem":
@@ -1394,8 +1784,6 @@ const EQUIPMENT_ASSETS = {
   "Seeking Shield":
     "assets/equipment/Hero_Equipment_RC_Seeking_Shield.png",
 
-  "Rocket Spear":
-    "assets/equipment/HeroGear_RoyalChampion_RocketSpear_Equipment_02.png",
 
   "Electro Fangs":
     "assets/equipment/HG_DD_Electro_Fangs.png",
@@ -1419,72 +1807,64 @@ const EQUIPMENT_ASSETS = {
 
 
 /* =====================================================
-   EQUIPMENT MAX BY TOWN HALL
+   EPIC EQUIPMENT
 ===================================================== */
 
-const EQUIPMENT_CAPS = {
+const EPIC_EQUIPMENT = new Set([
 
-  8:{
-    common:9,
-    epic:12
-  },
+  "Giant Gauntlet",
 
-  9:{
-    common:9,
-    epic:12
-  },
+  "Spiky Ball",
 
-  10:{
-    common:12,
-    epic:15
-  },
+  "Snake Bracelet",
 
-  11:{
-    common:12,
-    epic:15
-  },
+  "Stick Horse",
 
-  12:{
-    common:15,
-    epic:18
-  },
+  "Stick Fire Horse",
 
-  13:{
-    common:15,
-    epic:18
-  },
+  "Frozen Arrow",
 
-  14:{
-    common:18,
-    epic:21
-  },
+  "Magic Mirror",
 
-  15:{
-    common:18,
-    epic:24
-  },
+  "Action Figure",
 
-  16:{
-    common:18,
-    epic:27
-  },
+  "WWE Action Figure",
 
-  17:{
-    common:18,
-    epic:27
-  },
+  "Dark Crown",
 
-  18:{
-    common:18,
-    epic:27
-  }
+  "Meteor Staff",
 
-};
+  "Fireball",
+
+  "Lavaloon Puppet",
+
+  "Heroic Torch",
+
+  "Rocket Spear",
+
+  "Electro Boots",
+
+  "Frost Flake",
+
+  "Rocket Backpack"
+
+]);
 
 
 /* =====================================================
    HELPERS
 ===================================================== */
+
+function norm(value){
+
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g," ")
+    .replace(/\s+/g," ");
+
+}
+
 
 function escapeHTML(value){
 
@@ -1522,64 +1902,15 @@ function cleanTag(value){
 }
 
 
-function heroMax(heroName,townHall){
+function pct(value,max){
 
-  const table =
-    HERO_MAX[Number(townHall)] || {};
+  if(!max){
+    return 0;
+  }
 
-  return Number(
-    table[heroName] || 0
+  return Math.round(
+    (Number(value || 0) / Number(max)) * 100
   );
-
-}
-
-
-function equipmentMax(item,townHall){
-
-  const th =
-    Number(townHall);
-
-  const caps =
-    EQUIPMENT_CAPS[th];
-
-  if(!caps){
-    return Number(
-      item.maxLevel ||
-      item.level ||
-      0
-    );
-  }
-
-  const rarity =
-    String(item.rarity || "")
-      .toLowerCase();
-
-  if(rarity.includes("epic")){
-    return caps.epic;
-  }
-
-  return caps.common;
-
-}
-
-
-function getHeroAsset(name){
-
-  return HERO_ASSETS[name] || "";
-
-}
-
-
-function getEquipmentAsset(name){
-
-  return EQUIPMENT_ASSETS[name] || "";
-
-}
-
-
-function imageFallback(){
-
-  this.style.display="none";
 
 }
 
@@ -1588,35 +1919,290 @@ function imageFallback(){
    ROLE
 ===================================================== */
 
-function normalizeRole(role){
+function roleName(role){
 
-  const value =
-    String(role || "")
-      .toLowerCase();
+  const r = norm(role);
 
-  if(
-    value.includes("leader") &&
-    !value.includes("co")
-  ){
+  if(r === "leader"){
     return "Leader";
   }
 
   if(
-    value.includes("co") ||
-    value.includes("admin") ||
-    value.includes("coleader")
+    r === "coleader" ||
+    r === "co leader"
   ){
     return "Co-Leader";
   }
 
   if(
-    value.includes("elder") ||
-    value.includes("senior")
+    r === "admin" ||
+    r === "elder" ||
+    r === "senior"
   ){
     return "Senior";
   }
 
   return "Member";
+
+}
+
+
+/* =====================================================
+   HERO MAX
+===================================================== */
+
+function heroMax(name,th){
+
+  const row =
+    HOME_MAX[name];
+
+  if(!row){
+    return null;
+  }
+
+  let max = null;
+
+  Object.keys(row)
+    .map(Number)
+    .filter(level => level <= th)
+    .forEach(level => {
+      max = row[level];
+    });
+
+  return max;
+
+}
+
+
+function builderMax(name,bh){
+
+  const row =
+    BUILDER_MAX[name];
+
+  if(!row || !bh){
+    return null;
+  }
+
+  let max = null;
+
+  Object.keys(row)
+    .map(Number)
+    .filter(level => level <= bh)
+    .forEach(level => {
+      max = row[level];
+    });
+
+  return max;
+
+}
+
+
+function getMax(hero,isBuilder,player){
+
+  const level =
+    isBuilder
+      ? Number(player.builderHallLevel || 0)
+      : Number(player.townHallLevel || 0);
+
+  return isBuilder
+    ? builderMax(hero.name,level)
+    : heroMax(hero.name,level);
+
+}
+
+
+/* =====================================================
+   ASSET RESOLVER
+===================================================== */
+
+function assetFor(map,name){
+
+  if(map[name]){
+    return map[name];
+  }
+
+  const target =
+    norm(name);
+
+  const key =
+    Object.keys(map)
+      .find(key => norm(key) === target);
+
+  return key
+    ? map[key]
+    : null;
+
+}
+
+
+/* =====================================================
+   ICON FALLBACK
+===================================================== */
+
+function heroEmoji(name){
+
+  if(name === "Dragon Duke"){
+    return "🐉";
+  }
+
+  if(name === "Battle Machine"){
+    return "🤖";
+  }
+
+  if(name === "Battle Copter"){
+    return "🚁";
+  }
+
+  return "🦸";
+
+}
+
+
+function gearEmoji(name){
+
+  return EPIC_EQUIPMENT.has(name)
+    ? "✨"
+    : "⚙️";
+
+}
+
+
+function imgOrFallback(
+  src,
+  alt,
+  emoji,
+  cls
+){
+
+  if(!src){
+
+    return `
+      <div class="${cls} hero-icon-fallback">
+        ${emoji}
+      </div>
+    `;
+
+  }
+
+  return `
+    <img
+      class="${cls}"
+      src="${escapeHTML(src)}"
+      alt="${escapeHTML(alt)}"
+      onerror="
+        this.style.display='none';
+        this.nextElementSibling.style.display='grid';
+      "
+    >
+
+    <div
+      class="${cls} hero-icon-fallback"
+      style="display:none"
+    >
+      ${emoji}
+    </div>
+  `;
+
+}
+
+
+/* =====================================================
+   EQUIPMENT RARITY
+===================================================== */
+
+function equipmentRarity(item){
+
+  const raw =
+    String(item.rarity || "")
+      .toLowerCase();
+
+  if(raw.includes("epic")){
+    return "Epic";
+  }
+
+  if(raw.includes("common")){
+    return "Common";
+  }
+
+  return EPIC_EQUIPMENT.has(item.name)
+    ? "Epic"
+    : "Common";
+
+}
+
+
+/* =====================================================
+   EQUIPMENT MAX
+   IMPORTANT:
+   COMMON = 18
+   EPIC = 27
+===================================================== */
+
+function equipmentMax(item){
+
+  const rarity =
+    equipmentRarity(item);
+
+  if(rarity === "Epic"){
+    return 27;
+  }
+
+  return 18;
+
+}
+
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+function showLoading(
+  elementId,
+  message
+){
+
+  document.getElementById(elementId).innerHTML = `
+
+    <section class="section">
+
+      <div class="section-title">
+        ${escapeHTML(message)}
+      </div>
+
+    </section>
+
+  `;
+
+}
+
+
+/* =====================================================
+   ERROR
+===================================================== */
+
+function showError(
+  elementId,
+  message
+){
+
+  document.getElementById(elementId).innerHTML = `
+
+    <section class="section">
+
+      <div class="section-title">
+        Gagal mengambil data
+      </div>
+
+      <div
+        class="empty"
+        style="margin-top:9px"
+      >
+        ${escapeHTML(message)}
+      </div>
+
+    </section>
+
+  `;
 
 }
 
@@ -1652,18 +2238,50 @@ async function apiGet(
 
   if(!response.ok){
 
-    const detail =
+    throw new Error(
       data?.details?.message ||
       data?.error ||
-      `HTTP ${response.status}`;
-
-    throw new Error(detail);
+      `HTTP ${response.status}`
+    );
 
   }
 
   return data;
 
 }
+
+
+/* =====================================================
+   MENU
+===================================================== */
+
+function toggleMenu(){
+
+  document
+    .getElementById("menu")
+    .classList
+    .toggle("open");
+
+}
+
+
+document.addEventListener(
+  "click",
+  event => {
+
+    if(
+      !event.target.closest(".menu-wrap")
+    ){
+
+      document
+        .getElementById("menu")
+        .classList
+        .remove("open");
+
+    }
+
+  }
+);
 
 
 /* =====================================================
@@ -1674,125 +2292,127 @@ function setMode(type){
 
   mode = type;
 
-  const playerTab =
-    document.getElementById("playerTab");
+  document
+    .getElementById("playerTab")
+    .classList
+    .toggle(
+      "active",
+      type === "player"
+    );
 
-  const clanTab =
-    document.getElementById("clanTab");
+  document
+    .getElementById("clanTab")
+    .classList
+    .toggle(
+      "active",
+      type === "clan"
+    );
 
-  const input =
-    document.getElementById("searchInput");
 
-  const hint =
-    document.getElementById("searchHint");
+  document
+    .getElementById("searchInput")
+    .placeholder =
+      type === "player"
+        ? "Masukkan Player Tag"
+        : "Masukkan Clan Tag";
 
-  if(type === "player"){
 
-    playerTab.classList.add("active");
-    clanTab.classList.remove("active");
+  document
+    .getElementById("searchHint")
+    .textContent =
+      type === "player"
+        ? "Contoh: #9UG9LJV8Y"
+        : "Contoh: #2J0P2GR08";
 
-    input.placeholder =
-      "Masukkan Player Tag";
+}
 
-    hint.textContent =
-      "Contoh: #9UG9LJV8Y";
+
+/* =====================================================
+   PAGE SWITCH
+===================================================== */
+
+function activatePage(id){
+
+  [
+    "playerPage",
+    "clanPage",
+    "cwlPage"
+  ].forEach(page => {
+
+    document
+      .getElementById(page)
+      .classList
+      .toggle(
+        "active",
+        page === id
+      );
+
+  });
+
+}
+
+
+/* =====================================================
+   MENU ACTIONS
+===================================================== */
+
+function menuPlayer(){
+
+  toggleMenu();
+
+  setMode("player");
+
+  activatePage("playerPage");
+
+  if(currentPlayer){
+
+    renderPlayer(currentPlayer);
 
   }else{
 
-    clanTab.classList.add("active");
-    playerTab.classList.remove("active");
-
-    input.placeholder =
-      "Masukkan Clan Tag";
-
-    hint.textContent =
-      "Contoh: #2J0P2GR08";
+    loadPlayer("#9UG9LJV8Y");
 
   }
 
 }
 
 
-/* =====================================================
-   LOADING
-===================================================== */
+function menuClan(){
 
-function setLoading(
-  message="Mengambil data..."
-){
+  toggleMenu();
 
-  const id =
-    mode === "player"
-      ? "playerContent"
-      : "clanContent";
+  setMode("clan");
 
-  const el =
-    document.getElementById(id);
+  if(
+    currentPlayer &&
+    currentPlayer.clan &&
+    currentPlayer.clan.tag
+  ){
 
-  if(!el) return;
+    loadClan(
+      currentPlayer.clan.tag
+    );
 
-  el.innerHTML = `
+  }else{
 
-    <section class="section">
+    activatePage("clanPage");
 
-      <div class="loading">
-
-        <div class="spinner"></div>
-
-        ${escapeHTML(message)}
-
-      </div>
-
-    </section>
-
-  `;
+  }
 
 }
 
 
-/* =====================================================
-   ERROR
-===================================================== */
+function menuCWL(){
 
-function setError(message){
+  toggleMenu();
 
-  const id =
-    mode === "player"
-      ? "playerContent"
-      : "clanContent";
+  activatePage("cwlPage");
 
-  const el =
-    document.getElementById(id);
-
-  if(!el) return;
-
-  el.innerHTML = `
-
-    <section class="section">
-
-      <div class="section-title">
-        Gagal mengambil data
-      </div>
-
-      <div class="priority">
-
-        <div>
-
-          <div class="priority-name">
-            ${escapeHTML(message)}
-          </div>
-
-          <div class="priority-desc">
-            Periksa tag lalu coba lagi.
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-  `;
+  renderCWLStart(
+    currentClan?.tag ||
+    currentPlayer?.clan?.tag ||
+    ""
+  );
 
 }
 
@@ -1803,54 +2423,68 @@ function setError(message){
 
 async function searchData(){
 
-  const input =
-    document.getElementById("searchInput");
-
   const value =
-    cleanTag(input.value);
+    cleanTag(
+      document
+        .getElementById("searchInput")
+        .value
+    );
 
-  if(!value || value === "#"){
+  if(
+    !value ||
+    value === "#"
+  ){
+
     return;
+
   }
 
+
   if(mode === "player"){
+
     await loadPlayer(value);
+
   }else{
+
     await loadClan(value);
+
   }
 
 }
 
 
 /* =====================================================
-   LOAD PLAYER
+   PLAYER LOAD
 ===================================================== */
 
 async function loadPlayer(tag){
 
-  mode = "player";
+  setMode("player");
 
-  showPlayer(false);
+  activatePage("playerPage");
 
-  setLoading(
+  showLoading(
+    "playerContent",
     "Mengambil data player..."
   );
 
+
   try{
 
-    const player =
+    currentPlayer =
       await apiGet(
         "player",
         tag
       );
 
-    currentPlayer = player;
-
-    renderPlayer(player);
+    renderPlayer(
+      currentPlayer
+    );
 
   }catch(error){
 
-    setError(
+    showError(
+      "playerContent",
       error.message
     );
 
@@ -1860,34 +2494,37 @@ async function loadPlayer(tag){
 
 
 /* =====================================================
-   LOAD CLAN
+   CLAN LOAD
 ===================================================== */
 
 async function loadClan(tag){
 
-  mode = "clan";
+  setMode("clan");
 
-  openClan(false);
+  activatePage("clanPage");
 
-  setLoading(
+  showLoading(
+    "clanContent",
     "Mengambil data clan..."
   );
 
+
   try{
 
-    const clan =
+    currentClan =
       await apiGet(
         "clan",
         tag
       );
 
-    currentClan = clan;
-
-    renderClan(clan);
+    renderClan(
+      currentClan
+    );
 
   }catch(error){
 
-    setError(
+    showError(
+      "clanContent",
       error.message
     );
 
@@ -1897,55 +2534,39 @@ async function loadClan(tag){
 
 
 /* =====================================================
-   HERO HTML
+   HERO CARD
 ===================================================== */
 
 function renderHeroCard(
   hero,
-  townHall
+  isBuilder,
+  player
 ){
 
-  const level =
-    Number(hero.level || 0);
-
   const max =
-    heroMax(
-      hero.name,
-      townHall
-    ) ||
-    Number(hero.maxLevel || level);
+    getMax(
+      hero,
+      isBuilder,
+      player
+    );
 
-  const percent =
-    max
-      ? Math.min(
-          100,
-          Math.round(
-            level / max * 100
-          )
-        )
-      : 0;
+  const src =
+    assetFor(
+      HERO_ASSETS,
+      hero.name
+    );
 
-  const asset =
-    getHeroAsset(hero.name);
 
   return `
 
     <div class="hero-card">
 
-      ${
-        asset
-        ?
-        `
-        <img
-          class="hero-img"
-          src="${asset}"
-          alt=""
-          onerror="imageFallback.call(this)"
-        >
-        `
-        :
-        ""
-      }
+      ${imgOrFallback(
+        src,
+        hero.name,
+        heroEmoji(hero.name),
+        "hero-icon"
+      )}
 
       <div class="hero-info">
 
@@ -1954,17 +2575,36 @@ function renderHeroCard(
         </div>
 
         <div class="hero-level">
-          ${level}/${max}
+
+          ${escapeHTML(
+            hero.level ?? "-"
+          )}
+
+          ${
+            max
+              ? `
+                <span
+                  style="
+                    color:var(--muted);
+                    font-size:9px
+                  "
+                >
+                  / ${max}
+                </span>
+              `
+              : ""
+          }
+
         </div>
 
         <div class="hero-max">
-          ${percent}% MAX
-        </div>
 
-        <div class="hero-progress">
-          <div
-            style="width:${percent}%"
-          ></div>
+          ${
+            max
+              ? `Max ${max}`
+              : "Max —"
+          }
+
         </div>
 
       </div>
@@ -1977,63 +2617,128 @@ function renderHeroCard(
 
 
 /* =====================================================
-   EQUIPMENT HTML
+   HERO SECTION
 ===================================================== */
 
-function renderEquipmentCard(
-  item,
-  heroName,
-  townHall
+function renderHeroSection(
+  title,
+  heroes,
+  isBuilder,
+  player
 ){
 
-  const level =
-    Number(item.level || 0);
-
-  const max =
-    equipmentMax(
-      item,
-      townHall
+  const maxTotal =
+    heroes.reduce(
+      (sum,hero) =>
+        sum +
+        Number(
+          getMax(
+            hero,
+            isBuilder,
+            player
+          ) || 0
+        ),
+      0
     );
 
-  const asset =
-    getEquipmentAsset(item.name);
+
+  const levelTotal =
+    heroes.reduce(
+      (sum,hero) =>
+        sum +
+        Number(
+          hero.level || 0
+        ),
+      0
+    );
+
+
+  const progress =
+    pct(
+      levelTotal,
+      maxTotal
+    );
+
 
   return `
 
-    <div class="equipment-card">
+    <section class="section">
 
-      ${
-        asset
-        ?
-        `
-        <img
-          class="equipment-img"
-          src="${asset}"
-          alt=""
-          onerror="imageFallback.call(this)"
-        >
-        `
-        :
-        ""
-      }
+      <div class="section-head">
 
-      <div class="equipment-info">
-
-        <div class="equipment-name">
-          ${escapeHTML(item.name)}
+        <div class="section-title">
+          ${title}
         </div>
 
-        <div class="equipment-hero">
-          ${escapeHTML(heroName)}
-        </div>
+        <div class="section-value">
 
-        <div class="equipment-level">
-          Lv ${level}/${max}
+          ${levelTotal}/${maxTotal || "—"}
+          ·
+          ${progress}%
+
         </div>
 
       </div>
 
-    </div>
+
+      <div class="progress-main">
+
+        <div
+          class="progress-fill"
+          style="
+            width:${Math.min(
+              progress,
+              100
+            )}%
+          "
+        ></div>
+
+      </div>
+
+
+      <div class="progress-info">
+
+        <span>
+          ${heroes.length} hero
+        </span>
+
+        <span>
+          ${
+            isBuilder
+              ? "Builder Hall based max"
+              : "Town Hall based max"
+          }
+        </span>
+
+      </div>
+
+
+      <div
+        class="hero-grid"
+        style="margin-top:10px"
+      >
+
+        ${
+          heroes.length
+            ? heroes
+                .map(hero =>
+                  renderHeroCard(
+                    hero,
+                    isBuilder,
+                    player
+                  )
+                )
+                .join("")
+            : `
+              <div class="empty">
+                Tidak ada data hero.
+              </div>
+            `
+        }
+
+      </div>
+
+    </section>
 
   `;
 
@@ -2041,18 +2746,246 @@ function renderEquipmentCard(
 
 
 /* =====================================================
-   PLAYER
+   EQUIPMENT
+===================================================== */
+
+function renderEquipment(
+  player,
+  homeHeroes
+){
+
+  const items =
+    homeHeroes.flatMap(
+      hero =>
+        (hero.equipment || [])
+          .map(item => ({
+            ...item,
+            hero:hero.name
+          }))
+    );
+
+
+  if(!items.length){
+
+    return `
+
+      <section class="section">
+
+        <div class="section-head">
+
+          <div class="section-title">
+            Hero Equipment
+          </div>
+
+          <div class="section-value">
+            0 Item
+          </div>
+
+        </div>
+
+        <div class="empty">
+          Data equipment tidak tersedia.
+        </div>
+
+      </section>
+
+    `;
+
+  }
+
+
+  const totalMax =
+    items.reduce(
+      (sum,item) =>
+        sum +
+        equipmentMax(item),
+      0
+    );
+
+
+  const totalLevel =
+    items.reduce(
+      (sum,item) =>
+        sum +
+        Number(item.level || 0),
+      0
+    );
+
+
+  const progress =
+    pct(
+      totalLevel,
+      totalMax
+    );
+
+
+  const cards =
+    items
+      .map(item => {
+
+        const rarity =
+          equipmentRarity(item);
+
+        const max =
+          equipmentMax(item);
+
+        const src =
+          assetFor(
+            EQUIPMENT_ASSETS,
+            item.name
+          );
+
+
+        return `
+
+          <div class="gear-card">
+
+            ${
+              src
+
+              ?
+
+              imgOrFallback(
+                src,
+                item.name,
+                gearEmoji(item.name),
+                "gear-icon"
+              )
+
+              :
+
+              `
+                <div class="
+                  gear-icon
+                  hero-icon-fallback
+                ">
+                  ${gearEmoji(item.name)}
+                </div>
+              `
+            }
+
+
+            <div
+              style="min-width:0"
+            >
+
+              <div class="gear-name">
+
+                ${escapeHTML(
+                  item.name
+                )}
+
+              </div>
+
+
+              <div class="gear-level">
+
+                ${escapeHTML(
+                  item.level ?? 0
+                )}
+
+                /
+
+                ${max}
+
+              </div>
+
+
+              <div
+                class="
+                  rarity
+                  ${rarity.toLowerCase()}
+                "
+              >
+
+                ${rarity}
+
+              </div>
+
+            </div>
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+
+  return `
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div class="section-title">
+          Hero Equipment
+        </div>
+
+        <div class="section-value">
+
+          ${totalLevel}/${totalMax}
+          ·
+          ${progress}%
+
+        </div>
+
+      </div>
+
+
+      <div class="progress-main">
+
+        <div
+          class="progress-fill"
+          style="
+            width:${Math.min(
+              progress,
+              100
+            )}%
+          "
+        ></div>
+
+      </div>
+
+
+      <div class="progress-info">
+
+        <span>
+          ${items.length} Item
+        </span>
+
+        <span>
+          Common 18 · Epic 27
+        </span>
+
+      </div>
+
+
+      <div
+        class="gear-grid"
+        style="margin-top:10px"
+      >
+
+        ${cards}
+
+      </div>
+
+    </section>
+
+  `;
+
+}
+
+
+/* =====================================================
+   PLAYER RENDER
 ===================================================== */
 
 function renderPlayer(player){
 
-  const townHall =
-    Number(
-      player.townHallLevel || 0
-    );
-
   const clan =
     player.clan || null;
+
 
   const heroes =
     (player.heroes || [])
@@ -2062,357 +2995,69 @@ function renderPlayer(player){
           hero.name
       );
 
-  /* -------------------------
-     HERO PROGRESS
-  ------------------------- */
 
-  let heroTotal = 0;
-  let heroMaxTotal = 0;
-
-  heroes.forEach(hero => {
-
-    const max =
-      heroMax(
-        hero.name,
-        townHall
-      ) ||
-      Number(hero.maxLevel || hero.level || 0);
-
-    const level =
-      Number(hero.level || 0);
-
-    heroTotal +=
-      Math.min(level,max);
-
-    heroMaxTotal += max;
-
-  });
-
-  const heroPercent =
-    heroMaxTotal
-      ? Math.round(
-          heroTotal /
-          heroMaxTotal *
-          100
+  const home =
+    heroes.filter(
+      hero =>
+        !BUILDER_HEROES.includes(
+          hero.name
         )
-      : 0;
+    );
 
 
-  /* -------------------------
-     EQUIPMENT
-  ------------------------- */
-
-  const equipment = [];
-
-  heroes.forEach(hero => {
-
-    (hero.equipment || [])
-      .forEach(item => {
-
-        equipment.push({
-          ...item,
-          heroName:hero.name
-        });
-
-      });
-
-  });
-
-  /*
-   * Beberapa API response bisa punya
-   * heroEquipment terpisah.
-   */
-
-  if(
-    Array.isArray(
-      player.heroEquipment
-    )
-  ){
-
-    player.heroEquipment
-      .forEach(item => {
-
-        const exists =
-          equipment.some(
-            x =>
-              x.name === item.name
-          );
-
-        if(!exists){
-
-          equipment.push({
-            ...item,
-            heroName:
-              item.heroName ||
-              item.hero ||
-              "Hero"
-          });
-
-        }
-
-      });
-
-  }
-
-
-  /* -------------------------
-     EQUIPMENT PROGRESS
-  ------------------------- */
-
-  let equipmentCurrent = 0;
-  let equipmentMaxTotal = 0;
-
-  equipment.forEach(item => {
-
-    const max =
-      equipmentMax(
-        item,
-        townHall
-      );
-
-    const level =
-      Number(item.level || 0);
-
-    equipmentCurrent +=
-      Math.min(level,max);
-
-    equipmentMaxTotal += max;
-
-  });
-
-  const equipmentPercent =
-    equipmentMaxTotal
-      ? Math.round(
-          equipmentCurrent /
-          equipmentMaxTotal *
-          100
+  const builder =
+    heroes.filter(
+      hero =>
+        BUILDER_HEROES.includes(
+          hero.name
         )
-      : 0;
+    );
 
 
-  /* -------------------------
-     CLAN BUTTON
-  ------------------------- */
+  const role =
+    clan
+      ? roleName(clan.role)
+      : "";
 
-  let clanHTML = "";
 
-  if(clan){
+  const clanButton =
 
-    const clanLogo =
-      clan.badgeUrls?.small ||
-      clan.badgeUrls?.medium ||
-      "";
+    clan
 
-    clanHTML = `
+      ?
 
-      <button
-        class="clan-link"
-        onclick="loadClan('${escapeHTML(clan.tag)}')"
-      >
+      `
+        <button
+          class="clan-link"
+          onclick="
+            loadClan(
+              '${escapeHTML(clan.tag)}'
+            )
+          "
+        >
 
-        ${
-          clanLogo
-          ?
-          `
-          <img
-            class="clan-mini-logo"
-            src="${escapeHTML(clanLogo)}"
-            alt=""
-          >
-          `
-          :
-          ""
-        }
-
-        <span>
+          🏰
           ${escapeHTML(clan.name)}
-          · Level ${escapeHTML(clan.clanLevel ?? "-")}
-        </span>
 
-      </button>
+          <span>
+            · Level
+            ${escapeHTML(
+              clan.clanLevel ?? "-"
+            )}
+          </span>
 
-    `;
+        </button>
+      `
 
-  }else{
+      :
 
-    clanHTML = `
+      `
+        <div class="clan-link">
 
-      <div class="clan-link">
-        Tidak bergabung dengan clan
-      </div>
+          Tidak bergabung dengan clan
 
-    `;
-
-  }
-
-
-  /* -------------------------
-     HERO CARDS
-  ------------------------- */
-
-  const heroHTML =
-    heroes.length
-    ?
-    heroes
-      .map(
-        hero =>
-          renderHeroCard(
-            hero,
-            townHall
-          )
-      )
-      .join("")
-    :
-    `
-      <div class="empty">
-        Data hero tidak tersedia.
-      </div>
-    `;
-
-
-  /* -------------------------
-     EQUIPMENT CARDS
-  ------------------------- */
-
-  const equipmentHTML =
-    equipment.length
-    ?
-    equipment
-      .map(
-        item =>
-          renderEquipmentCard(
-            item,
-            item.heroName,
-            townHall
-          )
-      )
-      .join("")
-    :
-    `
-      <div class="empty">
-        Data equipment tidak tersedia.
-      </div>
-    `;
-
-
-  /* -------------------------
-     PLAYER ACCOUNT DATA
-  ------------------------- */
-
-  const accountData = [
-
-    [
-      "XP Level",
-      formatNumber(
-        player.expLevel
-      )
-    ],
-
-    [
-      "Trophies",
-      formatNumber(
-        player.trophies
-      )
-    ],
-
-    [
-      "Best Trophies",
-      formatNumber(
-        player.bestTrophies
-      )
-    ],
-
-    [
-      "War Stars",
-      formatNumber(
-        player.warStars
-      )
-    ],
-
-    [
-      "Attack Wins",
-      formatNumber(
-        player.attackWins
-      )
-    ],
-
-    [
-      "Defense Wins",
-      formatNumber(
-        player.defenseWins
-      )
-    ],
-
-    [
-      "Donations",
-      formatNumber(
-        player.donations
-      )
-    ],
-
-    [
-      "Donations Received",
-      formatNumber(
-        player.donationsReceived
-      )
-    ],
-
-    [
-      "Builder Base Trophies",
-      formatNumber(
-        player.builderBaseTrophies
-      )
-    ],
-
-    [
-      "Best Builder Trophies",
-      formatNumber(
-        player.bestBuilderBaseTrophies
-      )
-    ]
-
-  ];
-
-
-  const accountHTML =
-    accountData
-      .map(
-        item => `
-
-          <div class="data-card">
-
-            <div class="data-label">
-              ${escapeHTML(item[0])}
-            </div>
-
-            <div class="data-value">
-              ${escapeHTML(item[1])}
-            </div>
-
-          </div>
-
-        `
-      )
-      .join("");
-
-
-  /* -------------------------
-     UPGRADE INFO
-  ------------------------- */
-
-  const heroMissing =
-    Math.max(
-      0,
-      heroMaxTotal -
-      heroTotal
-    );
-
-  const equipmentMissing =
-    Math.max(
-      0,
-      equipmentMaxTotal -
-      equipmentCurrent
-    );
+        </div>
+      `;
 
 
   document
@@ -2425,45 +3070,60 @@ function renderPlayer(player){
 
         <div class="profile-top">
 
-          <div class="profile-main">
+          <div class="player-line">
 
-            <div class="player-name">
-              ${escapeHTML(player.name)}
-            </div>
+            <div>
 
-            <div class="player-tag">
-              ${escapeHTML(player.tag)}
-              · XP ${formatNumber(player.expLevel)}
-            </div>
+              <div class="player-name">
 
-            <div class="player-badges">
+                ${escapeHTML(
+                  player.name
+                )}
 
-              <div class="badge">
-                TH
-                <strong>
-                  ${townHall}
-                </strong>
               </div>
 
-              <div class="badge">
-                Heroes
-                <strong>
-                  ${heroes.length}
-                </strong>
-              </div>
 
-              <div class="badge">
-                Equipment
-                <strong>
-                  ${equipment.length}
-                </strong>
+              <div class="player-tag">
+
+                ${escapeHTML(
+                  player.tag
+                )}
+
+                · XP
+
+                ${formatNumber(
+                  player.expLevel
+                )}
+
               </div>
 
             </div>
 
-            ${clanHTML}
+
+            ${
+              clan
+
+                ?
+
+                `
+                  <div class="role-pill">
+
+                    ${escapeHTML(
+                      role
+                    )}
+
+                  </div>
+                `
+
+                :
+
+                ""
+            }
 
           </div>
+
+
+          ${clanButton}
 
         </div>
 
@@ -2473,7 +3133,11 @@ function renderPlayer(player){
           <div class="stat">
 
             <div class="stat-value">
-              TH${townHall}
+
+              TH${escapeHTML(
+                player.townHallLevel
+              )}
+
             </div>
 
             <div class="stat-label">
@@ -2486,7 +3150,11 @@ function renderPlayer(player){
           <div class="stat">
 
             <div class="stat-value">
-              ${formatNumber(player.trophies)}
+
+              ${formatNumber(
+                player.trophies
+              )}
+
             </div>
 
             <div class="stat-label">
@@ -2499,7 +3167,11 @@ function renderPlayer(player){
           <div class="stat">
 
             <div class="stat-value">
-              ${formatNumber(player.warStars)}
+
+              ${formatNumber(
+                player.warStars
+              )}
+
             </div>
 
             <div class="stat-label">
@@ -2513,236 +3185,141 @@ function renderPlayer(player){
       </div>
 
 
-      <!-- HERO PROGRESS -->
+      <!-- HOME VILLAGE -->
 
-      <section class="section">
-
-        <div class="section-head">
-
-          <div class="section-title">
-            Hero Progress
-          </div>
-
-          <div class="section-value">
-            ${heroPercent}%
-          </div>
-
-        </div>
-
-        <div class="progress-wrap">
-
-          <div class="progress-label">
-
-            <span>
-              Level hero vs max TH${townHall}
-            </span>
-
-            <span>
-              ${heroTotal}/${heroMaxTotal}
-            </span>
-
-          </div>
-
-          <div class="progress">
-            <div
-              style="width:${heroPercent}%"
-            ></div>
-          </div>
-
-        </div>
-
-      </section>
+      ${renderHeroSection(
+        "Home Village Heroes",
+        home,
+        false,
+        player
+      )}
 
 
-      <!-- HEROES -->
+      <!-- BUILDER BASE -->
 
-      <section class="section">
-
-        <div class="section-head">
-
-          <div class="section-title">
-            Heroes
-          </div>
-
-          <div class="section-value">
-            ${heroes.length} Hero
-          </div>
-
-        </div>
-
-        <div class="hero-grid">
-          ${heroHTML}
-        </div>
-
-      </section>
+      ${renderHeroSection(
+        `Builder Base Heroes${
+          player.builderHallLevel
+            ? ` · BH${player.builderHallLevel}`
+            : ""
+        }`,
+        builder,
+        true,
+        player
+      )}
 
 
       <!-- EQUIPMENT -->
 
-      <section class="section">
-
-        <div class="section-head">
-
-          <div class="section-title">
-            Hero Equipment
-          </div>
-
-          <div class="section-value">
-            ${equipment.length} Item
-          </div>
-
-        </div>
-
-        <div class="progress-wrap">
-
-          <div class="progress-label">
-
-            <span>
-              Equipment Progress
-            </span>
-
-            <span>
-              ${equipmentCurrent}/${equipmentMaxTotal}
-            </span>
-
-          </div>
-
-          <div class="progress">
-
-            <div
-              style="
-                width:${equipmentPercent}%;
-                background:
-                  linear-gradient(
-                    90deg,
-                    var(--purple),
-                    var(--purple2)
-                  );
-              "
-            ></div>
-
-          </div>
-
-        </div>
-
-        <div class="equipment-grid">
-          ${equipmentHTML}
-        </div>
-
-      </section>
+      ${renderEquipment(
+        player,
+        home
+      )}
 
 
-      <!-- UPGRADE -->
+      <!-- ACCOUNT -->
 
       <section class="section">
 
         <div class="section-head">
 
           <div class="section-title">
-            Upgrade Progress
+            Account Data
           </div>
 
           <div class="section-value">
-            TH${townHall}
+            PLAYER
           </div>
 
         </div>
 
 
-        <div class="priority">
-
-          <div class="priority-number">
-            01
-          </div>
-
-          <div>
-
-            <div class="priority-name">
-              Hero
-            </div>
-
-            <div class="priority-desc">
-              ${heroMissing}
-              level total masih menuju max TH${townHall}.
-            </div>
-
-          </div>
-
-        </div>
+        <div class="two-col">
 
 
-        <div class="priority">
+          <div class="priority">
 
-          <div class="priority-number">
-            02
-          </div>
+            <div>
 
-          <div>
+              <div class="priority-name">
+                Best Trophies
+              </div>
 
-            <div class="priority-name">
-              Hero Equipment
-            </div>
+              <div class="priority-desc">
 
-            <div class="priority-desc">
-              ${equipmentMissing}
-              level total masih menuju cap TH${townHall}.
+                ${formatNumber(
+                  player.bestTrophies
+                )}
+
+              </div>
+
             </div>
 
           </div>
 
-        </div>
 
-      </section>
+          <div class="priority">
 
+            <div>
 
-      <!-- ACCOUNT DATA -->
+              <div class="priority-name">
+                Donations
+              </div>
 
-      <section class="section">
+              <div class="priority-desc">
 
-        <div class="section-head">
+                ${formatNumber(
+                  player.donations
+                )}
 
-          <div class="section-title">
-            Account Statistics
+              </div>
+
+            </div>
+
           </div>
 
-          <div class="section-value">
-            API
+
+          <div class="priority">
+
+            <div>
+
+              <div class="priority-name">
+                Attack Wins
+              </div>
+
+              <div class="priority-desc">
+
+                ${formatNumber(
+                  player.attackWins
+                )}
+
+              </div>
+
+            </div>
+
           </div>
 
-        </div>
 
-        <div class="data-grid">
-          ${accountHTML}
-        </div>
+          <div class="priority">
 
-      </section>
+            <div>
 
+              <div class="priority-name">
+                Defense Wins
+              </div>
 
-      <!-- BASE NOTE -->
+              <div class="priority-desc">
 
-      <section class="section">
+                ${formatNumber(
+                  player.defenseWins
+                )}
 
-        <div class="section-head">
+              </div>
 
-          <div class="section-title">
-            Base Progress
+            </div>
+
           </div>
 
-          <div class="section-value">
-            TH${townHall}
-          </div>
-
-        </div>
-
-        <div class="note">
-
-          Data API player yang digunakan Sarjana Checker
-          tidak menyediakan level individual untuk defense,
-          building, wall, trap, dan obstacle.
-          Karena itu bagian tersebut tidak dibuat sebagai
-          angka palsu. Progress yang dihitung di sini
-          menggunakan data yang memang tersedia dari API:
-          hero dan Hero Equipment.
 
         </div>
 
@@ -2760,303 +3337,187 @@ function renderPlayer(player){
 
 
 /* =====================================================
-   CLAN SORTING
+   CLAN RENDER
 ===================================================== */
 
-let clanSortField = "trophies";
+function renderClan(clan){
 
-let clanSortDesc = true;
-
-
-function sortClanMembers(){
-
-  if(!currentClan){
-    return;
-  }
-
-  renderClan(
-    currentClan,
-    false
-  );
-
-}
+  const members =
+    clan.memberList || [];
 
 
-/* =====================================================
-   CLAN
-===================================================== */
+  const sorted =
+    [...members].sort(
+      (a,b) =>
+        (b.townHallLevel || 0) -
+        (a.townHallLevel || 0)
+    );
 
-function renderClan(
-  clan,
-  scroll=true
-){
-
-  currentClan = clan;
-
-  let members =
-    Array.isArray(
-      clan.memberList
-    )
-    ?
-    [...clan.memberList]
-    :
-    [];
-
-
-  /* -------------------------
-     SORT
-  ------------------------- */
-
-  members.sort(
-    (a,b) => {
-
-      let av;
-      let bv;
-
-      switch(clanSortField){
-
-        case "th":
-          av =
-            Number(
-              a.townHallLevel || 0
-            );
-          bv =
-            Number(
-              b.townHallLevel || 0
-            );
-          break;
-
-        case "trophies":
-          av =
-            Number(
-              a.trophies || 0
-            );
-          bv =
-            Number(
-              b.trophies || 0
-            );
-          break;
-
-        case "builder":
-          av =
-            Number(
-              a.builderBaseTrophies || 0
-            );
-          bv =
-            Number(
-              b.builderBaseTrophies || 0
-            );
-          break;
-
-        case "donations":
-          av =
-            Number(
-              a.donations || 0
-            );
-          bv =
-            Number(
-              b.donations || 0
-            );
-          break;
-
-        case "role":
-          av =
-            normalizeRole(a.role);
-          bv =
-            normalizeRole(b.role);
-          break;
-
-        case "name":
-          av =
-            String(a.name || "")
-              .toLowerCase();
-          bv =
-            String(b.name || "")
-              .toLowerCase();
-          break;
-
-        default:
-          av = 0;
-          bv = 0;
-
-      }
-
-      if(
-        typeof av === "string" &&
-        typeof bv === "string"
-      ){
-
-        return clanSortDesc
-          ? bv.localeCompare(av)
-          : av.localeCompare(bv);
-
-      }
-
-      return clanSortDesc
-        ? bv - av
-        : av - bv;
-
-    }
-  );
-
-
-  /* -------------------------
-     CLAN LOGO
-  ------------------------- */
-
-  const clanLogo =
-    clan.badgeUrls?.medium ||
-    clan.badgeUrls?.large ||
-    clan.badgeUrls?.small ||
-    "";
-
-
-  /* -------------------------
-     MEMBER HTML
-  ------------------------- */
 
   const membersHTML =
-    members.length
-    ?
-    members
-      .map(
-        (member,index) => {
 
-          const role =
-            normalizeRole(
-              member.role
-            );
+    sorted.length
 
-          return `
+      ?
+
+      sorted
+        .map(
+          (member,index) => `
 
             <button
               class="member"
-              onclick="loadPlayer('${escapeHTML(member.tag)}')"
+              onclick="
+                loadPlayer(
+                  '${escapeHTML(
+                    member.tag
+                  )}'
+                )
+              "
             >
 
               <div class="member-rank">
-                ${String(index + 1).padStart(2,"0")}
+
+                ${String(
+                  index + 1
+                ).padStart(2,"0")}
+
               </div>
+
 
               <div class="member-info">
 
                 <div class="member-name">
-                  ${escapeHTML(member.name)}
+
+                  ${escapeHTML(
+                    member.name
+                  )}
+
                 </div>
+
 
                 <div class="member-detail">
 
-                  ${formatNumber(member.trophies)}
-                  trophies
-                  ·
-                  <span class="member-role">
-                    ${role}
-                  </span>
+                  ${formatNumber(
+                    member.trophies
+                  )}
 
-                  ·
-                  ${formatNumber(member.donations || 0)}
-                  donations
+                  trophies ·
+
+                  ${escapeHTML(
+                    roleName(
+                      member.role
+                    )
+                  )}
 
                 </div>
 
               </div>
 
-              <div class="member-th">
-                TH${escapeHTML(member.townHallLevel)}
+
+              <div>
+
+                <div class="member-th">
+
+                  TH${escapeHTML(
+                    member.townHallLevel
+                  )}
+
+                </div>
+
               </div>
 
             </button>
 
-          `;
+          `
+        )
+        .join("")
 
-        }
-      )
-      .join("")
-    :
-    `
-      <div class="empty">
-        Member tidak tersedia.
-      </div>
-    `;
+      :
+
+      `
+        <div class="empty">
+          Member tidak tersedia.
+        </div>
+      `;
 
 
   document
     .getElementById("clanContent")
     .innerHTML = `
 
-      <!-- CLAN HEADER -->
-
       <div class="clan-header">
 
-        <div class="clan-top">
+        <div class="clan-name">
 
-          ${
-            clanLogo
-            ?
-            `
-            <img
-              class="clan-logo"
-              src="${escapeHTML(clanLogo)}"
-              alt="Clan Badge"
-            >
-            `
-            :
-            ""
-          }
+          ${escapeHTML(
+            clan.name
+          )}
 
-          <div>
+        </div>
 
-            <div class="clan-name">
-              ${escapeHTML(clan.name)}
-            </div>
 
-            <div class="clan-tag">
-              ${escapeHTML(clan.tag)}
-            </div>
+        <div class="clan-tag">
 
-          </div>
+          ${escapeHTML(
+            clan.tag
+          )}
 
         </div>
 
 
         <div class="clan-meta">
 
+
           <div class="meta">
+
             Member
-            <strong>
-              ${members.length}/${escapeHTML(clan.members)}
-            </strong>
-          </div>
 
-          <div class="meta">
-            Level
             <strong>
-              ${escapeHTML(clan.clanLevel)}
-            </strong>
-          </div>
 
-          <div class="meta">
-            Type
-            <strong>
-              ${escapeHTML(clan.type || "-")}
-            </strong>
-          </div>
-
-          <div class="meta">
-            War League
-            <strong>
+              ${members.length}/
               ${escapeHTML(
-                clan.warLeague?.name || "-"
+                clan.members
               )}
+
             </strong>
+
           </div>
+
+
+          <div class="meta">
+
+            Level
+
+            <strong>
+
+              ${escapeHTML(
+                clan.clanLevel
+              )}
+
+            </strong>
+
+          </div>
+
+
+          <div class="meta">
+
+            Type
+
+            <strong>
+
+              ${escapeHTML(
+                clan.type || "-"
+              )}
+
+            </strong>
+
+          </div>
+
 
         </div>
 
       </div>
 
-
-      <!-- MEMBERS -->
 
       <section class="section">
 
@@ -3067,77 +3528,11 @@ function renderClan(
           </div>
 
           <div class="section-value">
-            ${members.length} Members
+
+            ${members.length}
+            Members
+
           </div>
-
-        </div>
-
-
-        <div class="sort-row">
-
-          <select
-            id="clanSort"
-            onchange="
-              clanSortField=this.value;
-              renderClan(currentClan,false);
-            "
-          >
-
-            <option
-              value="trophies"
-              ${clanSortField==="trophies"?"selected":""}
-            >
-              Trophies
-            </option>
-
-            <option
-              value="th"
-              ${clanSortField==="th"?"selected":""}
-            >
-              Town Hall
-            </option>
-
-            <option
-              value="builder"
-              ${clanSortField==="builder"?"selected":""}
-            >
-              Builder Trophies
-            </option>
-
-            <option
-              value="donations"
-              ${clanSortField==="donations"?"selected":""}
-            >
-              Donations
-            </option>
-
-            <option
-              value="role"
-              ${clanSortField==="role"?"selected":""}
-            >
-              Role
-            </option>
-
-            <option
-              value="name"
-              ${clanSortField==="name"?"selected":""}
-            >
-              Name
-            </option>
-
-          </select>
-
-
-          <button
-            class="sort-dir"
-            onclick="
-              clanSortDesc=!clanSortDesc;
-              renderClan(currentClan,false);
-            "
-            title="Ubah urutan"
-          >
-            ${clanSortDesc ? "↓" : "↑"}
-          </button>
 
         </div>
 
@@ -3149,12 +3544,86 @@ function renderClan(
     `;
 
 
-  if(scroll){
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
 
-    window.scrollTo({
-      top:0,
-      behavior:"smooth"
-    });
+}
+
+
+/* =====================================================
+   CWL START
+===================================================== */
+
+function renderCWLStart(tag){
+
+  document
+    .getElementById("cwlContent")
+    .innerHTML = `
+
+      <section class="section">
+
+        <div class="section-head">
+
+          <div class="section-title">
+
+            ⚔️ CWL Breakdown
+
+          </div>
+
+          <div class="section-value">
+            7 War
+          </div>
+
+        </div>
+
+
+        <div class="cwl-toolbar">
+
+          <input
+            id="cwlTag"
+            value="${escapeHTML(tag)}"
+            placeholder="
+              Clan Tag,
+              contoh #2J0P2GR08
+            "
+          >
+
+
+          <button
+            onclick="loadCWL()"
+          >
+            LOAD
+          </button>
+
+        </div>
+
+
+        <div class="subhead">
+
+          Ambil League Group dan
+          breakdown war CWL dari
+          clan yang dipilih.
+
+        </div>
+
+
+        <div class="empty">
+
+          Masukkan clan tag lalu
+          tekan LOAD.
+
+        </div>
+
+      </section>
+
+    `;
+
+
+  if(tag){
+
+    loadCWL();
 
   }
 
@@ -3162,49 +3631,1404 @@ function renderClan(
 
 
 /* =====================================================
-   PAGE NAVIGATION
+   CWL LOAD
 ===================================================== */
 
-function showPlayer(scroll=true){
+async function loadCWL(){
 
-  document
-    .getElementById("playerPage")
-    .classList.add("active");
+  const input =
+    document.getElementById(
+      "cwlTag"
+    );
 
-  document
-    .getElementById("clanPage")
-    .classList.remove("active");
 
-  if(scroll){
+  const tag =
+    cleanTag(
+      input?.value ||
+      currentClan?.tag ||
+      currentPlayer?.clan?.tag ||
+      ""
+    );
 
-    window.scrollTo({
-      top:0,
-      behavior:"smooth"
-    });
+
+  if(
+    !tag ||
+    tag === "#"
+  ){
+
+    return;
+
+  }
+
+
+  showLoading(
+    "cwlContent",
+    "Mengambil data CWL..."
+  );
+
+
+  try{
+
+    cwlData =
+      await apiGet(
+        "cwl",
+        tag
+      );
+
+
+    cwlRound =
+      "overview";
+
+
+    renderCWL();
+
+  }catch(error){
+
+    showError(
+      "cwlContent",
+      error.message
+    );
 
   }
 
 }
 
 
-function openClan(scroll=true){
+/* =====================================================
+   CWL CLAN TH TABLE
+===================================================== */
 
-  document
-    .getElementById("playerPage")
-    .classList.remove("active");
+function clanTHTable(clans){
 
-  document
-    .getElementById("clanPage")
-    .classList.add("active");
+  if(
+    !clans ||
+    !clans.length
+  ){
 
-  if(scroll){
-
-    window.scrollTo({
-      top:0,
-      behavior:"smooth"
-    });
+    return `
+      <div class="empty">
+        Data clan CWL tidak tersedia.
+      </div>
+    `;
 
   }
+
+
+  return `
+
+    <div class="table-wrap">
+
+      <table class="table">
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Clan
+            </th>
+
+            <th>
+              Members
+            </th>
+
+            <th>
+              Town Hall Breakdown
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+
+          ${clans.map(
+            clan => `
+
+              <tr>
+
+                <td>
+
+                  <strong>
+
+                    ${escapeHTML(
+                      clan.name
+                    )}
+
+                  </strong>
+
+                  <br>
+
+                  <span
+                    style="
+                      color:var(--muted)
+                    "
+                  >
+
+                    ${escapeHTML(
+                      clan.tag
+                    )}
+
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  ${clan.memberCount}
+
+                </td>
+
+
+                <td>
+
+                  <div class="th-grid">
+
+                    ${
+                      Object.entries(
+                        clan.townHallBreakdown || {}
+                      )
+                      .sort(
+                        (a,b) =>
+                          Number(
+                            b[0].slice(2)
+                          ) -
+                          Number(
+                            a[0].slice(2)
+                          )
+                      )
+                      .map(
+                        ([key,value]) => `
+
+                          <span
+                            class="th-chip"
+                          >
+
+                            ${key}
+                            ×${value}
+
+                          </span>
+
+                        `
+                      )
+                      .join("")
+                    }
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            `
+          ).join("")}
+
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =====================================================
+   WAR RESULT CLASS
+===================================================== */
+
+function warResultClass(war){
+
+  if(
+    !war?.available &&
+    war?.state === "unavailable"
+  ){
+
+    return "";
+
+  }
+
+
+  const ourStars =
+    Number(
+      war?.clan?.stars || 0
+    );
+
+
+  const opponentStars =
+    Number(
+      war?.opponent?.stars || 0
+    );
+
+
+  if(
+    ourStars >
+    opponentStars
+  ){
+
+    return "win";
+
+  }
+
+
+  if(
+    ourStars <
+    opponentStars
+  ){
+
+    return "loss";
+
+  }
+
+
+  return "draw";
+
+}
+
+
+/* =====================================================
+   WAR SUMMARY
+===================================================== */
+
+function renderWarCards(wars){
+
+  if(
+    !wars ||
+    !wars.length
+  ){
+
+    return `
+      <div class="empty">
+        Belum ada data war.
+      </div>
+    `;
+
+  }
+
+
+  return wars
+    .map(war => {
+
+      if(
+        !war.available
+      ){
+
+        return `
+
+          <div class="war-card">
+
+            <div class="war-top">
+
+              <div class="war-round">
+
+                Round ${war.round}
+
+              </div>
+
+              <div class="war-state">
+
+                UNAVAILABLE
+
+              </div>
+
+            </div>
+
+
+            <div class="war-sub">
+
+              ${escapeHTML(
+                war.error ||
+                "Data war belum tersedia."
+              )}
+
+            </div>
+
+          </div>
+
+        `;
+
+      }
+
+
+      const cls =
+        warResultClass(war);
+
+
+      return `
+
+        <div class="war-card">
+
+
+          <div class="war-top">
+
+            <div class="war-round">
+
+              Round ${war.round}
+
+            </div>
+
+            <div class="war-state">
+
+              ${escapeHTML(
+                war.state ||
+                "unknown"
+              )}
+
+            </div>
+
+          </div>
+
+
+          <div class="war-match">
+
+
+            <div class="war-team">
+
+              <div class="war-team-name">
+
+                ${escapeHTML(
+                  war.clan.name
+                )}
+
+              </div>
+
+
+              <div class="war-sub">
+
+                ${Number(
+                  war.clan.stars
+                )}
+                ⭐
+
+                ·
+
+                ${Number(
+                  war.clan.destructionPercentage
+                ).toFixed(2)}%
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="
+                war-score
+                ${cls}
+              "
+            >
+
+              ${Number(
+                war.clan.stars
+              )}
+
+              -
+
+              ${Number(
+                war.opponent.stars
+              )}
+
+            </div>
+
+
+            <div class="war-team">
+
+              <div class="war-team-name">
+
+                ${escapeHTML(
+                  war.opponent.name
+                )}
+
+              </div>
+
+
+              <div class="war-sub">
+
+                ${Number(
+                  war.opponent.stars
+                )}
+                ⭐
+
+                ·
+
+                ${Number(
+                  war.opponent.destructionPercentage
+                ).toFixed(2)}%
+
+              </div>
+
+            </div>
+
+
+          </div>
+
+
+          <div
+            class="war-sub"
+            style="margin-top:8px"
+          >
+
+            Attacks
+
+            ${war.clan.totalAttacks}
+
+            /
+
+            ${
+              war.clan.membersCount *
+              war.attacksPerMember
+            }
+
+            ·
+
+            Missed
+
+            ${war.clan.missedAttacks}
+
+          </div>
+
+
+        </div>
+
+      `;
+
+    })
+    .join("");
+
+}
+
+
+/* =====================================================
+   CWL PLAYER AGGREGATION
+===================================================== */
+
+function aggregatePlayers(wars){
+
+  const map =
+    new Map();
+
+
+  (wars || [])
+    .forEach(war => {
+
+      if(
+        !war.available ||
+        !war.clan?.members
+      ){
+
+        return;
+
+      }
+
+
+      (war.clan.members || [])
+        .forEach(member => {
+
+          let player =
+            map.get(
+              member.tag
+            );
+
+
+          if(!player){
+
+            player = {
+
+              tag:
+                member.tag,
+
+              name:
+                member.name,
+
+              townHallLevel:
+                member.townHallLevel,
+
+              attacks:0,
+
+              expected:0,
+
+              missed:0,
+
+              stars:0,
+
+              destruction:0,
+
+              wars:0
+
+            };
+
+          }
+
+
+          player.townHallLevel =
+            Math.max(
+              player.townHallLevel,
+              member.townHallLevel
+            );
+
+
+          player.attacks +=
+            member.attacks;
+
+
+          player.expected +=
+            member.attacksExpected;
+
+
+          player.missed +=
+            member.missed
+              ? 1
+              : 0;
+
+
+          player.stars +=
+            member.stars;
+
+
+          player.destruction +=
+            member.destructionPercentage;
+
+
+          player.wars +=
+            1;
+
+
+          map.set(
+            member.tag,
+            player
+          );
+
+        });
+
+    });
+
+
+  return [...map.values()]
+    .map(player => ({
+
+      ...player,
+
+      destruction:
+        player.wars
+          ? player.destruction /
+            player.wars
+          : 0
+
+    }))
+    .sort(
+      (a,b) =>
+        b.stars -
+        a.stars ||
+
+        b.destruction -
+        a.destruction
+    );
+
+}
+
+
+/* =====================================================
+   CWL PLAYER TABLE
+===================================================== */
+
+function renderPlayerCWL(wars){
+
+  const rows =
+    aggregatePlayers(
+      wars
+    );
+
+
+  if(!rows.length){
+
+    return `
+      <div class="empty">
+
+        Belum ada data player
+        dari war yang
+        selesai/tersedia.
+
+      </div>
+    `;
+
+  }
+
+
+  return `
+
+    <div class="table-wrap">
+
+      <table class="table">
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Player
+            </th>
+
+            <th>
+              TH
+            </th>
+
+            <th>
+              Attacks
+            </th>
+
+            <th>
+              Stars
+            </th>
+
+            <th>
+              Destruction
+            </th>
+
+            <th>
+              Missed
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+
+          ${rows.map(
+            row => `
+
+              <tr>
+
+                <td>
+
+                  <strong>
+
+                    ${escapeHTML(
+                      row.name
+                    )}
+
+                  </strong>
+
+                  <br>
+
+                  <span
+                    style="
+                      color:var(--muted)
+                    "
+                  >
+
+                    ${escapeHTML(
+                      row.tag
+                    )}
+
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  TH${row.townHallLevel}
+
+                </td>
+
+
+                <td>
+
+                  ${row.attacks}
+                  /
+                  ${row.expected}
+
+                </td>
+
+
+                <td>
+
+                  ${row.stars}
+                  ⭐
+
+                </td>
+
+
+                <td>
+
+                  ${row.destruction.toFixed(2)}%
+
+                </td>
+
+
+                <td
+                  class="
+                    ${row.missed
+                      ? "loss"
+                      : "win"}
+                  "
+                >
+
+                  ${row.missed}
+
+                </td>
+
+              </tr>
+
+            `
+          ).join("")}
+
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =====================================================
+   SINGLE WAR PLAYER BREAKDOWN
+===================================================== */
+
+function renderSelectedWar(
+  wars,
+  round
+){
+
+  const war =
+    wars?.find(
+      item =>
+        Number(item.round) ===
+        Number(round)
+    );
+
+
+  if(!war){
+
+    return `
+      <div class="empty">
+
+        Data Round ${round}
+        belum tersedia.
+
+      </div>
+    `;
+
+  }
+
+
+  if(!war.available){
+
+    return `
+      <div class="empty">
+
+        ${escapeHTML(
+          war.error ||
+          "Data war belum tersedia."
+        )}
+
+      </div>
+    `;
+
+  }
+
+
+  const members =
+    [...(
+      war.clan.members || []
+    )]
+    .sort(
+      (a,b) =>
+        b.stars -
+        a.stars ||
+
+        b.destructionPercentage -
+        a.destructionPercentage
+    );
+
+
+  return `
+
+    <div class="war-card">
+
+
+      <div class="war-top">
+
+        <div class="war-round">
+
+          Round ${war.round}
+
+          ·
+
+          ${escapeHTML(
+            war.clan.name
+          )}
+
+        </div>
+
+
+        <div class="war-state">
+
+          ${escapeHTML(
+            war.state
+          )}
+
+        </div>
+
+      </div>
+
+
+      <div class="war-match">
+
+
+        <div class="war-team">
+
+          <div class="war-team-name">
+
+            ${escapeHTML(
+              war.clan.name
+            )}
+
+          </div>
+
+
+          <div class="war-sub">
+
+            ${war.clan.stars}
+            ⭐
+
+            ·
+
+            ${Number(
+              war.clan.destructionPercentage
+            ).toFixed(2)}%
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="
+            war-score
+            ${warResultClass(war)}
+          "
+        >
+
+          ${war.clan.stars}
+          -
+          ${war.opponent.stars}
+
+        </div>
+
+
+        <div class="war-team">
+
+          <div class="war-team-name">
+
+            ${escapeHTML(
+              war.opponent.name
+            )}
+
+          </div>
+
+
+          <div class="war-sub">
+
+            ${war.opponent.stars}
+            ⭐
+
+            ·
+
+            ${Number(
+              war.opponent.destructionPercentage
+            ).toFixed(2)}%
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+      <table class="table">
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Player
+            </th>
+
+            <th>
+              TH
+            </th>
+
+            <th>
+              Attacks
+            </th>
+
+            <th>
+              Stars
+            </th>
+
+            <th>
+              Destruction
+            </th>
+
+            <th>
+              Missed
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+
+          ${members.map(
+            member => `
+
+              <tr>
+
+                <td>
+
+                  <strong>
+
+                    ${escapeHTML(
+                      member.name
+                    )}
+
+                  </strong>
+
+                </td>
+
+
+                <td>
+
+                  TH${member.townHallLevel}
+
+                </td>
+
+
+                <td>
+
+                  ${member.attacks}
+                  /
+                  ${member.attacksExpected}
+
+                </td>
+
+
+                <td>
+
+                  ${member.stars}
+                  ⭐
+
+                </td>
+
+
+                <td>
+
+                  ${Number(
+                    member.destructionPercentage
+                  ).toFixed(2)}%
+
+                </td>
+
+
+                <td
+                  class="
+                    ${member.missed
+                      ? "loss"
+                      : "win"}
+                  "
+                >
+
+                  ${
+                    member.missed
+                      ? "YES"
+                      : "NO"
+                  }
+
+                </td>
+
+              </tr>
+
+            `
+          ).join("")}
+
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =====================================================
+   CWL MAIN RENDER
+===================================================== */
+
+function renderCWL(){
+
+  if(!cwlData){
+
+    return renderCWLStart(
+      currentClan?.tag ||
+      currentPlayer?.clan?.tag ||
+      ""
+    );
+
+  }
+
+
+  const wars =
+    cwlData.wars || [];
+
+
+  const rounds =
+    cwlData.rounds || [];
+
+
+  document
+    .getElementById("cwlContent")
+    .innerHTML = `
+
+      <section class="section">
+
+
+        <div class="section-head">
+
+          <div class="section-title">
+
+            ⚔️ CWL Breakdown
+
+          </div>
+
+          <div class="section-value">
+
+            ${escapeHTML(
+              cwlData.season ||
+              "Current"
+            )}
+
+          </div>
+
+        </div>
+
+
+        <div class="cwl-toolbar">
+
+          <input
+            id="cwlTag"
+            value="${escapeHTML(
+              cwlData.clanTag
+            )}"
+          >
+
+          <button
+            onclick="loadCWL()"
+          >
+
+            REFRESH
+
+          </button>
+
+        </div>
+
+
+        <div class="subhead">
+
+          League:
+
+          <strong
+            style="color:white"
+          >
+
+            ${escapeHTML(
+              cwlData.state ||
+              "unknown"
+            )}
+
+          </strong>
+
+          ·
+
+          ${rounds.length}
+          round terdaftar
+
+        </div>
+
+
+        <!-- TABS -->
+
+        <div class="cwl-tabs">
+
+
+          <button
+            class="
+              cwl-tab
+              ${
+                cwlRound === "overview"
+                  ? "active"
+                  : ""
+              }
+            "
+            onclick="
+              cwlRound='overview';
+              renderCWL()
+            "
+          >
+
+            Overview
+
+          </button>
+
+
+          ${rounds.map(
+            round => `
+
+              <button
+                class="
+                  cwl-tab
+                  ${
+                    String(
+                      cwlRound
+                    ) ===
+                    String(
+                      round.round
+                    )
+                      ? "active"
+                      : ""
+                  }
+                "
+                onclick="
+                  cwlRound=${round.round};
+                  renderCWL()
+                "
+              >
+
+                War ${round.round}
+
+              </button>
+
+            `
+          ).join("")}
+
+
+          <button
+            class="
+              cwl-tab
+              ${
+                cwlRound === "players"
+                  ? "active"
+                  : ""
+              }
+            "
+            onclick="
+              cwlRound='players';
+              renderCWL()
+            "
+          >
+
+            Players
+
+          </button>
+
+
+        </div>
+
+
+        ${
+          cwlRound === "overview"
+
+            ?
+
+            `
+
+              <div
+                class="section"
+                style="
+                  padding:0;
+                  background:transparent;
+                  border:0
+                "
+              >
+
+                <div class="section-head">
+
+                  <div class="section-title">
+
+                    CWL Clan Breakdown
+
+                  </div>
+
+                  <div class="section-value">
+
+                    ${
+                      (
+                        cwlData.clans ||
+                        []
+                      ).length
+                    }
+
+                    Clan
+
+                  </div>
+
+                </div>
+
+
+                ${clanTHTable(
+                  cwlData.clans
+                )}
+
+              </div>
+
+
+              <div
+                class="section"
+                style="
+                  padding:0;
+                  background:transparent;
+                  border:0;
+                  margin-top:12px
+                "
+              >
+
+                <div class="section-head">
+
+                  <div class="section-title">
+
+                    War Summary
+
+                  </div>
+
+                  <div class="section-value">
+
+                    ${wars.length}
+                    War
+
+                  </div>
+
+                </div>
+
+
+                ${renderWarCards(
+                  wars
+                )}
+
+              </div>
+
+            `
+
+            :
+
+            cwlRound === "players"
+
+              ?
+
+              `
+
+                <div
+                  class="section"
+                  style="
+                    padding:0;
+                    background:transparent;
+                    border:0
+                  "
+                >
+
+                  <div class="section-head">
+
+                    <div class="section-title">
+
+                      Player Breakdown
+
+                    </div>
+
+                    <div class="section-value">
+
+                      All available wars
+
+                    </div>
+
+                  </div>
+
+
+                  ${renderPlayerCWL(
+                    wars
+                  )}
+
+                </div>
+
+              `
+
+              :
+
+              `
+
+                <div
+                  class="section"
+                  style="
+                    padding:0;
+                    background:transparent;
+                    border:0
+                  "
+                >
+
+                  <div class="section-head">
+
+                    <div class="section-title">
+
+                      War ${cwlRound}
+                      Breakdown
+
+                    </div>
+
+                    <div class="section-value">
+
+                      Per Player
+
+                    </div>
+
+                  </div>
+
+
+                  ${renderSelectedWar(
+                    wars,
+                    cwlRound
+                  )}
+
+                </div>
+
+              `
+        }
+
+
+      </section>
+
+    `;
 
 }
 
@@ -3217,10 +5041,14 @@ document
   .getElementById("searchInput")
   .addEventListener(
     "keydown",
-    function(event){
+    event => {
 
-      if(event.key === "Enter"){
+      if(
+        event.key === "Enter"
+      ){
+
         searchData();
+
       }
 
     }
