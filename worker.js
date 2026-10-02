@@ -2,26 +2,66 @@ const COC_API = "https://cocproxy.royaleapi.dev/v1";
 
 const ALLOWED_ORIGIN = "https://mujib-syarif.github.io";
 
+
+// ============================================================
+// CORS
+// ============================================================
+
 function corsHeaders(origin) {
-  return {
-    "Access-Control-Allow-Origin":
-      origin === ALLOWED_ORIGIN ? ALLOWED_ORIGIN : ALLOWED_ORIGIN,
+  const headers = {
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store",
+    "Access-Control-Max-Age": "86400",
+    "Vary": "Origin",
   };
+
+  if (origin === ALLOWED_ORIGIN) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  return headers;
 }
 
-function json(data, status = 200, origin = ALLOWED_ORIGIN) {
+
+// ============================================================
+// JSON RESPONSE
+// ============================================================
+
+function json(data, status = 200, origin = "") {
   return new Response(JSON.stringify(data), {
     status,
-    headers: corsHeaders(origin),
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      ...corsHeaders(origin),
+    },
   });
 }
 
+
+// ============================================================
+// ERROR RESPONSE
+// ============================================================
+
+function errorResponse(message, status = 500, origin = "") {
+  return json(
+    {
+      ok: false,
+      error: message,
+    },
+    status,
+    origin
+  );
+}
+
+
+// ============================================================
+// TAG HELPERS
+// ============================================================
+
 function cleanTag(value) {
-  if (!value) return "";
+  if (!value) {
+    return "";
+  }
 
   let tag = String(value).trim();
 
@@ -32,53 +72,154 @@ function cleanTag(value) {
   tag = tag.toUpperCase();
 
   if (!tag.startsWith("#")) {
-    tag = "#" + tag;
+    tag = `#${tag}`;
   }
 
   return tag;
 }
 
-function isRealWarTag(tag) {
-  if (!tag) return false;
 
-  const value = String(tag).trim().toUpperCase();
-
-  return value !== "#0" && value !== "0";
+function encodedTag(value) {
+  return encodeURIComponent(cleanTag(value));
 }
 
-function number(value) {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : 0;
-}
 
-function normalizeBadge(badgeUrls) {
-  if (!badgeUrls || typeof badgeUrls !== "object") {
-    return {};
+function isRealWarTag(value) {
+  if (!value) {
+    return false;
   }
 
+  const tag = cleanTag(value);
+
+  if (!tag) {
+    return false;
+  }
+
+  if (tag === "#0") {
+    return false;
+  }
+
+  if (tag.length <= 2) {
+    return false;
+  }
+
+  return true;
+}
+
+
+// ============================================================
+// NUMBER
+// ============================================================
+
+function number(value, fallback = 0) {
+  const n = Number(value);
+
+  return Number.isFinite(n) ? n : fallback;
+}
+
+
+// ============================================================
+// API REQUEST
+// ============================================================
+
+async function getCoC(path, env) {
+  if (!env.COC_API_TOKEN) {
+    throw new Error("COC_API_TOKEN belum diset di Cloudflare Worker.");
+  }
+
+  const response = await fetch(`${COC_API}${path}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${env.COC_API_TOKEN}`,
+      Accept: "application/json",
+    },
+  });
+
+  const text = await response.text();
+
+  let body = null;
+
+  try {
+    body = JSON.parse(text);
+  } catch (_) {
+    body = null;
+  }
+
+  if (!response.ok) {
+    const reason =
+      body?.reason ||
+      body?.message ||
+      `HTTP ${response.status}`;
+
+    const error = new Error(reason);
+
+    error.status = response.status;
+    error.body = body;
+
+    throw error;
+  }
+
+  return body;
+}
+
+
+// ============================================================
+// ROLE
+// ============================================================
+
+function getRoleName(role) {
+  const value = String(role || "").trim().toLowerCase();
+
+  if (value === "leader") {
+    return "Leader";
+  }
+
+  if (value === "coleader" || value === "co-leader") {
+    return "Co-Leader";
+  }
+
+  if (value === "admin" || value === "elder") {
+    return "Elder";
+  }
+
+  return "Member";
+}
+
+
+// ============================================================
+// IMAGE BADGE
+// ============================================================
+
+function normalizeBadge(clan) {
+  if (!clan) {
+    return null;
+  }
+
+  const urls = clan.iconUrls || clan.badgeUrls || {};
+
   return {
-    small: badgeUrls.small || "",
-    medium: badgeUrls.medium || "",
-    large: badgeUrls.large || "",
+    small: urls.small || null,
+    medium: urls.medium || null,
+    large: urls.large || null,
   };
 }
 
-function townHallBreakdown(members = []) {
+
+// ============================================================
+// TOWN HALL BREAKDOWN
+// ============================================================
+
+function townHallBreakdown(memberList = []) {
   const result = {};
 
-  for (let th = 8; th <= 18; th++) {
+  for (let th = 1; th <= 18; th++) {
     result[String(th)] = 0;
   }
 
-  for (const member of members || []) {
-    const th = number(
-      member.townHallLevel ??
-      member.townhallLevel ??
-      member.townHall ??
-      0
-    );
+  for (const member of memberList) {
+    const th = number(member?.townHallLevel);
 
-    if (th >= 8 && th <= 18) {
+    if (th >= 1 && th <= 18) {
       result[String(th)]++;
     }
   }
@@ -86,116 +227,261 @@ function townHallBreakdown(members = []) {
   return result;
 }
 
-function normalizeCWLClan(clan) {
-  const members = Array.isArray(clan?.members)
-    ? clan.members
-    : [];
 
-  return {
-    tag: clan?.tag || "",
-    name: clan?.name || "-",
-    clanLevel: number(clan?.clanLevel),
-    badgeUrls: normalizeBadge(clan?.badgeUrls),
-    memberCount: members.length,
-    members: members.map((member) => ({
-      tag: member.tag || "",
-      name: member.name || "-",
-      townHallLevel: number(member.townHallLevel),
-    })),
-    townHallBreakdown: townHallBreakdown(members),
-  };
-}
+// ============================================================
+// NORMALIZE CLAN
+// ============================================================
 
-function normalizeWarClan(clan) {
+function normalizeClan(clan) {
   if (!clan) {
-    return {
-      tag: "",
-      name: "-",
-      clanLevel: 0,
-      badgeUrls: {},
-      teamSize: 0,
-      attacks: 0,
-      stars: 0,
-      destructionPercentage: 0,
-      members: [],
-      memberCount: 0,
-      townHallBreakdown: townHallBreakdown([]),
-    };
+    return null;
   }
 
-  const members = Array.isArray(clan.members)
-    ? clan.members
+  const memberList = Array.isArray(clan.memberList)
+    ? clan.memberList
     : [];
 
   return {
-    tag: clan.tag || "",
+    tag: clan.tag || null,
     name: clan.name || "-",
+
     clanLevel: number(clan.clanLevel),
-    badgeUrls: normalizeBadge(clan.badgeUrls),
 
-    teamSize: number(clan.members?.length || clan.teamSize),
-
-    attacks: number(clan.attacks),
-    stars: number(clan.stars),
-    destructionPercentage: number(
-      clan.destructionPercentage
+    members: number(
+      clan.members,
+      memberList.length
     ),
 
-    members: members.map((member) => ({
-      tag: member.tag || "",
-      name: member.name || "-",
-      townHallLevel: number(member.townHallLevel),
+    memberList,
 
-      mapPosition: number(member.mapPosition),
+    description: clan.description || "",
 
-      attacks: Array.isArray(member.attacks)
-        ? member.attacks.map((attack) => ({
-            attackerTag: attack.attackerTag || "",
-            defenderTag: attack.defenderTag || "",
-            stars: number(attack.stars),
-            destructionPercentage: number(
-              attack.destructionPercentage
-            ),
-            order: number(attack.order),
-          }))
-        : [],
-    })),
+    clanPoints: number(clan.clanPoints),
+    clanVersusPoints: number(clan.clanVersusPoints),
 
-    memberCount: members.length,
+    warWins: number(clan.warWins),
+    warLosses: number(clan.warLosses),
+    warDraws: number(clan.warDraws),
 
-    townHallBreakdown: townHallBreakdown(members),
+    warWinStreak: number(clan.warWinStreak),
+
+    badgeUrls: normalizeBadge(clan),
+
+    type: clan.type || null,
+    requiredTrophies: number(clan.requiredTrophies),
+    warFrequency: clan.warFrequency || null,
+
+    location: clan.location || null,
+
+    labels: Array.isArray(clan.labels)
+      ? clan.labels
+      : [],
+
+    chatLanguage: clan.chatLanguage || null,
+
+    townHallBreakdown: townHallBreakdown(memberList),
   };
 }
 
-function normalizeWar(war, requestedTag) {
-  if (!war) return null;
 
-  let clan = war.clan || null;
-  let opponent = war.opponent || null;
+// ============================================================
+// NORMALIZE PLAYER
+// ============================================================
 
-  /*
-    The API may orient the requested clan differently.
-    Make sure the requested clan is always "clan".
-  */
+function normalizePlayer(player) {
+  if (!player) {
+    return null;
+  }
 
-  const wanted = cleanTag(requestedTag);
+  const heroes = Array.isArray(player.heroes)
+    ? player.heroes.map((hero) => ({
+        ...hero,
 
-  if (
-    clan?.tag &&
-    cleanTag(clan.tag) !== wanted &&
-    opponent?.tag &&
-    cleanTag(opponent.tag) === wanted
-  ) {
-    const temp = clan;
-    clan = opponent;
-    opponent = temp;
+        level: number(hero.level),
+        maxLevel: number(
+          hero.maxLevel ??
+          hero.maxLevelForTownHall
+        ),
+      }))
+    : [];
+
+  const heroEquipment = Array.isArray(player.heroEquipment)
+    ? player.heroEquipment.map((item) => ({
+        ...item,
+
+        level: number(item.level),
+        maxLevel: number(
+          item.maxLevel ??
+          item.maxLevelForTownHall
+        ),
+      }))
+    : [];
+
+  return {
+    ...player,
+
+    tag: player.tag || null,
+    name: player.name || "-",
+
+    townHallLevel: number(player.townHallLevel),
+    expLevel: number(player.expLevel),
+
+    trophies: number(player.trophies),
+    bestTrophies: number(player.bestTrophies),
+
+    versusTrophies: number(player.versusTrophies),
+    bestVersusTrophies: number(player.bestVersusTrophies),
+
+    warStars: number(player.warStars),
+    attackWins: number(player.attackWins),
+    defenseWins: number(player.defenseWins),
+
+    donations: number(player.donations),
+    donationsReceived: number(player.donationsReceived),
+
+    role: player.role || "member",
+    roleName: getRoleName(player.role),
+
+    clan: player.clan
+      ? normalizeClan(player.clan)
+      : null,
+
+    heroes,
+    heroEquipment,
+  };
+}
+
+
+// ============================================================
+// CWL CLAN
+// ============================================================
+
+function normalizeCWLClan(leagueClan, clanData = null) {
+  const memberList = Array.isArray(clanData?.memberList)
+    ? clanData.memberList
+    : [];
+
+  return {
+    tag:
+      clanData?.tag ||
+      leagueClan?.tag ||
+      null,
+
+    name:
+      clanData?.name ||
+      leagueClan?.name ||
+      "-",
+
+    clanLevel: number(
+      clanData?.clanLevel ??
+      leagueClan?.clanLevel
+    ),
+
+    members: number(
+      clanData?.members ??
+      leagueClan?.members ??
+      memberList.length
+    ),
+
+    memberList,
+
+    badgeUrls:
+      normalizeBadge(clanData) ||
+      normalizeBadge(leagueClan),
+
+    townHallBreakdown:
+      townHallBreakdown(memberList),
+
+    warLeague:
+      leagueClan?.warLeague ||
+      clanData?.warLeague ||
+      null,
+  };
+}
+
+
+// ============================================================
+// NORMALIZE WAR SIDE
+// ============================================================
+
+function normalizeWarSide(side) {
+  if (!side) {
+    return null;
   }
 
   return {
-    tag: war.tag || "",
+    tag: side.tag || null,
+    name: side.name || "-",
+
+    clanLevel: number(side.clanLevel),
+
+    attacks: number(side.attacks),
+    stars: number(side.stars),
+
+    destructionPercentage: number(
+      side.destructionPercentage
+    ),
+
+    members: Array.isArray(side.members)
+      ? side.members
+      : [],
+  };
+}
+
+
+// ============================================================
+// NORMALIZE CWL WAR
+// ============================================================
+
+function normalizeWar(war, targetTag) {
+  if (!war) {
+    return null;
+  }
+
+  const wantedTag = cleanTag(targetTag);
+
+  const clan = normalizeWarSide(war.clan);
+  const opponent = normalizeWarSide(war.opponent);
+
+  if (!clan || !opponent) {
+    return null;
+  }
+
+  let target = null;
+  let enemy = null;
+
+  if (cleanTag(clan.tag) === wantedTag) {
+    target = clan;
+    enemy = opponent;
+  } else if (cleanTag(opponent.tag) === wantedTag) {
+    target = opponent;
+    enemy = clan;
+  }
+
+  if (!target) {
+    return null;
+  }
+
+  let result = "draw";
+
+  if (target.stars > enemy.stars) {
+    result = "win";
+  } else if (target.stars < enemy.stars) {
+    result = "loss";
+  }
+
+  return {
     state: war.state || "unknown",
 
     teamSize: number(war.teamSize),
+
+    attacksPerMember: number(
+      war.attacksPerMember,
+      1
+    ),
+
+    battleModifier:
+      war.battleModifier || null,
 
     preparationStartTime:
       war.preparationStartTime || null,
@@ -206,222 +492,171 @@ function normalizeWar(war, requestedTag) {
     endTime:
       war.endTime || null,
 
-    battleModifier:
-      war.battleModifier || null,
+    clan,
+    opponent,
 
-    clan: normalizeWarClan(clan),
-    opponent: normalizeWarClan(opponent),
+    target,
+    enemy,
+
+    result,
   };
 }
 
-async function getCoC(path, env) {
-  const token = env.COC_API_TOKEN;
 
-  if (!token) {
-    throw new Error(
-      "COC_API_TOKEN belum tersedia di Worker."
-    );
-  }
-
-  const response = await fetch(
-    `${COC_API}${path}`,
-    {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Accept": "application/json",
-        "User-Agent": "SarjanaChecker/1.0",
-      },
-    }
-  );
-
-  const text = await response.text();
-
-  let data = {};
-
-  try {
-    data = text ? JSON.parse(text) : {};
-  } catch (_) {
-    data = {
-      message: text || "Invalid API response",
-    };
-  }
-
-  if (!response.ok) {
-    const error = new Error(
-      data?.reason ||
-      data?.message ||
-      `CoC API HTTP ${response.status}`
-    );
-
-    error.status = response.status;
-    error.body = data;
-
-    throw error;
-  }
-
-  return data;
-}
+// ============================================================
+// GET PLAYER
+// ============================================================
 
 async function getPlayer(tag, env) {
-  return await getCoC(
-    `/players/${encodeURIComponent(tag)}`,
+  const data = await getCoC(
+    `/players/${encodedTag(tag)}`,
     env
   );
+
+  return normalizePlayer(data);
 }
+
+
+// ============================================================
+// GET CLAN
+// ============================================================
 
 async function getClan(tag, env) {
-  return await getCoC(
-    `/clans/${encodeURIComponent(tag)}`,
+  const data = await getCoC(
+    `/clans/${encodedTag(tag)}`,
+    env
+  );
+
+  return normalizeClan(data);
+}
+
+
+// ============================================================
+// GET CURRENT CWL LEAGUE GROUP
+// ============================================================
+
+async function getLeagueGroup(tag, env) {
+  return getCoC(
+    `/clans/${encodedTag(tag)}/currentwar/leaguegroup`,
     env
   );
 }
 
-async function getWar(warTag, env) {
-  return await getCoC(
-    `/clanwarleagues/wars/${encodeURIComponent(warTag)}`,
+
+// ============================================================
+// GET CWL WAR BY WAR TAG
+// ============================================================
+
+async function getLeagueWar(warTag, env) {
+  return getCoC(
+    `/clanwarleagues/wars/${encodedTag(warTag)}`,
     env
   );
 }
 
-function getRoleName(role) {
-  const value = String(role || "").toLowerCase();
 
-  if (value === "leader") {
-    return "Leader";
-  }
-
-  if (
-    value === "coleader" ||
-    value === "co-leader"
-  ) {
-    return "Co-Leader";
-  }
-
-  if (
-    value === "admin" ||
-    value === "elder"
-  ) {
-    return "Elder";
-  }
-
-  return "Member";
-}
-
-function normalizePlayer(player) {
-  if (!player) return null;
-
-  return {
-    ...player,
-
-    roleName: getRoleName(player.role),
-
-    heroEquipment:
-      Array.isArray(player.heroEquipment)
-        ? player.heroEquipment
-        : [],
-
-    heroes:
-      Array.isArray(player.heroes)
-        ? player.heroes
-        : [],
-  };
-}
+// ============================================================
+// GET CWL
+// ============================================================
 
 async function getCWL(tag, env) {
-  const clean = cleanTag(tag);
+  const targetTag = cleanTag(tag);
 
-  /*
-    1. Get CWL league group
-  */
-
-  const group = await getCoC(
-    `/clans/${encodeURIComponent(clean)}/currentwar/leaguegroup`,
+  const leagueGroup = await getLeagueGroup(
+    targetTag,
     env
   );
 
-  /*
-    2. Current clan information
-  */
+  const leagueClans =
+    Array.isArray(leagueGroup?.clans)
+      ? leagueGroup.clans
+      : [];
 
-  let currentClan = null;
+  // ----------------------------------------------------------
+  // FETCH 8 CLANS
+  // ----------------------------------------------------------
 
-  try {
-    currentClan = await getClan(clean, env);
-  } catch (_) {
-    currentClan = null;
-  }
+  const clanResults = await Promise.all(
+    leagueClans.map(async (leagueClan) => {
+      try {
+        const clan = await getClan(
+          leagueClan.tag,
+          env
+        );
 
-  /*
-    3. CWL clans
-       IMPORTANT:
-       leaguegroup.clans[].members is the frozen
-       CWL roster. This is what we use for
-       Town Hall Breakdown.
-  */
+        return normalizeCWLClan(
+          leagueClan,
+          clan
+        );
+      } catch (_) {
+        return normalizeCWLClan(
+          leagueClan,
+          null
+        );
+      }
+    })
+  );
 
-  const clans = Array.isArray(group.clans)
-    ? group.clans.map(normalizeCWLClan)
-    : [];
+  // ----------------------------------------------------------
+  // ROUNDS
+  // ----------------------------------------------------------
 
-  /*
-    4. CWL normally has 7 battle rounds.
-       Future rounds may not yet have real war tags.
-       We intentionally keep all 7 rounds.
-  */
-
-  const TOTAL_ROUNDS = 7;
-
-  const rawRounds = Array.isArray(group.rounds)
-    ? group.rounds
-    : [];
+  const rawRounds =
+    Array.isArray(leagueGroup?.rounds)
+      ? leagueGroup.rounds
+      : [];
 
   const rounds = [];
 
-  for (let i = 0; i < TOTAL_ROUNDS; i++) {
-    const rawRound = rawRounds[i] || {};
+  for (let index = 0; index < 7; index++) {
+    const rawRound = rawRounds[index] || {};
 
-    const warTags = Array.isArray(rawRound.warTags)
-      ? rawRound.warTags
-          .filter(isRealWarTag)
-          .map((x) => String(x))
-      : [];
+    const warTags =
+      Array.isArray(rawRound.warTags)
+        ? rawRound.warTags.filter(isRealWarTag)
+        : [];
 
     rounds.push({
-      round: i + 1,
+      roundNumber: index + 1,
       warTags,
-      available: warTags.length > 0,
+      wars: [],
+      targetWar: null,
     });
   }
 
-  /*
-    5. Fetch every currently available war.
-       Deduplicate war tags.
-  */
+  // ----------------------------------------------------------
+  // UNIQUE WAR TAGS
+  // ----------------------------------------------------------
 
   const uniqueWarTags = [
     ...new Set(
-      rounds.flatMap((round) => round.warTags)
+      rounds
+        .flatMap((round) => round.warTags)
+        .filter(isRealWarTag)
     ),
   ];
+
+  // ----------------------------------------------------------
+  // FETCH ALL CWL WARS
+  // ----------------------------------------------------------
 
   const warResults = await Promise.all(
     uniqueWarTags.map(async (warTag) => {
       try {
-        const war = await getWar(warTag, env);
+        const war = await getLeagueWar(
+          warTag,
+          env
+        );
 
         return {
           warTag,
-          ok: true,
-          data: normalizeWar(war, clean),
+          war,
         };
       } catch (error) {
         return {
           warTag,
-          ok: false,
-          error: error?.message || "War fetch failed",
-          status: error?.status || 500,
-          data: null,
+          war: null,
+          error: error.message,
         };
       }
     })
@@ -429,146 +664,265 @@ async function getCWL(tag, env) {
 
   const warMap = new Map();
 
-  for (const result of warResults) {
-    warMap.set(
-      result.warTag,
-      result
-    );
+  for (const item of warResults) {
+    if (item.war) {
+      warMap.set(
+        cleanTag(item.warTag),
+        item.war
+      );
+    }
   }
 
-  /*
-    6. Attach actual war data to each round.
-  */
+  // ----------------------------------------------------------
+  // ASSIGN WAR TO ROUND
+  // ----------------------------------------------------------
 
-  const finalRounds = rounds.map((round) => {
-    const wars = [];
+  for (const round of rounds) {
+    const normalizedWars = [];
 
     for (const warTag of round.warTags) {
-      const result = warMap.get(warTag);
+      const rawWar = warMap.get(
+        cleanTag(warTag)
+      );
 
-      if (!result) {
+      if (!rawWar) {
         continue;
       }
 
-      wars.push({
-        warTag,
+      const normalized = normalizeWar(
+        rawWar,
+        targetTag
+      );
 
-        ok: result.ok,
+      if (normalized) {
+        normalized.warTag = warTag;
 
-        error: result.error || null,
-
-        data: result.data || null,
-      });
+        normalizedWars.push(
+          normalized
+        );
+      }
     }
 
-    return {
-      ...round,
-      wars,
-    };
-  });
+    round.wars = normalizedWars;
 
-  /*
-    7. TH breakdown comes from the frozen CWL roster,
-       NOT from individual war responses.
-  */
+    // IMPORTANT:
+    // cari WAR milik clan yang sedang dicek.
+    // BUKAN wars[0].
+    round.targetWar =
+      normalizedWars.find(
+        (war) =>
+          cleanTag(
+            war.target?.tag
+          ) === targetTag
+      ) || null;
+  }
 
-  const finalClans = clans.map((clan) => ({
-    ...clan,
-    townHallBreakdown:
-      townHallBreakdown(clan.members),
-  }));
+  // ----------------------------------------------------------
+  // CURRENT CLAN
+  // ----------------------------------------------------------
 
-  /*
-    8. Build quick summary.
-  */
+  let currentClan = null;
+
+  try {
+    currentClan = await getClan(
+      targetTag,
+      env
+    );
+  } catch (_) {
+    currentClan =
+      clanResults.find(
+        (clan) =>
+          cleanTag(clan.tag) === targetTag
+      ) || null;
+  }
+
+  // ----------------------------------------------------------
+  // STATS
+  // ----------------------------------------------------------
 
   const availableRounds =
-    finalRounds.filter(
-      (round) => round.available
+    rounds.filter(
+      (round) => !!round.targetWar
     ).length;
 
   const completedRounds =
-    finalRounds.filter((round) =>
-      round.wars.some(
-        (war) =>
-          war.data?.state === "warEnded"
-      )
+    rounds.filter(
+      (round) =>
+        round.targetWar?.state ===
+        "warEnded"
     ).length;
 
   const activeRounds =
-    finalRounds.filter((round) =>
-      round.wars.some(
-        (war) =>
-          war.data?.state === "inWar"
-      )
+    rounds.filter(
+      (round) =>
+        round.targetWar?.state ===
+        "inWar"
     ).length;
 
   const preparationRounds =
-    finalRounds.filter((round) =>
-      round.wars.some(
-        (war) =>
-          war.data?.state === "preparation"
-      )
+    rounds.filter(
+      (round) =>
+        round.targetWar?.state ===
+        "preparation"
     ).length;
 
   return {
-    ok: true,
-
-    clanTag: clean,
+    tag: targetTag,
 
     state:
-      group.state || "unknown",
+      leagueGroup?.state ||
+      null,
 
     season:
-      group.season || null,
+      leagueGroup?.season ||
+      null,
 
-    totalRounds: TOTAL_ROUNDS,
+    warLeague:
+      currentClan?.warLeague ||
+      null,
+
+    totalRounds: 7,
 
     availableRounds,
-
     completedRounds,
-
     activeRounds,
-
     preparationRounds,
 
-    clans: finalClans,
+    clans: clanResults,
 
-    rounds: finalRounds,
+    currentClan,
 
-    currentClan: currentClan
-      ? {
-          tag: currentClan.tag || clean,
-          name: currentClan.name || "-",
-          description:
-            currentClan.description || "",
-          clanLevel:
-            number(currentClan.clanLevel),
-          members:
-            number(currentClan.members),
-          badgeUrls:
-            normalizeBadge(
-              currentClan.badgeUrls
-            ),
-          warLeague:
-            currentClan.warLeague || null,
-          type:
-            currentClan.type || null,
-        }
-      : null,
+    rounds,
   };
 }
 
+
+// ============================================================
+// ROUTER
+// ============================================================
+
+async function router(request, env) {
+  const url = new URL(request.url);
+
+  const pathname =
+    url.pathname.replace(/\/+$/, "") ||
+    "/";
+
+  // ----------------------------------------------------------
+  // HEALTH
+  // ----------------------------------------------------------
+
+  if (
+    request.method === "GET" &&
+    pathname === "/"
+  ) {
+    return {
+      ok: true,
+      service: "Sarjana Checker API",
+      status: "online",
+    };
+  }
+
+  // ----------------------------------------------------------
+  // PLAYER
+  // ----------------------------------------------------------
+
+  if (
+    request.method === "GET" &&
+    pathname === "/player"
+  ) {
+    const tag =
+      url.searchParams.get("tag");
+
+    if (!tag) {
+      throw Object.assign(
+        new Error("Parameter ?tag= wajib diisi."),
+        { status: 400 }
+      );
+    }
+
+    return {
+      ok: true,
+      player: await getPlayer(
+        tag,
+        env
+      ),
+    };
+  }
+
+  // ----------------------------------------------------------
+  // CLAN
+  // ----------------------------------------------------------
+
+  if (
+    request.method === "GET" &&
+    pathname === "/clan"
+  ) {
+    const tag =
+      url.searchParams.get("tag");
+
+    if (!tag) {
+      throw Object.assign(
+        new Error("Parameter ?tag= wajib diisi."),
+        { status: 400 }
+      );
+    }
+
+    return {
+      ok: true,
+      clan: await getClan(
+        tag,
+        env
+      ),
+    };
+  }
+
+  // ----------------------------------------------------------
+  // CWL
+  // ----------------------------------------------------------
+
+  if (
+    request.method === "GET" &&
+    pathname === "/cwl"
+  ) {
+    const tag =
+      url.searchParams.get("tag");
+
+    if (!tag) {
+      throw Object.assign(
+        new Error("Parameter ?tag= wajib diisi."),
+        { status: 400 }
+      );
+    }
+
+    return {
+      ok: true,
+      cwl: await getCWL(
+        tag,
+        env
+      ),
+    };
+  }
+
+  throw Object.assign(
+    new Error("Endpoint tidak ditemukan."),
+    { status: 404 }
+  );
+}
+
+
+// ============================================================
+// WORKER
+// ============================================================
+
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
-
     const origin =
       request.headers.get("Origin") || "";
 
-    /*
-      CORS preflight
-    */
+    // --------------------------------------------------------
+    // PREFLIGHT
+    // --------------------------------------------------------
 
     if (request.method === "OPTIONS") {
       return new Response(null, {
@@ -577,164 +931,28 @@ export default {
       });
     }
 
-    if (request.method !== "GET") {
-      return json(
-        {
-          ok: false,
-          message: "Method not allowed",
-        },
-        405,
-        origin
-      );
-    }
-
     try {
-      /*
-        PLAYER
-        /player?tag=%239UG9LJV8Y
-      */
-
-      if (url.pathname === "/player") {
-        const tag = cleanTag(
-          url.searchParams.get("tag")
+      const result =
+        await router(
+          request,
+          env
         );
-
-        if (!tag) {
-          return json(
-            {
-              ok: false,
-              message:
-                "Player tag belum diberikan.",
-            },
-            400,
-            origin
-          );
-        }
-
-        const player =
-          await getPlayer(tag, env);
-
-        return json(
-          {
-            ok: true,
-            data: normalizePlayer(player),
-          },
-          200,
-          origin
-        );
-      }
-
-      /*
-        CLAN
-        /clan?tag=%232J0P2GR08
-      */
-
-      if (url.pathname === "/clan") {
-        const tag = cleanTag(
-          url.searchParams.get("tag")
-        );
-
-        if (!tag) {
-          return json(
-            {
-              ok: false,
-              message:
-                "Clan tag belum diberikan.",
-            },
-            400,
-            origin
-          );
-        }
-
-        const clan =
-          await getClan(tag, env);
-
-        return json(
-          {
-            ok: true,
-            data: clan,
-          },
-          200,
-          origin
-        );
-      }
-
-      /*
-        CWL
-        /cwl?tag=%232J0P2GR08
-      */
-
-      if (url.pathname === "/cwl") {
-        const tag = cleanTag(
-          url.searchParams.get("tag")
-        );
-
-        if (!tag) {
-          return json(
-            {
-              ok: false,
-              message:
-                "Clan tag belum diberikan.",
-            },
-            400,
-            origin
-          );
-        }
-
-        const data =
-          await getCWL(tag, env);
-
-        return json(
-          data,
-          200,
-          origin
-        );
-      }
-
-      /*
-        HEALTH
-      */
-
-      if (url.pathname === "/") {
-        return json(
-          {
-            ok: true,
-            app: "Sarjana Checker API",
-            version: "2.0",
-            endpoints: [
-              "/player?tag=%23PLAYER_TAG",
-              "/clan?tag=%23CLAN_TAG",
-              "/cwl?tag=%23CLAN_TAG",
-            ],
-          },
-          200,
-          origin
-        );
-      }
 
       return json(
-        {
-          ok: false,
-          message: "Endpoint not found.",
-        },
-        404,
+        result,
+        200,
         origin
       );
     } catch (error) {
       console.error(error);
 
-      return json(
-        {
-          ok: false,
-          message:
-            error?.message ||
-            "Terjadi kesalahan.",
-          status:
-            error?.status || 500,
-          details:
-            error?.body || null,
-        },
-        error?.status || 500,
+      const status =
+        Number(error?.status) || 500;
+
+      return errorResponse(
+        error?.message ||
+          "Terjadi kesalahan pada server.",
+        status,
         origin
       );
     }
