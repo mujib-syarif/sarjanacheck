@@ -1,6 +1,13 @@
 {
-  "$schema": "https://www.schemastore.org/wrangler.json",
+  "$schema": "https://www.schemastore.org/wrangler/wrangler.json",
   "name": "sarjana-checker-api",
   "main": "worker.js",
-  "compatibility_date": "2026-10-01"
+  "compatibility_date": "2026-10-01",
+
+  "kv_namespaces": [
+    {
+      "binding": "CWL_ROSTER",
+      "id": "e52bbf73c82d4faba6c732c453f8b7dc"
+    }
+  ]
 }
