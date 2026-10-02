@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --bg:#0b1017; --card:#131b26; --card2:#192434; --text:#ecf3ff; --muted:#96a5b8; --line:#263448; --accent:#a884ff; --accent2:#d7c7ff; --green:#65dfac; --red:#ff8792; }
+    :root { --bg:#edf3fb; --card:#ffffff; --card2:#e7effb; --text:#10233f; --muted:#52677f; --line:#b9c9dc; --accent:#123b83; --accent2:#0d5dc0; --green:#087950; --red:#bb1d36; }
     * { box-sizing:border-box; }
-    body { margin:0; background:radial-gradient(circle at top,#1b1731 0,#0b1017 42rem); color:var(--text); font:14px/1.45 "Plus Jakarta Sans",system-ui,sans-serif; }
+    body { margin:0; background:linear-gradient(180deg,#dce8f8 0,#f6f9fd 36rem); color:var(--text); font:14px/1.45 "Plus Jakarta Sans",system-ui,sans-serif; }
     button,input,select { font:inherit; }
     button { cursor:pointer; }
     .app { width:min(100%,960px); margin:0 auto; padding:24px 16px 32px; }
@@ -19,24 +19,24 @@
     .logo { width:48px; height:48px; object-fit:contain; border-radius:12px; }
     .brand-title { font-size:20px; font-weight:800; }
     .brand-sub { color:var(--muted); font-size:11px; }
-    .search-panel,.section,.clan-header,.round { border:1px solid var(--line); background:rgba(19,27,38,.94); border-radius:16px; }
+    .search-panel,.section,.clan-header,.round { border:1px solid var(--line); background:var(--card); border-radius:16px; box-shadow:0 5px 16px rgba(24,57,99,.08); }
     .search-panel { padding:14px; margin-bottom:18px; }
     .switch { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
     .switch button,.search-btn,.sort-select { border:1px solid var(--line); border-radius:10px; background:var(--card2); color:var(--text); min-height:38px; padding:8px 12px; font-weight:800; }
-    .switch button.active,.search-btn { background:var(--accent); border-color:var(--accent); color:#171126; }
+    .switch button.active,.search-btn { background:var(--accent); border-color:var(--accent); color:#fff; }
     .search-row { display:flex; gap:8px; }
-    .search-row input { min-width:0; flex:1; color:var(--text); background:#0d131c; border:1px solid var(--line); border-radius:10px; padding:10px 12px; outline:none; }
+    .search-row input { min-width:0; flex:1; color:var(--text); background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 12px; outline:none; }
     .hint { margin:8px 2px 0; color:var(--muted); font-size:11px; }
     .page { display:none; }
     .page.active { display:block; }
     .loading,.error-box,.empty { padding:20px; color:var(--muted); text-align:center; }
-    .error-box { color:#ffd2d6; border:1px solid #7b3441; border-radius:14px; background:#2a151c; }
+    .error-box { color:#7b1021; border:1px solid #e0aab4; border-radius:14px; background:#fff1f3; }
     .clan-header { padding:18px; margin-bottom:12px; }
     .clan-name { font-size:22px; font-weight:800; overflow-wrap:anywhere; }
     .clan-tag,.info-desc { color:var(--muted); font-size:12px; }
     .clan-description { color:var(--muted); margin-top:8px; }
     .clan-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px; }
-    .meta { padding:9px; border-radius:10px; background:#0d131c; color:var(--muted); font-size:10px; }
+    .meta { padding:9px; border-radius:10px; background:#eaf1fb; color:var(--muted); font-size:10px; }
     .meta strong { display:block; color:var(--text); font-size:14px; margin-top:2px; }
     .section { padding:15px; margin-bottom:12px; }
     .section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
@@ -45,21 +45,21 @@
     .summary { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
     .summary .meta { min-height:58px; }
     .hero-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px; }
-    .hero-card,.equipment-card { display:flex; align-items:center; gap:10px; min-width:0; padding:10px; border:1px solid var(--line); border-radius:12px; background:#0d131c; }
+    .hero-card,.equipment-card { display:flex; align-items:center; gap:10px; min-width:0; padding:10px; border:1px solid var(--line); border-radius:12px; background:#f8fbff; }
     .hero-img { width:58px; height:58px; object-fit:contain; flex:0 0 auto; }
     .equipment-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:8px; }
     .equipment-img { width:42px; height:42px; object-fit:contain; flex:0 0 auto; }
     .asset-failed { display:none; }
-    .asset-placeholder { width:42px; min-height:42px; display:grid; place-items:center; flex:0 0 auto; border:1px dashed #59687d; border-radius:8px; color:var(--muted); font-size:8px; text-align:center; padding:3px; }
+    .asset-placeholder { width:42px; min-height:42px; display:grid; place-items:center; flex:0 0 auto; border:1px dashed #6c82a1; border-radius:8px; color:var(--muted); font-size:8px; text-align:center; padding:3px; }
     .hero-card .asset-placeholder { width:58px; min-height:58px; }
     .asset-placeholder[hidden] { display:none; }
     .item-name { font-weight:800; overflow-wrap:anywhere; }
     .item-detail { color:var(--muted); font-size:11px; margin-top:2px; }
     .epic { color:#ffcd75; font-size:10px; font-weight:800; margin-top:2px; }
     .sort-control { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:11px; font-weight:700; }
-    .sort-select { min-height:32px; color:var(--text); background:#0d131c; padding:5px 8px; font-size:11px; }
+    .sort-select { min-height:32px; color:var(--text); background:#fff; padding:5px 8px; font-size:11px; }
     .member-list { display:grid; gap:7px; }
-    .member { width:100%; display:flex; align-items:center; gap:10px; text-align:left; color:var(--text); background:#0d131c; border:1px solid var(--line); border-radius:11px; padding:10px; }
+    .member { width:100%; display:flex; align-items:center; gap:10px; text-align:left; color:var(--text); background:#f8fbff; border:1px solid var(--line); border-radius:11px; padding:10px; }
     .member:hover { border-color:var(--accent); }
     .member-rank { color:var(--accent2); font-weight:800; width:24px; }
     .member-info { flex:1; min-width:0; }
@@ -72,8 +72,8 @@
     .th-breakdown { display:grid; gap:8px; }
     .th-row { display:grid; grid-template-columns:43px 1fr 28px; align-items:center; gap:9px; font-size:12px; }
     .th-label,.th-count { font-weight:800; }
-    .th-bar { height:9px; overflow:hidden; border-radius:8px; background:#0d131c; }
-    .th-bar-fill { height:100%; min-width:2px; background:linear-gradient(90deg,var(--accent),#d0baff); }
+    .th-bar { height:9px; overflow:hidden; border-radius:8px; background:#d9e5f5; }
+    .th-bar-fill { height:100%; min-width:2px; background:linear-gradient(90deg,var(--accent),#2386da); }
     .round { padding:13px; margin:8px 0; }
     .round-head,.war { display:flex; justify-content:space-between; gap:10px; }
     .round-title { font-weight:800; } .round-status { color:var(--muted); font-size:11px; }
@@ -81,8 +81,27 @@
     .war-side { width:calc(50% - 24px); } .war-side.right { text-align:right; }
     .war-name { font-weight:800; overflow-wrap:anywhere; } .war-score { color:var(--muted); font-size:11px; margin-top:2px; }
     .vs { color:var(--accent2); font-size:11px; font-weight:800; }
-    .footer { color:#7f8ca0; margin:22px 0 0; text-align:center; font-size:11px; }
+    .footer { color:#52677f; margin:22px 0 0; text-align:center; font-size:11px; }
     .footer a { color:var(--accent2); text-decoration:none; font-weight:800; }
+    .player-name-row { display:flex; align-items:center; flex-wrap:wrap; gap:9px; }
+    .xp-bubble { display:inline-grid; place-items:center; min-width:44px; min-height:28px; padding:3px 8px; border-radius:999px; background:#d8eaff; border:1px solid #96bde8; color:#073c84; font-size:11px; font-weight:800; }
+    .player-clan-link { display:flex; align-items:center; gap:10px; width:max-content; max-width:100%; margin-top:13px; padding:8px 10px; border:1px solid #9eb9d9; border-radius:11px; background:#edf5ff; color:#0b4d9f; font-weight:800; text-align:left; }
+    .clan-badge { width:44px; height:44px; object-fit:contain; flex:0 0 auto; }
+    .clan-badge.small { width:36px; height:36px; }
+    .player-clan-copy { min-width:0; }
+    .player-clan-copy strong,.player-clan-copy span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .player-clan-copy span { color:var(--muted); font-size:11px; font-weight:600; }
+    .table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+    .clan-th-table { width:100%; min-width:1180px; border-collapse:collapse; background:#fff; }
+    .clan-th-table th,.clan-th-table td { padding:8px 7px; border-bottom:1px solid #d5e0ed; text-align:center; }
+    .clan-th-table th { background:#123b83; color:#fff; font-size:10px; white-space:nowrap; }
+    .clan-th-table th:first-child { min-width:235px; text-align:left; }
+    .clan-th-table td { color:#152c4c; font-weight:700; }
+    .clan-th-table tbody tr:nth-child(even) { background:#f1f6fc; }
+    .clan-th-table tbody tr.selected { background:#ccecff; }
+    .clan-cell { display:flex; align-items:center; gap:8px; min-width:0; text-align:left; }
+    .clan-cell .cwl-clan-link { color:#10233f; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .th-column { width:49px; }
     @media (max-width:600px) { .app { padding-inline:10px; } .summary { grid-template-columns:repeat(2,1fr); } .clan-meta { grid-template-columns:repeat(3,1fr); } .section-head { align-items:flex-start; } .sort-control { align-items:flex-start; flex-direction:column; } }
   </style>
 </head>
@@ -189,6 +208,35 @@
     'rocket spear equipment':'rocket spear'
   };
   const EPIC_EQUIPMENT = new Set(['giant gauntlet','spiky ball','snake bracelet','stick horse','giant arrow','magic mirror','action figure','wwe action figure','monolith arrow','fireball','heroic torch','dark orb','dark crown','meteor staff','rocket spear','electro fangs','fire heart','flame blower','rocket backpack','stun blast','reverse card']);
+  /*
+   * Town Hall caps retained from the uploaded source.  API values explicitly
+   * labelled maxLevelForTownHall take precedence when the Worker supplies them.
+   */
+  const HOME_HERO_MAX = {
+    4:{'barbarian king':1},5:{'barbarian king':1},6:{'barbarian king':1},
+    7:{'barbarian king':10},8:{'barbarian king':20,'archer queen':10},
+    9:{'barbarian king':30,'archer queen':30,'minion prince':10},
+    10:{'barbarian king':40,'archer queen':40,'minion prince':20},
+    11:{'barbarian king':50,'archer queen':50,'minion prince':30,'grand warden':20},
+    12:{'barbarian king':65,'archer queen':65,'minion prince':40,'grand warden':40},
+    13:{'barbarian king':75,'archer queen':75,'minion prince':50,'grand warden':50,'royal champion':25},
+    14:{'barbarian king':85,'archer queen':85,'minion prince':60,'grand warden':60,'royal champion':30},
+    15:{'barbarian king':90,'archer queen':90,'minion prince':70,'grand warden':65,'royal champion':40,'dragon duke':10},
+    16:{'barbarian king':95,'archer queen':95,'minion prince':80,'grand warden':70,'royal champion':45,'dragon duke':15},
+    17:{'barbarian king':100,'archer queen':100,'minion prince':90,'grand warden':75,'royal champion':50,'dragon duke':20},
+    18:{'barbarian king':110,'archer queen':110,'minion prince':95,'grand warden':85,'royal champion':55,'dragon duke':25}
+  };
+  const BUILDER_HERO_MAX = {
+    5:{'battle machine':5},6:{'battle machine':10},7:{'battle machine':20},
+    8:{'battle machine':25,'battle copter':25},9:{'battle machine':30,'battle copter':30},
+    10:{'battle machine':35,'battle copter':35}
+  };
+  const EQUIPMENT_TH_CAP = {
+    8:{common:9,epic:12},9:{common:9,epic:12},10:{common:12,epic:15},
+    11:{common:12,epic:15},12:{common:15,epic:18},13:{common:15,epic:18},
+    14:{common:18,epic:21},15:{common:18,epic:24},16:{common:18,epic:27},
+    17:{common:18,epic:27},18:{common:18,epic:27}
+  };
 
   function firstValue() {
     for (let index = 0; index < arguments.length; index += 1) {
@@ -226,6 +274,33 @@
     const key = assetKey(name);
     const alias = aliases && aliases[key] ? assetKey(aliases[key]) : key;
     return index[alias] || null;
+  }
+  function badgeUrl(clan) {
+    const urls = clan && firstValue(clan.badgeUrls,clan.iconUrls,clan.badge);
+    if (typeof urls === 'string') return urls;
+    return firstValue(urls && urls.medium,urls && urls.large,urls && urls.small,'');
+  }
+  function badgeImage(clan, sizeClass) {
+    const url = badgeUrl(clan);
+    return url ? '<img class="clan-badge' + (sizeClass ? ' ' + sizeClass : '') + '" src="' + escapeHTML(url) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '';
+  }
+  function heroMaxFor(hero, player) {
+    const apiCap = number(firstValue(hero.maxLevelForTownHall,hero.max_level_for_town_hall));
+    if (apiCap) return apiCap;
+    const key = assetKey(hero.name);
+    if (key === 'battle machine' || key === 'battle copter') {
+      const builderHall = number(firstValue(player.builderHallLevel,player.builderBaseLevel,player.builderHall));
+      return number(BUILDER_HERO_MAX[builderHall] && BUILDER_HERO_MAX[builderHall][key]) || number(firstValue(hero.maxLevel,hero.max,hero.max_level));
+    }
+    const th = number(player.townHallLevel);
+    return number(HOME_HERO_MAX[th] && HOME_HERO_MAX[th][key]) || number(firstValue(hero.maxLevel,hero.max,hero.max_level));
+  }
+  function equipmentMaxFor(item, player, isEpic) {
+    const apiCap = number(firstValue(item.maxLevelForTownHall,item.max_level_for_town_hall));
+    if (apiCap) return apiCap;
+    const cap = EQUIPMENT_TH_CAP[number(player.townHallLevel)];
+    if (cap) return isEpic ? cap.epic : cap.common;
+    return number(firstValue(item.maxLevel,item.max));
   }
   function assetImage(path, alt, className) {
     if (!path) return '<span class="asset-placeholder">Asset belum dipetakan</span>';
@@ -286,7 +361,8 @@
       return {
         name:firstValue(hero.name,hero.heroName,'Hero'),
         level:number(firstValue(hero.level,hero.currentLevel)),
-        maxLevel:number(firstValue(hero.maxLevel,hero.max,hero.max_level))
+        maxLevel:number(firstValue(hero.maxLevel,hero.max,hero.max_level)),
+        maxLevelForTownHall:number(firstValue(hero.maxLevelForTownHall,hero.max_level_for_town_hall))
       };
     });
     let equipment = asArray(firstValue(player.heroEquipment,player.equipment));
@@ -306,6 +382,10 @@
       expLevel:number(firstValue(player.expLevel,player.xp,player.experienceLevel)),
       trophies:number(firstValue(player.trophies,player.trophy)),
       warStars:number(firstValue(player.warStars,player.war_stars)),
+      builderHallLevel:number(firstValue(player.builderHallLevel,player.builderBaseLevel,player.builderHall)),
+      role:firstValue(player.role,'-'),
+      roleName:firstValue(player.roleName,''),
+      clan:player.clan || null,
       heroes:heroes,
       equipment:equipment
     };
@@ -318,19 +398,24 @@
   function renderPlayer(player) {
     const heroHTML = player.heroes.length ? player.heroes.map(function(hero) {
       const path = resolveAsset(HERO_ASSET_INDEX,hero.name);
-      return '<div class="hero-card">' + assetImage(path,hero.name,'hero-img') + '<div><div class="item-name">' + escapeHTML(hero.name) + '</div><div class="item-detail">Level ' + escapeHTML(hero.level || '-') + ' / ' + escapeHTML(hero.maxLevel || '-') + '</div></div></div>';
+      const max = heroMaxFor(hero,player);
+      return '<div class="hero-card">' + assetImage(path,hero.name,'hero-img') + '<div><div class="item-name">' + escapeHTML(hero.name) + '</div><div class="item-detail">Level ' + escapeHTML(hero.level || '-') + ' / ' + escapeHTML(max || '-') + '</div></div></div>';
     }).join('') : '<div class="empty">Data hero tidak tersedia.</div>';
     const equipmentHTML = player.equipment.length ? player.equipment.map(function(item) {
       const name = firstValue(item.name,item.equipmentName,'Equipment');
       const key = assetKey(name);
       const path = resolveAsset(EQUIPMENT_ASSET_INDEX,name,EQUIPMENT_ALIASES);
       const level = firstValue(item.level,item.currentLevel,'-');
-      const max = firstValue(item.maxLevel,item.max,'-');
-      const rarity = EPIC_EQUIPMENT.has(EQUIPMENT_ALIASES[key] || key) ? '<div class="epic">EPIC</div>' : '<div class="epic">COMMON</div>';
+      const isEpic = EPIC_EQUIPMENT.has(EQUIPMENT_ALIASES[key] || key);
+      const max = equipmentMaxFor(item,player,isEpic);
+      const rarity = isEpic ? '<div class="epic">EPIC</div>' : '<div class="epic">COMMON</div>';
       return '<div class="equipment-card">' + assetImage(path,name,'equipment-img') + '<div><div class="item-name">' + escapeHTML(name) + '</div><div class="item-detail">Level ' + escapeHTML(level) + ' / ' + escapeHTML(max) + '</div>' + rarity + '</div></div>';
     }).join('') : '<div class="empty">Data equipment tidak tersedia.</div>';
+    const clanHTML = player.clan && cleanTag(firstValue(player.clan.tag,player.clan.clanTag)) ?
+      '<button type="button" class="player-clan-link" onclick="openClan(\'' + escapeHTML(firstValue(player.clan.tag,player.clan.clanTag)) + '\')">' + badgeImage(player.clan,'') + '<span class="player-clan-copy"><strong>' + escapeHTML(firstValue(player.clan.name,player.clan.clanName,'Clan')) + '</strong><span>' + escapeHTML(firstValue(player.clan.tag,player.clan.clanTag,'')) + ' · Buka detail clan</span></span></button>' :
+      '<div class="player-clan-link"><span class="player-clan-copy"><strong>Belum bergabung clan</strong></span></div>';
     document.getElementById('playerContent').innerHTML =
-      '<div class="clan-header"><div class="clan-name">' + escapeHTML(player.name) + '</div><div class="clan-tag">' + escapeHTML(player.tag) + '</div><div class="summary"><div class="meta">Town Hall<strong>TH' + escapeHTML(player.townHallLevel || '-') + '</strong></div><div class="meta">Level<strong>' + escapeHTML(player.expLevel || '-') + '</strong></div><div class="meta">Trophies<strong>' + formatNumber(player.trophies) + '</strong></div><div class="meta">War Stars<strong>' + formatNumber(player.warStars) + '</strong></div></div></div>' +
+      '<div class="clan-header"><div class="player-name-row"><div class="clan-name">' + escapeHTML(player.name) + '</div><div class="xp-bubble">XP ' + escapeHTML(player.expLevel || '-') + '</div></div><div class="clan-tag">' + escapeHTML(player.tag) + '</div>' + clanHTML + '<div class="summary"><div class="meta">Town Hall<strong>TH' + escapeHTML(player.townHallLevel || '-') + '</strong></div><div class="meta">Trophies<strong>' + formatNumber(player.trophies) + '</strong></div><div class="meta">War Stars<strong>' + formatNumber(player.warStars) + '</strong></div><div class="meta">Role<strong>' + escapeHTML(firstValue(player.roleName,player.role,'-')) + '</strong></div></div></div>' +
       '<section class="section"><div class="section-head"><div class="section-title">Heroes</div><div class="section-value">' + player.heroes.length + ' Hero</div></div><div class="hero-grid">' + heroHTML + '</div></section>' +
       '<section class="section"><div class="section-head"><div class="section-title">Hero Equipment</div><div class="section-value">' + player.equipment.length + ' Item</div></div><div class="equipment-grid">' + equipmentHTML + '</div></section>';
     window.scrollTo({top:0,behavior:'smooth'});
@@ -358,7 +443,8 @@
       members:number(firstValue(typeof clan.members === 'number' ? clan.members : null,clan.memberCount,members.length)),
       memberList:members,
       description:firstValue(clan.description,clan.desc,''),
-      type:firstValue(clan.type,clan.clanType,'-')
+      type:firstValue(clan.type,clan.clanType,'-'),
+      badgeUrls:firstValue(clan.badgeUrls,clan.iconUrls,null)
     };
   }
   function roleOrder(role) {
@@ -396,13 +482,14 @@
   }
   function renderClan(clan) {
     const members = sortClanMembers(clan.memberList);
+    const clanBadgeHTML = badgeImage(clan,'');
     const memberHTML = members.length ? members.map(function(member,index) {
       const role = roleName(member.role);
       const roleClass = role === 'Leader' ? 'role-leader' : role === 'Co-Leader' ? 'role-coleader' : role === 'Elder' ? 'role-elder' : '';
       return '<button type="button" class="member" onclick="loadPlayer(\'' + escapeHTML(member.tag) + '\')"><div class="member-rank">' + String(index + 1).padStart(2,'0') + '</div><div class="member-info"><div class="member-name">' + escapeHTML(member.name) + '</div><div class="member-detail">' + formatNumber(member.trophies) + ' trophies · <span class="' + roleClass + '">' + role + '</span></div></div><div class="member-th">TH' + escapeHTML(member.townHallLevel || '-') + '</div></button>';
     }).join('') : '<div class="empty">Member tidak tersedia.</div>';
     document.getElementById('clanContent').innerHTML =
-      '<div class="clan-header"><div class="clan-name">' + escapeHTML(clan.name) + '</div><div class="clan-tag">' + escapeHTML(clan.tag) + '</div>' + (clan.description ? '<div class="clan-description">' + escapeHTML(clan.description) + '</div>' : '') + '<div class="clan-meta"><div class="meta">Member<strong>' + formatNumber(clan.members) + '/50</strong></div><div class="meta">Level<strong>' + escapeHTML(clan.clanLevel) + '</strong></div><div class="meta">Type<strong>' + escapeHTML(clan.type) + '</strong></div></div></div>' +
+      '<div class="clan-header"><div class="player-name-row">' + clanBadgeHTML + '<div><div class="clan-name">' + escapeHTML(clan.name) + '</div><div class="clan-tag">' + escapeHTML(clan.tag) + '</div></div></div>' + (clan.description ? '<div class="clan-description">' + escapeHTML(clan.description) + '</div>' : '') + '<div class="clan-meta"><div class="meta">Member<strong>' + formatNumber(clan.members) + '/50</strong></div><div class="meta">Level<strong>' + escapeHTML(clan.clanLevel) + '</strong></div><div class="meta">Type<strong>' + escapeHTML(clan.type) + '</strong></div></div></div>' +
       '<section class="section"><div class="section-head"><div><div class="section-title">Clan Members</div><div class="section-value">' + members.length + '/50</div></div><label class="sort-control">Urutkan<select class="sort-select" onchange="setClanSort(this.value)"><option value="role"' + (clanSort === 'role' ? ' selected' : '') + '>Role → Rank</option><option value="th-desc"' + (clanSort === 'th-desc' ? ' selected' : '') + '>TH tinggi → rendah</option><option value="th-asc"' + (clanSort === 'th-asc' ? ' selected' : '') + '>TH rendah → tinggi</option><option value="trophy-desc"' + (clanSort === 'trophy-desc' ? ' selected' : '') + '>Trophy tinggi → rendah</option><option value="trophy-asc"' + (clanSort === 'trophy-asc' ? ' selected' : '') + '>Trophy rendah → tinggi</option><option value="rank"' + (clanSort === 'rank' ? ' selected' : '') + '>Rank</option></select></label></div><div class="member-list">' + memberHTML + '</div></section>';
     window.scrollTo({top:0,behavior:'smooth'});
   }
@@ -515,6 +602,22 @@
     try { currentCwl = normalizeCwl(await api('cwl',requestedCwlTag)); renderCwl(currentCwl); }
     catch (error) { setError(error && error.message); }
   }
+  function renderClanTownHallTable(clans, selectedTag) {
+    const towns = Array.from({length:18},function(_,index) { return 18 - index; });
+    const header = '<tr><th>Clan</th>' + towns.map(function(th) { return '<th class="th-column">TH' + th + '</th>'; }).join('') + '</tr>';
+    const rows = asArray(clans).map(function(clan) {
+      const tag = clanTag(clan);
+      const counts = {};
+      breakdownEntries(firstValue(clan.townHallBreakdown,clan.cwlTownHallBreakdown,{})).forEach(function(entry) {
+        counts[entry.th] = number(entry.count);
+      });
+      const cells = towns.map(function(th) { return '<td>' + (counts[th] ? formatNumber(counts[th]) : '–') + '</td>'; }).join('');
+      const name = firstValue(clan.name,clan.clanName,'-');
+      const clickable = tag ? '<button type="button" class="cwl-clan-link" onclick="openClan(\'' + escapeHTML(tag) + '\')">' + escapeHTML(name) + '</button>' : escapeHTML(name);
+      return '<tr' + (tag === cleanTag(selectedTag) ? ' class="selected"' : '') + '><td><div class="clan-cell">' + badgeImage(clan,'small') + '<div><div>' + clickable + '</div><div class="clan-tag">' + escapeHTML(tag || '-') + '</div></div></div></td>' + cells + '</tr>';
+    }).join('');
+    return '<div class="table-wrap"><table class="clan-th-table"><thead>' + header + '</thead><tbody>' + (rows || '<tr><td colspan="19">Data clan CWL belum tersedia.</td></tr>') + '</tbody></table></div>';
+  }
   function renderCwl(data) {
     const selectedTag = cleanTag(firstValue(data.tag,data.clanTag,data.currentClan && data.currentClan.tag,data.currentClan && data.currentClan.clanTag,requestedCwlTag));
     data.selectedTag = selectedTag;
@@ -531,9 +634,11 @@
     const clanName = firstValue(displayedClan && displayedClan.name,displayedClan && displayedClan.clanName,'CWL');
     const clanLink = selectedTag ? '<button type="button" class="cwl-clan-link" onclick="openClan(\'' + escapeHTML(selectedTag) + '\')">' + escapeHTML(clanName) + '</button>' : '<div class="clan-name">' + escapeHTML(clanName) + '</div>';
     const roundsHTML = data.rounds.map(function(round,index) { return renderCwlRound(round,index + 1,selectedTag); }).join('');
+    const clanTableHTML = renderClanTownHallTable(data.clans,selectedTag);
     document.getElementById('cwlContent').innerHTML =
-      '<div class="clan-header"><div class="clan-name">' + clanLink + '</div><div class="clan-tag">' + escapeHTML(selectedTag || '-') + '</div><div class="clan-meta"><div class="meta">CWL Rounds<strong>7</strong></div><div class="meta">CWL Roster<strong>' + formatNumber(rosterSize) + '</strong></div><div class="meta">Season<strong>' + escapeHTML(firstValue(data.season,'-')) + '</strong></div></div></div>' +
+      '<div class="clan-header"><div class="clan-name">' + clanLink + '</div><div class="clan-tag">' + escapeHTML(selectedTag || '-') + '</div><div class="clan-meta"><div class="meta">CWL Rounds<strong>7</strong></div><div class="meta">Peserta CWL<strong>' + formatNumber(rosterSize) + ' Player</strong></div><div class="meta">Season<strong>' + escapeHTML(firstValue(data.season,'-')) + '</strong></div></div></div>' +
       '<section class="section"><div class="section-head"><div class="section-title">Town Hall Breakdown</div>' + (selectedTag ? '<button type="button" class="cwl-clan-link" onclick="openClan(\'' + escapeHTML(selectedTag) + '\')">' + escapeHTML(clanName) + '</button>' : '') + '</div><div class="th-breakdown">' + breakdownHTML + '</div></section>' +
+      '<section class="section"><div class="section-head"><div class="section-title">Komposisi Town Hall Clan CWL</div><div class="section-value">TH18 → TH1</div></div>' + clanTableHTML + '</section>' +
       '<section class="section"><div class="section-head"><div class="section-title">CWL Battle Rounds</div><div class="section-value">7 Rounds</div></div>' + roundsHTML + '</section>';
     window.scrollTo({top:0,behavior:'smooth'});
   }
