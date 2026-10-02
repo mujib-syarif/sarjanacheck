@@ -14,11 +14,68 @@
     body { margin:0; background:linear-gradient(180deg,#dce8f8 0,#f6f9fd 36rem); color:var(--text); font:14px/1.45 "Plus Jakarta Sans",system-ui,sans-serif; }
     button,input,select { font:inherit; }
     button { cursor:pointer; }
-    .app { width:min(100%,960px); margin:0 auto; padding:24px 16px 32px; }
-    .header { display:flex; align-items:center; gap:12px; margin:4px 0 22px; }
-    .logo { width:48px; height:48px; object-fit:contain; border-radius:12px; }
-    .brand-title { font-size:20px; font-weight:800; }
-    .brand-sub { color:var(--muted); font-size:11px; }
+    .app { width:min(100%,1400px); margin:0 auto; padding:24px 16px 32px; }
+    .header {
+      position:relative;
+      display:flex;
+      align-items:center;
+      gap:13px;
+      margin:4px 0 22px;
+      padding:10px 14px 12px;
+      border:1px solid rgba(18,59,131,.18);
+      border-radius:16px;
+      background:linear-gradient(135deg,rgba(255,255,255,.97),rgba(235,243,253,.92));
+      box-shadow:0 8px 24px rgba(24,57,99,.09);
+      overflow:hidden;
+    }
+    .header::before {
+      content:"";
+      position:absolute;
+      left:14px;
+      right:14px;
+      bottom:0;
+      height:1px;
+      background:linear-gradient(90deg,transparent,#c69a3a 20%,#123b83 50%,#c69a3a 80%,transparent);
+      opacity:.75;
+    }
+    .header::after {
+      content:"";
+      position:absolute;
+      width:150px;
+      height:150px;
+      right:-70px;
+      top:-90px;
+      background:radial-gradient(circle,rgba(198,154,58,.16),transparent 68%);
+      pointer-events:none;
+    }
+    .logo {
+      position:relative;
+      z-index:1;
+      width:52px;
+      height:52px;
+      object-fit:contain;
+      border-radius:13px;
+      filter:drop-shadow(0 4px 7px rgba(18,59,131,.16));
+    }
+    .brand-title {
+      position:relative;
+      z-index:1;
+      font-size:21px;
+      font-weight:800;
+      letter-spacing:-.4px;
+      background:linear-gradient(90deg,#102f68,#123b83 55%,#8b6a2b);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+    .brand-sub {
+      position:relative;
+      z-index:1;
+      color:var(--muted);
+      font-size:11px;
+      margin-top:2px;
+      letter-spacing:.15px;
+    }
     .search-panel,.section,.clan-header,.round { border:1px solid var(--line); background:var(--card); border-radius:16px; box-shadow:0 5px 16px rgba(24,57,99,.08); }
     .search-panel { padding:14px; margin-bottom:18px; }
     .switch { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
@@ -92,16 +149,16 @@
     .player-clan-copy strong,.player-clan-copy span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .player-clan-copy span { color:var(--muted); font-size:11px; font-weight:600; }
     .table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
-    .clan-th-table { width:100%; min-width:1180px; border-collapse:collapse; background:#fff; }
-    .clan-th-table th,.clan-th-table td { padding:8px 7px; border-bottom:1px solid #d5e0ed; text-align:center; }
+    .clan-th-table { width:100%; min-width:0; table-layout:fixed; border-collapse:collapse; background:#fff; }
+    .clan-th-table th,.clan-th-table td { padding:6px 3px; border-bottom:1px solid #d5e0ed; text-align:center; }
     .clan-th-table th { background:#123b83; color:#fff; font-size:10px; white-space:nowrap; }
-    .clan-th-table th:first-child { min-width:235px; text-align:left; }
+    .clan-th-table th:first-child { width:210px; min-width:210px; text-align:left; }
     .clan-th-table td { color:#152c4c; font-weight:700; }
     .clan-th-table tbody tr:nth-child(even) { background:#f1f6fc; }
     .clan-th-table tbody tr.selected { background:#ccecff; }
-    .clan-cell { display:flex; align-items:center; gap:8px; min-width:0; text-align:left; }
-    .clan-cell .cwl-clan-link { color:#10233f; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .th-column { width:49px; }
+    .clan-cell { display:flex; align-items:center; gap:6px; min-width:0; text-align:left; }
+    .clan-cell .cwl-clan-link { color:#10233f; max-width:145px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .th-column { width:calc((100% - 210px) / 18); }
     @media (max-width:600px) { .app { padding-inline:10px; } .summary { grid-template-columns:repeat(2,1fr); } .clan-meta { grid-template-columns:repeat(3,1fr); } .section-head { align-items:flex-start; } .sort-control { align-items:flex-start; flex-direction:column; } }
   </style>
 </head>
@@ -128,7 +185,7 @@
     <main id="cwlPage" class="page"><div id="cwlContent"></div></main>
     <footer class="footer">
       <div>Sarjana Checker · Clash of Clans Analyzer</div>
-      <div>API by <a href="https://mujib-syarif.basenama.workers.dev" target="_blank" rel="noopener noreferrer">BaseNama</a></div>
+      <div>Custom Base Nama: <a href="https://mujib-syarif.basenama.workers.dev" target="_blank" rel="noopener noreferrer">BaseNama</a></div>
       <div>TikTok: <a href="https://tiktok.com/@mujib_syarif" target="_blank" rel="noopener noreferrer">@mujib_syarif</a></div>
     </footer>
   </div>
@@ -147,7 +204,7 @@
    * below normalizes API names only; it never guesses a new filename.
    */
   const HERO_ASSETS = {
-    'barbarian king':'assets/heroes/AnimeFury_BK_01.png',
+    'barbarian king':'assets/heroes/AnimeFury_BK_01 .png',
     'archer queen':'assets/heroes/AnimeFury_AQ_01.png',
     'grand warden':'assets/heroes/AnimeFury_GW_01.png',
     'royal champion':'assets/heroes/AnimeFury_RC_02.png',
@@ -304,7 +361,8 @@
   }
   function assetImage(path, alt, className) {
     if (!path) return '<span class="asset-placeholder">Asset belum dipetakan</span>';
-    return '<img class="' + className + '" src="' + escapeHTML(path) + '" alt="' + escapeHTML(alt) + '" loading="lazy" onerror="this.classList.add(\'asset-failed\');this.nextElementSibling.hidden=false"><span class="asset-placeholder" hidden>Asset tidak ditemukan</span>';
+    const safePath = encodeURI(path);
+    return '<img class="' + className + '" src="' + escapeHTML(safePath) + '" alt="' + escapeHTML(alt) + '" loading="lazy" onerror="this.classList.add(\'asset-failed\');this.nextElementSibling.hidden=false"><span class="asset-placeholder" hidden>Asset tidak ditemukan</span>';
   }
   function selectedPage() { return mode === 'player' ? 'playerContent' : mode === 'clan' ? 'clanContent' : 'cwlContent'; }
   function setLoading(message) {
@@ -638,7 +696,7 @@
     document.getElementById('cwlContent').innerHTML =
       '<div class="clan-header"><div class="clan-name">' + clanLink + '</div><div class="clan-tag">' + escapeHTML(selectedTag || '-') + '</div><div class="clan-meta"><div class="meta">CWL Rounds<strong>7</strong></div><div class="meta">Peserta CWL<strong>' + formatNumber(rosterSize) + ' Player</strong></div><div class="meta">Season<strong>' + escapeHTML(firstValue(data.season,'-')) + '</strong></div></div></div>' +
       '<section class="section"><div class="section-head"><div class="section-title">Town Hall Breakdown</div>' + (selectedTag ? '<button type="button" class="cwl-clan-link" onclick="openClan(\'' + escapeHTML(selectedTag) + '\')">' + escapeHTML(clanName) + '</button>' : '') + '</div><div class="th-breakdown">' + breakdownHTML + '</div></section>' +
-      '<section class="section"><div class="section-head"><div class="section-title">Komposisi Town Hall Clan CWL</div><div class="section-value">TH18 → TH1</div></div>' + clanTableHTML + '</section>' +
+      '<section class="section"><div class="section-head"><div class="section-title">Komposisi Town Hall</div></div>' + clanTableHTML + '</section>' +
       '<section class="section"><div class="section-head"><div class="section-title">CWL Battle Rounds</div><div class="section-value">7 Rounds</div></div>' + roundsHTML + '</section>';
     window.scrollTo({top:0,behavior:'smooth'});
   }
