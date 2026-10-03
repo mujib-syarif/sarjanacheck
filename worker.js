@@ -1008,6 +1008,66 @@ function buildCwlRosterSnapshots(
 
 
 /* =========================================================
+   CWL ROSTER ASLI (dari leaguegroup)
+   Daftar pemain yang didaftarkan tiap clan saat CWL
+   dimulai. Ini BUKAN member clan saat ini.
+========================================================= */
+
+function buildLeagueRosters(
+  leagueGroup
+) {
+  const result = {};
+
+  if (
+    !leagueGroup ||
+    !Array.isArray(
+      leagueGroup.clans
+    )
+  ) {
+    return result;
+  }
+
+  for (
+    const leagueClan
+    of leagueGroup.clans
+  ) {
+    const tag =
+      cleanTag(
+        leagueClan.tag
+      );
+
+    const members =
+      Array.isArray(
+        leagueClan.members
+      )
+        ? leagueClan.members
+        : [];
+
+    result[tag] =
+      members
+        .filter(Boolean)
+        .map(member => ({
+          tag:
+            member.tag,
+
+          name:
+            member.name,
+
+          townHallLevel:
+            number(
+              firstValue(
+                member.townHallLevel,
+                member.townhallLevel
+              )
+            )
+        }));
+  }
+
+  return result;
+}
+
+
+/* =========================================================
    KV HELPERS
 ========================================================= */
 
@@ -1255,6 +1315,45 @@ async function getCWL(
       env,
       rosterKey
     );
+
+
+  /*
+   * Roster CWL asli dari leaguegroup
+   * (pemain yang ikut CWL sejak dimulai).
+   * Ini yang diprioritaskan. KV hanya disimpan
+   * sebagai cadangan kalau data ini kosong.
+   */
+
+  const leagueRoster =
+    buildLeagueRosters(
+      leagueGroup
+    )[wantedTag] || [];
+
+  if (leagueRoster.length) {
+    const sameAsStored =
+      Array.isArray(storedRoster) &&
+      JSON.stringify(
+        storedRoster.map(
+          m => m && m.tag
+        )
+      ) ===
+      JSON.stringify(
+        leagueRoster.map(
+          m => m.tag
+        )
+      );
+
+    if (!sameAsStored) {
+      await kvPut(
+        env,
+        rosterKey,
+        leagueRoster
+      );
+    }
+
+    storedRoster =
+      leagueRoster;
+  }
 
 
   /*
@@ -1636,21 +1735,16 @@ async function getCWL(
           );
 
         /*
-         * Kalau ini clan yang dicari,
-         * prioritaskan roster snapshot.
+         * Tabel "Komposisi Town Hall" memakai
+         * member clan saat ini untuk semua clan,
+         * jadi roster CWL TIDAK dicampur di sini.
+         * Roster CWL asli dikirim terpisah
+         * lewat cwlRoster di root response.
          */
-
-        const roster =
-          clanTag === wantedTag &&
-          Array.isArray(
-            storedRoster
-          )
-            ? storedRoster
-            : [];
 
         return normalizeCWLClan(
           clan,
-          roster
+          []
         );
       }
     );
@@ -1756,7 +1850,35 @@ async function getCWL(
         storedRoster
       )
         ? storedRoster.length
-        : 0
+        : 0,
+
+    /*
+     * Dibaca frontend untuk kartu "Peserta CWL"
+     * dan "Town Hall Breakdown".
+     */
+
+    cwlRoster:
+      Array.isArray(
+        storedRoster
+      )
+        ? storedRoster
+        : [],
+
+    cwlRosterSize:
+      Array.isArray(
+        storedRoster
+      )
+        ? storedRoster.length
+        : 0,
+
+    cwlTownHallBreakdown:
+      townHallBreakdown(
+        Array.isArray(
+          storedRoster
+        )
+          ? storedRoster
+          : []
+      )
   };
 }
 /* =========================================================
