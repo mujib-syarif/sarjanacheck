@@ -1,0 +1,6253 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sarjana Checker</title>
+  <meta name="description" content="Clash of Clans Player, Clan & CWL Analyzer">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:#edf3fb;
+      --card:#ffffff;
+      --card2:#e7effb;
+      --text:#10233f;
+      --muted:#52677f;
+      --line:#b9c9dc;
+      --accent:#123b83;
+      --accent2:#0d5dc0;
+      --green:#087950;
+      --red:#bb1d36;
+      --epic:#8b42c7;
+      --common:#1474c4;
+    }
+
+    * {
+      box-sizing:border-box;
+    }
+
+    body {
+      margin:0;
+      background:linear-gradient(
+        180deg,
+        #dce8f8 0,
+        #f6f9fd 36rem
+      );
+      color:var(--text);
+      font:14px/1.45 "Plus Jakarta Sans",system-ui,sans-serif;
+    }
+
+    button,
+    input,
+    select {
+      font:inherit;
+    }
+
+    button {
+      cursor:pointer;
+    }
+
+    .app {
+      width:min(100%,1400px);
+      margin:0 auto;
+      padding:24px 16px 32px;
+    }
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    .header {
+      position:relative;
+      display:flex;
+      align-items:center;
+      gap:13px;
+      margin:4px 0 22px;
+      padding:10px 14px 12px;
+      border:1px solid rgba(18,59,131,.18);
+      border-radius:16px;
+      background:linear-gradient(
+        135deg,
+        rgba(255,255,255,.97),
+        rgba(235,243,253,.92)
+      );
+      box-shadow:0 8px 24px rgba(24,57,99,.09), 0 0 0 1px rgba(198,154,58,.20), inset 0 1px 0 rgba(255,255,255,.85);
+      overflow:hidden;
+    }
+
+    .header::before {
+      content:"";
+      position:absolute;
+      left:14px;
+      right:14px;
+      bottom:0;
+      height:1px;
+      background:linear-gradient(
+        90deg,
+        transparent,
+        #c69a3a 20%,
+        #123b83 50%,
+        #c69a3a 80%,
+        transparent
+      );
+      opacity:.75;
+    }
+
+    .header::after {
+      content:"";
+      position:absolute;
+      width:150px;
+      height:150px;
+      right:-70px;
+      top:-90px;
+      background:radial-gradient(
+        circle,
+        rgba(198,154,58,.16),
+        transparent 68%
+      );
+      pointer-events:none;
+    }
+
+    .logo {
+      position:relative;
+      z-index:1;
+      width:52px;
+      height:52px;
+      object-fit:contain;
+      border-radius:13px;
+      filter:drop-shadow(
+        0 4px 7px rgba(18,59,131,.16)
+      );
+    }
+
+    .brand-title {
+      position:relative;
+      z-index:1;
+      font-size:21px;
+      font-weight:800;
+      letter-spacing:-.4px;
+      background:linear-gradient(
+        90deg,
+        #102f68,
+        #123b83 55%,
+        #8b6a2b
+      );
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+
+    .brand-sub {
+      position:relative;
+      z-index:1;
+      color:var(--muted);
+      font-size:11px;
+      margin-top:2px;
+      letter-spacing:.15px;
+    }
+
+    /* =========================
+       GLOBAL CARDS
+    ========================= */
+
+    .search-panel,
+    .section,
+    .clan-header,
+    .round {
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:16px;
+      box-shadow:0 5px 16px rgba(24,57,99,.08);
+    }
+
+    .search-panel {
+      padding:14px;
+      margin-bottom:18px;
+    }
+
+    /* =========================
+       TABS
+    ========================= */
+
+    .switch {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+      margin-bottom:10px;
+    }
+
+    .switch button,
+    .search-btn,
+    .sort-select {
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--card2);
+      color:var(--text);
+      min-height:38px;
+      padding:8px 12px;
+      font-weight:800;
+    }
+
+    .switch button {
+      transition:.18s ease;
+    }
+
+    .switch button:hover {
+      transform:translateY(-1px);
+      border-color:#8faaca;
+    }
+
+    .switch button.active,
+    .search-btn {
+      background:var(--accent);
+      border-color:var(--accent);
+      color:#fff;
+    }
+
+    .search-row {
+      display:flex;
+      gap:8px;
+    }
+
+    .search-row input {
+      min-width:0;
+      flex:1;
+      color:var(--text);
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      outline:none;
+    }
+
+    .search-row input:focus {
+      border-color:var(--accent2);
+      box-shadow:0 0 0 3px rgba(13,93,192,.08);
+    }
+
+    .hint {
+      margin:8px 2px 0;
+      color:var(--muted);
+      font-size:11px;
+    }
+
+    /* =========================
+       PAGE
+    ========================= */
+
+    .page {
+      display:none;
+    }
+
+    .page.active {
+      display:block;
+    }
+
+    .loading,
+    .error-box,
+    .empty {
+      padding:20px;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    .error-box {
+      color:#7b1021;
+      border:1px solid #e0aab4;
+      border-radius:14px;
+      background:#fff1f3;
+    }
+
+    /* =========================
+       CLAN HEADER
+    ========================= */
+
+    .clan-header {
+      padding:18px;
+      margin-bottom:12px;
+    }
+
+    .clan-name {
+      font-size:22px;
+      font-weight:800;
+      overflow-wrap:anywhere;
+    }
+
+    .clan-tag,
+    .info-desc {
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .clan-description {
+      color:var(--muted);
+      margin-top:8px;
+    }
+
+    .clan-meta {
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:8px;
+      margin-top:14px;
+    }
+
+    .meta {
+      padding:9px;
+      border-radius:10px;
+      background:#eaf1fb;
+      color:var(--muted);
+      font-size:10px;
+    }
+
+    .meta strong {
+      display:block;
+      color:var(--text);
+      font-size:14px;
+      margin-top:2px;
+    }
+
+    /* =========================
+       SECTION
+    ========================= */
+
+    .section {
+      padding:15px;
+      margin-bottom:12px;
+    }
+
+    .section-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:12px;
+    }
+
+    .section-title {
+      font-weight:800;
+      font-size:15px;
+    }
+
+    .section-value {
+      color:var(--accent2);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    /* =========================
+       SUMMARY
+    ========================= */
+
+    .summary {
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:8px;
+      margin-top:14px;
+    }
+
+    .summary .meta {
+      min-height:58px;
+    }
+
+    /* =========================
+       HERO
+    ========================= */
+
+    .hero-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(96px,1fr));
+      gap:8px;
+    }
+
+    .hero-group + .hero-group {
+      margin-top:12px;
+    }
+
+    .hero-group-title {
+      display:flex;
+      align-items:center;
+      gap:7px;
+      margin:0 0 7px;
+      padding:6px 9px;
+      border-left:3px solid #c69a3a;
+      border-radius:7px;
+      background:#edf4fc;
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .hero-group-title span {
+      color:var(--muted);
+      font-size:9px;
+      font-weight:600;
+    }
+
+    .hero-card,
+    .equipment-card {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#f8fbff;
+    }
+
+    .hero-img {
+      width:58px;
+      height:58px;
+      object-fit:contain;
+      flex:0 0 auto;
+    }
+
+    .hero-info,
+    .equipment-info {
+      min-width:0;
+      flex:1;
+    }
+
+    .hero-level {
+      color:var(--text);
+      font-size:11px;
+      font-weight:800;
+      margin-top:3px;
+    }
+
+    .hero-progress {
+      width:100%;
+      height:5px;
+      margin-top:5px;
+      overflow:hidden;
+      border-radius:99px;
+      background:#d7e3f1;
+    }
+
+    .hero-progress-fill {
+      height:100%;
+      border-radius:99px;
+      background:linear-gradient(
+        90deg,
+        #123b83,
+        #2586da
+      );
+    }
+
+    /* =========================
+       EQUIPMENT
+    ========================= */
+
+    .equipment-grid {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+    }
+
+    .equipment-card {
+      align-items:flex-start;
+      min-width:0;
+    }
+
+    .equipment-img {
+      width:42px;
+      height:42px;
+      object-fit:contain;
+      flex:0 0 auto;
+    }
+
+    .equipment-card .item-name {
+      line-height:1.25;
+      font-size:12px;
+    }
+
+    .gear-common {
+      color:var(--common);
+    }
+
+    .gear-epic {
+      color:var(--epic);
+    }
+
+    .equipment-level {
+      color:var(--muted);
+      font-size:10px;
+      font-weight:800;
+      margin-top:4px;
+    }
+
+    .equipment-progress {
+      width:100%;
+      height:5px;
+      margin-top:5px;
+      overflow:hidden;
+      border-radius:99px;
+      background:#d7e3f1;
+    }
+
+    .equipment-progress-fill {
+      height:100%;
+      border-radius:99px;
+      background:linear-gradient(
+        90deg,
+        #1674c4,
+        #4ca4e9
+      );
+    }
+
+    .progress-summary {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .progress-card {
+      padding:11px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:linear-gradient(135deg,#f8fbff,#edf4fc);
+    }
+
+    .progress-card-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .progress-card-value {
+      color:var(--accent2);
+      font-size:12px;
+    }
+
+    .progress-card-track {
+      width:100%;
+      height:7px;
+      margin-top:7px;
+      overflow:hidden;
+      border-radius:99px;
+      background:#d7e3f1;
+    }
+
+    .progress-card-fill {
+      height:100%;
+      border-radius:99px;
+      background:linear-gradient(90deg,#123b83,#2586da);
+    }
+
+    .progress-card-detail {
+      margin-top:5px;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:700;
+    }
+
+    .gear-epic + .equipment-level + .equipment-progress
+    .equipment-progress-fill {
+      background:linear-gradient(
+        90deg,
+        #7e36b3,
+        #b15bdf
+      );
+    }
+
+    .asset-failed {
+      display:none;
+    }
+
+    .asset-placeholder {
+      width:42px;
+      min-height:42px;
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+      border:1px dashed #6c82a1;
+      border-radius:8px;
+      color:var(--muted);
+      font-size:8px;
+      text-align:center;
+      padding:3px;
+    }
+
+    .hero-card .asset-placeholder {
+      width:58px;
+      min-height:58px;
+    }
+
+    .asset-placeholder[hidden] {
+      display:none;
+    }
+
+    .item-name {
+      font-weight:800;
+      overflow-wrap:anywhere;
+    }
+
+    .item-detail {
+      color:var(--muted);
+      font-size:11px;
+      margin-top:2px;
+    }
+
+    /* =========================
+       SORT
+    ========================= */
+
+    .sort-control {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:700;
+    }
+
+    .sort-select {
+      min-height:32px;
+      color:var(--text);
+      background:#fff;
+      padding:5px 8px;
+      font-size:11px;
+    }
+
+    /* =========================
+       MEMBERS
+    ========================= */
+
+    .member-list {
+      display:grid;
+      gap:7px;
+    }
+
+    .member {
+      width:100%;
+      display:grid;
+      grid-template-columns:24px 36px minmax(0,1fr) auto;
+      align-items:center;
+      gap:9px;
+      text-align:left;
+      color:var(--text);
+      background:#f8fbff;
+      border:1px solid var(--line);
+      border-radius:11px;
+      padding:8px 10px;
+      transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .member:hover {
+      border-color:var(--accent);
+      box-shadow:0 4px 12px rgba(18,59,131,.12);
+    }
+
+    .member:active {
+      transform:scale(.99);
+    }
+
+    .member-rank {
+      color:var(--accent2);
+      font-weight:800;
+      font-size:12px;
+    }
+
+    .member-league {
+      width:36px;
+      height:36px;
+      object-fit:contain;
+      filter:drop-shadow(0 2px 3px rgba(18,59,131,.18));
+    }
+
+    .member-league.empty {
+      display:block;
+      border-radius:50%;
+      background:#dde8f6;
+    }
+
+    .role-chip {
+      display:inline-block;
+      padding:0 7px;
+      border-radius:99px;
+      font-size:10px;
+      font-weight:800;
+      line-height:17px;
+    }
+
+    .member-info {
+      flex:1;
+      min-width:0;
+    }
+
+    .member-name {
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-weight:800;
+    }
+
+    .member-detail {
+      color:var(--muted);
+      font-size:11px;
+    }
+
+    .member-th {
+      color:var(--accent2);
+      font-weight:800;
+      font-size:12px;
+      text-align:right;
+      white-space:nowrap;
+    }
+
+    .member-xp {
+      display:block;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:700;
+    }
+
+    /* Warna role: merah, ungu, hijau, kuning */
+
+    .role-leader {
+      color:#bb1d36;
+      background:#fde7ea;
+    }
+
+    .role-coleader {
+      color:#7a31b5;
+      background:#f1e6fb;
+    }
+
+    .role-elder {
+      color:#0b7a42;
+      background:#dcf4e6;
+    }
+
+    .role-member {
+      color:#8a6200;
+      background:#fff0b8;
+    }
+
+    /* =========================
+       CLAN LINK
+    ========================= */
+
+    .player-clan-link {
+      appearance:none;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      width:max-content;
+      max-width:100%;
+      margin-top:15px;
+      padding:9px 12px;
+      border:1px solid #9eb9d9;
+      border-radius:13px;
+      background:linear-gradient(
+        135deg,
+        #f5faff,
+        #e9f3ff
+      );
+      color:#0b4d9f;
+      font-weight:800;
+      text-align:left;
+      box-shadow:0 3px 10px rgba(34,89,145,.07);
+      transition:
+        transform .18s ease,
+        box-shadow .18s ease,
+        border-color .18s ease;
+    }
+
+    .player-clan-link:hover {
+      transform:translateY(-1px);
+      border-color:#6f9cca;
+      box-shadow:0 5px 14px rgba(34,89,145,.12);
+    }
+
+    .clan-badge {
+      width:40px;
+      height:40px;
+      object-fit:contain;
+      flex:0 0 auto;
+    }
+
+    .clan-badge.small {
+      width:36px;
+      height:36px;
+    }
+
+    .player-clan-copy {
+      min-width:0;
+    }
+
+    .player-clan-copy strong,
+    .player-clan-copy span {
+      display:block;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .player-clan-copy strong {
+      font-size:12px;
+    }
+
+    .player-clan-copy span {
+      color:var(--muted);
+      font-size:10px;
+      font-weight:600;
+      margin-top:2px;
+    }
+
+    /* =========================
+       PLAYER
+    ========================= */
+
+    .player-name-row {
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:9px;
+    }
+
+    .xp-bubble {
+      display:inline-grid;
+      place-items:center;
+      min-width:44px;
+      min-height:28px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:#d8eaff;
+      border:1px solid #96bde8;
+      color:#073c84;
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .rank-box {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      min-height:30px;
+      padding:3px 8px 3px 5px;
+      border-radius:999px;
+      background:linear-gradient(135deg,#fffaf0,#f5ead0);
+      border:1px solid #d4b56b;
+      color:#76551a;
+      font-size:11px;
+      font-weight:800;
+      box-shadow:0 2px 7px rgba(122,87,25,.08);
+    }
+
+    .rank-box img {
+      width:24px;
+      height:24px;
+      object-fit:contain;
+      flex:0 0 auto;
+    }
+
+    /* =========================
+       CWL
+    ========================= */
+
+    .cwl-clan-link {
+      appearance:none;
+      padding:0;
+      border:0;
+      background:transparent;
+      color:var(--accent2);
+      text-align:left;
+      font:inherit;
+      font-weight:800;
+    }
+
+    .cwl-clan-link:hover {
+      text-decoration:underline;
+    }
+
+    .th-breakdown {
+      display:grid;
+      gap:8px;
+    }
+
+    .th-row {
+      display:grid;
+      grid-template-columns:43px 1fr 28px;
+      align-items:center;
+      gap:9px;
+      font-size:12px;
+    }
+
+    .th-label,
+    .th-count {
+      font-weight:800;
+    }
+
+    .th-bar {
+      height:9px;
+      overflow:hidden;
+      border-radius:8px;
+      background:#d9e5f5;
+    }
+
+    .th-bar-fill {
+      height:100%;
+      min-width:2px;
+      background:linear-gradient(
+        90deg,
+        var(--accent),
+        #2386da
+      );
+    }
+
+    /* =========================
+       CWL ROUNDS
+    ========================= */
+
+    .round {
+      padding:13px;
+      margin:8px 0;
+    }
+
+    .round-head,
+    .war {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .round-title {
+      font-weight:800;
+    }
+
+    .round-status {
+      color:var(--muted);
+      font-size:11px;
+    }
+
+    .war {
+      align-items:center;
+      margin-top:10px;
+    }
+
+    .war-side {
+      width:calc(50% - 24px);
+    }
+
+    .war-side.right {
+      text-align:right;
+    }
+
+    .war-side .clan-badge {
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .war-side.right .clan-badge {
+      margin-left:auto;
+    }
+
+    .war-attacks {
+      color:var(--muted);
+      font-size:10px;
+      margin-top:2px;
+    }
+
+    .war-foot {
+      margin-top:10px;
+      padding-top:8px;
+      border-top:1px dashed var(--line);
+      color:var(--muted);
+      font-size:10px;
+      text-align:center;
+    }
+
+    .round-chip {
+      padding:2px 10px;
+      border-radius:99px;
+      font-size:10px;
+      font-weight:800;
+    }
+
+    .round-chip.win {
+      color:#0b7a42;
+      background:#dcf4e6;
+    }
+
+    .round-chip.lose {
+      color:#bb1d36;
+      background:#fde7ea;
+    }
+
+    .round-chip.draw {
+      color:#52677f;
+      background:#e3ebf5;
+    }
+
+    .round-chip.live {
+      color:#0d5dc0;
+      background:#dbeafd;
+    }
+
+    .round-chip.prep {
+      color:#8a6200;
+      background:#fff0b8;
+    }
+
+    /* Daftar peserta CWL */
+
+    .roster-details {
+      margin-top:12px;
+      border-top:1px dashed var(--line);
+      padding-top:10px;
+    }
+
+    .roster-details summary {
+      cursor:pointer;
+      color:var(--accent2);
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .roster-list {
+      display:grid;
+      gap:5px;
+      margin-top:9px;
+    }
+
+    .roster-row {
+      display:grid;
+      grid-template-columns:24px minmax(0,1fr) auto;
+      align-items:center;
+      gap:8px;
+      width:100%;
+      padding:7px 9px;
+      text-align:left;
+      color:var(--text);
+      background:#f8fbff;
+      border:1px solid var(--line);
+      border-radius:9px;
+    }
+
+    .roster-no {
+      color:var(--muted);
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .roster-name {
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-weight:700;
+    }
+
+    .roster-name small {
+      display:block;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:600;
+    }
+
+    .war-name {
+      font-weight:800;
+      overflow-wrap:anywhere;
+    }
+
+    .war-score {
+      color:var(--muted);
+      font-size:11px;
+      margin-top:2px;
+    }
+
+    .vs {
+      color:var(--accent2);
+      font-size:11px;
+      font-weight:800;
+    }
+
+    /* =========================
+       TABLE
+    ========================= */
+
+    .table-wrap {
+      overflow-x:auto;
+      border:1px solid var(--line);
+      border-radius:12px;
+    }
+
+    .clan-th-table {
+      width:100%;
+      min-width:0;
+      table-layout:fixed;
+      border-collapse:collapse;
+      background:#fff;
+    }
+
+    .clan-th-table th,
+    .clan-th-table td {
+      padding:6px 3px;
+      border-bottom:1px solid #d5e0ed;
+      text-align:center;
+    }
+
+    .clan-th-table th {
+      background:#123b83;
+      color:#fff;
+      font-size:10px;
+      white-space:nowrap;
+    }
+
+    .clan-th-table th:first-child {
+      width:210px;
+      min-width:210px;
+      text-align:left;
+    }
+
+    .clan-th-table td {
+      color:#152c4c;
+      font-weight:700;
+    }
+
+    .clan-th-table tbody tr:nth-child(even) {
+      background:#f1f6fc;
+    }
+
+    .clan-th-table tbody tr.selected {
+      background:#ccecff;
+    }
+
+    .clan-cell {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      min-width:0;
+      text-align:left;
+    }
+
+    .clan-cell .cwl-clan-link {
+      color:#10233f;
+      max-width:145px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .th-column {
+      width:calc((100% - 210px) / 18);
+    }
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    .footer {
+      color:#52677f;
+      margin:22px 0 0;
+      text-align:center;
+      font-size:11px;
+      line-height:1.8;
+    }
+
+    .footer a {
+      color:var(--accent2);
+      text-decoration:none;
+      font-weight:800;
+    }
+
+    .footer a:hover {
+      text-decoration:underline;
+    }
+
+    .basenama-link {
+      color:#1683d8 !important;
+    }
+
+    /* =========================
+       HERO KOMPAK (hemat scroll)
+    ========================= */
+
+    .hero-card {
+      flex-direction:column;
+      justify-content:flex-start;
+      gap:3px;
+      padding:9px 5px 9px;
+      text-align:center;
+    }
+
+    .hero-img {
+      width:46px;
+      height:46px;
+    }
+
+    .hero-card .asset-placeholder {
+      width:46px;
+      min-height:46px;
+    }
+
+    .hero-info {
+      width:100%;
+      flex:0 0 auto;
+    }
+
+    .hero-card .item-name {
+      font-size:10.5px;
+      line-height:1.2;
+      overflow-wrap:normal;
+      word-break:normal;
+    }
+
+    .hero-level {
+      margin-top:2px;
+      font-size:11px;
+    }
+
+    .max-tag {
+      display:inline-block;
+      margin-left:3px;
+      padding:0 4px;
+      border-radius:5px;
+      background:#c69a3a;
+      color:#fff;
+      font-size:8px;
+      line-height:13px;
+      vertical-align:1px;
+    }
+
+    .hero-card.maxed {
+      border-color:#d8b25a;
+      background:linear-gradient(160deg,#fffaf0,#f8edd2);
+    }
+
+    .hero-card.maxed .hero-progress-fill {
+      background:linear-gradient(90deg,#c69a3a,#e6c26a);
+    }
+
+    /* =========================
+       POLISH TAMPILAN
+    ========================= */
+
+    .clan-header {
+      position:relative;
+      overflow:hidden;
+    }
+
+    .clan-header::before {
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      top:0;
+      height:4px;
+      background:linear-gradient(
+        90deg,
+        #c69a3a,
+        #123b83 50%,
+        #0d5dc0
+      );
+    }
+
+    .section-title {
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .section-title::before {
+      content:"";
+      width:4px;
+      height:15px;
+      border-radius:3px;
+      background:linear-gradient(180deg,#c69a3a,#e2bd62);
+    }
+
+    .meta {
+      border:1px solid #d3e0f1;
+      background:linear-gradient(135deg,#f3f8ff,#e3edfb);
+    }
+
+    .switch button.active,
+    .search-btn {
+      background:linear-gradient(135deg,#123b83,#0d5dc0);
+      box-shadow:0 4px 12px rgba(18,59,131,.25);
+    }
+
+    .search-btn:active,
+    .switch button:active {
+      transform:scale(.97);
+    }
+
+    .equipment-card.epic {
+      border-color:#d9bdee;
+      background:linear-gradient(160deg,#fcf7ff,#f3e8fb);
+    }
+
+    .equipment-card.common {
+      border-color:#bcd3ea;
+    }
+
+    .equipment-card.maxed {
+      box-shadow:inset 0 0 0 1px #d8b25a;
+    }
+
+    .th-bar-fill {
+      border-radius:8px;
+    }
+
+    @keyframes rise {
+      from {
+        opacity:0;
+        transform:translateY(8px);
+      }
+      to {
+        opacity:1;
+        transform:none;
+      }
+    }
+
+    .section,
+    .clan-header {
+      animation:rise .35s ease both;
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      .section,
+      .clan-header {
+        animation:none;
+      }
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width:600px) {
+
+      .app {
+        padding-inline:10px;
+      }
+
+      .header {
+        margin-bottom:16px;
+      }
+
+      .brand-title {
+        font-size:18px;
+      }
+
+      .brand-sub {
+        font-size:10px;
+      }
+
+      .logo {
+        width:46px;
+        height:46px;
+      }
+
+      .search-panel {
+        padding:11px;
+      }
+
+      .switch {
+        gap:5px;
+      }
+
+      .switch button {
+        padding-inline:6px;
+        font-size:11px;
+      }
+
+      .search-row {
+        gap:6px;
+      }
+
+      .search-btn {
+        padding-inline:11px;
+      }
+
+      .summary {
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .clan-meta {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+
+      .progress-summary {
+        grid-template-columns:1fr;
+      }
+
+      .section-head {
+        align-items:flex-start;
+      }
+
+      .sort-control {
+        align-items:flex-start;
+        flex-direction:column;
+      }
+
+      .equipment-grid {
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:6px;
+      }
+
+      .equipment-card {
+        display:block;
+        padding:8px;
+        text-align:center;
+      }
+
+      .equipment-img,
+      .equipment-card .asset-placeholder {
+        width:44px;
+        height:44px;
+        min-height:44px;
+        margin:0 auto 5px;
+      }
+
+      .equipment-card .item-name {
+        font-size:10px;
+        line-height:1.2;
+      }
+
+      .equipment-level {
+        font-size:9px;
+      }
+
+      .player-clan-link {
+        margin-top:14px;
+        padding:8px 10px;
+      }
+
+      .clan-badge {
+        width:36px;
+        height:36px;
+      }
+
+      .player-clan-copy strong {
+        font-size:11px;
+      }
+
+      .player-clan-copy span {
+        font-size:9px;
+      }
+
+      .clan-name {
+        font-size:20px;
+      }
+
+      .clan-th-table {
+        min-width:720px;
+      }
+
+      .clan-th-table th:first-child {
+        width:170px;
+        min-width:170px;
+      }
+
+      .th-column {
+        width:auto;
+      }
+
+      .war-side {
+        width:42%;
+      }
+
+      .vs {
+        width:16%;
+        text-align:center;
+      }
+    }
+
+    /* =========================
+       DESKTOP
+    ========================= */
+
+    @media (min-width:900px) {
+
+      .app {
+        padding-top:30px;
+      }
+
+      .equipment-grid {
+        grid-template-columns:repeat(3,minmax(0,1fr));
+      }
+
+      .section {
+        padding:18px;
+      }
+
+      .clan-header {
+        padding:20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+
+    <img
+      class="logo"
+      src="assets/logo/og-thumbnail.png"
+      alt="Sarjana Checker"
+      onerror="this.style.display='none'"
+    >
+
+    <div>
+      <div class="brand-title">
+        Sarjana Checker
+      </div>
+
+      <div class="brand-sub">
+        Clash of Clans Account Analyzer
+      </div>
+    </div>
+
+  </header>
+
+
+  <!-- SEARCH -->
+  <section class="search-panel">
+
+    <div class="switch">
+
+      <button
+        id="playerTab"
+        class="active"
+        type="button"
+        onclick="setMode('player')"
+      >
+        PLAYER
+      </button>
+
+      <button
+        id="clanTab"
+        type="button"
+        onclick="setMode('clan')"
+      >
+        CLAN
+      </button>
+
+      <button
+        id="cwlTab"
+        type="button"
+        onclick="setMode('cwl')"
+      >
+        CWL
+      </button>
+
+    </div>
+
+
+    <div class="search-row">
+
+      <input
+        id="searchInput"
+        type="text"
+        autocomplete="off"
+        placeholder="Masukkan Player Tag"
+      >
+
+      <button
+        class="search-btn"
+        id="searchButton"
+        type="button"
+        onclick="searchData()"
+      >
+        CHECK
+      </button>
+
+    </div>
+
+
+    <div
+      class="hint"
+      id="searchHint"
+    >
+      Contoh: #9UG9LJV8Y
+    </div>
+
+  </section>
+
+
+  <!-- PLAYER -->
+  <main
+    id="playerPage"
+    class="page active"
+  >
+    <div id="playerContent"></div>
+  </main>
+
+
+  <!-- CLAN -->
+  <main
+    id="clanPage"
+    class="page"
+  >
+    <div id="clanContent"></div>
+  </main>
+
+
+  <!-- CWL -->
+  <main
+    id="cwlPage"
+    class="page"
+  >
+    <div id="cwlContent"></div>
+  </main>
+
+
+  <!-- FOOTER -->
+  <footer class="footer">
+
+    <div>
+      Sarjana Checker · Clash of Clans Analyzer
+    </div>
+
+    <div>
+      Custom Base Nama:
+      <a
+        class="basenama-link"
+        href="https://mujib-syarif.basenama.workers.dev"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Klik Di Sini
+      </a>
+    </div>
+
+    <div>
+      TikTok:
+      <a
+        href="https://tiktok.com/@mujib_syarif"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        @mujib_syarif
+      </a>
+    </div>
+
+  </footer>
+
+</div>
+
+
+<script>
+'use strict';
+
+
+/* ============================================================
+   CONFIG
+============================================================ */
+
+const API_BASE =
+  'https://sarjana-checker-api.basenama.workers.dev';
+
+let mode = 'player';
+let currentClan = null;
+let currentCwl = null;
+let requestedCwlTag = '';
+let clanSort = 'rank';
+
+
+/* ============================================================
+   HERO ASSETS
+============================================================ */
+
+const HERO_ASSETS = {
+
+  'barbarian king':
+    'assets/heroes/AnimeFury_BK_01 .png',
+
+  'archer queen':
+    'assets/heroes/AnimeFury_AQ_01.png',
+
+  'grand warden':
+    'assets/heroes/AnimeFury_GW_01.png',
+
+  'royal champion':
+    'assets/heroes/AnimeFury_RC_02.png',
+
+  'minion prince':
+    'assets/heroes/AnimeFury_MP_01.png',
+
+  'dragon duke':
+    'assets/heroes/DD_AnimeFury.png',
+
+  'battle machine':
+    'assets/heroes/Hero_Skin_BM_Battle_Machine_of_the_North_3_shadow.png',
+
+  'battle copter':
+    'assets/heroes/BattleCopter_Boat_Pose03_NoShadow.png'
+
+};
+
+
+/* ============================================================
+   EQUIPMENT ASSETS
+============================================================ */
+
+const EQUIPMENT_ASSETS = {
+
+  'barbarian puppet':
+    'assets/equipment/Hero_Equipment_BK_Barbarian_Puppet.png',
+
+  'rage vial':
+    'assets/equipment/Hero_Equipment_BK_Rage_Vial.png',
+
+  'earthquake boots':
+    'assets/equipment/Hero_Equipment_BK_Earthquake_Boots.png',
+
+  'vampstache':
+    'assets/equipment/Hero_Equipment_BK_Vampstache.png',
+
+  'giant gauntlet':
+    'assets/equipment/Hero_Equipment_BQ_Giant_Gauntlet.png',
+
+  'spiky ball':
+    'assets/equipment/Hero_Equipment_BK_Spiky_Ball.png',
+
+  'snake bracelet':
+    'assets/equipment/Hero_Equipment_BK_SnakeBracelet.png',
+
+  'stick horse':
+    'assets/equipment/HeroGear_BK_StickFireHorse.png',
+
+  'archer puppet':
+    'assets/equipment/Hero_Equipment_AQ_Archer_Puppet.png',
+
+  'invisibility vial':
+    'assets/equipment/Hero_Equipment_AQ_Invisibility_Vial.png',
+
+  'giant arrow':
+    'assets/equipment/Hero_Equipment_AQ_Giant_Arrow.png',
+
+  'healer puppet':
+    'assets/equipment/Hero_Equipment_AQ_Healer_Puppet.png',
+
+  'frozen arrow':
+    'assets/equipment/Hero_Equipment_AQ_Frozen_Arrow.png',
+
+  'magic mirror':
+    'assets/equipment/Hero_Equipment_AQ_Magic_Mirror.png',
+
+  'action figure':
+    'assets/equipment/Hero_Equipment_AQ_WWEActionFigure.png',
+
+  'wwe action figure':
+    'assets/equipment/Hero_Equipment_AQ_WWEActionFigure.png',
+
+  'monolith arrow':
+    'assets/equipment/Hero_Equipment_AQ_MonolithArrow.png',
+
+  'eternal tome':
+    'assets/equipment/Hero_Equipment_GW_Eternal_Tome.png',
+
+  'life gem':
+    'assets/equipment/Hero_Equipment_GW_Life_Gem.png',
+
+  'rage gem':
+    'assets/equipment/Hero_Equipment_GW_Rage_Gem.png',
+
+  'healing tome':
+    'assets/equipment/Hero_Equipment_GW_Healing_Tome.png',
+
+  'fireball':
+    'assets/equipment/Hero_Equipment_GW_Fireball.png',
+
+  'lavaloon puppet':
+    'assets/equipment/icon_gear_GW_LavaloonPuppet.png',
+
+  'heroic torch':
+    'assets/equipment/Hero_Equipment_GW_Heroic_Torch.png',
+
+  'dark orb':
+    'assets/equipment/Hero_Equipment_MP_DarkOrb.png',
+
+  'henchman':
+    'assets/equipment/Hero_Equipment_MP_Henchman.png',
+
+  'power pump':
+    'assets/equipment/Hero_Equipment_MP_PowerPump.png',
+
+  'iron pants':
+    'assets/equipment/HeroEquipment_MP_IronPants.png',
+
+  'dark crown':
+    'assets/equipment/HeroGear_MP_DarkCrown_2k.png',
+
+  'meteor staff':
+    'assets/equipment/Hero_Equipment_MP_Meteor_Staff.png',
+
+  'royal gem':
+    'assets/equipment/Hero_Equipment_RC_Royal_Gem.png',
+
+  'seeking shield':
+    'assets/equipment/Hero_Equipment_RC_Seeking_Shield.png',
+
+  'hog rider doll':
+    'assets/equipment/Hero_Equipment_RC_Hog_Rider_Doll.png',
+
+  'haste vial':
+    'assets/equipment/Hero_Equipment_RC_Haste_Vial.png',
+
+  'frost flake':
+    'assets/equipment/Hero_Equipment_rc_frost_flake.png',
+
+  'electro boots':
+    'assets/equipment/Hero_Equipment_RC_ElectroBoots.png',
+
+  'rocket spear':
+    'assets/equipment/HeroGear_RoyalChampion_RocketSpear_Equipment_03.png',
+
+  'electro fangs':
+    'assets/equipment/HG_DD_Electro_Fangs.png',
+
+  'fire heart':
+    'assets/equipment/HG_DD_Fire Heart.png',
+
+  'flame blower':
+    'assets/equipment/HG_DD_Flame Blower.png',
+
+  'rocket backpack':
+    'assets/equipment/HG_DD_Rocket_BackPack.png',
+
+  'stun blast':
+    'assets/equipment/HG_DD_StunBlast.png',
+
+  'reverse card':
+    'assets/equipment/HG_DD_reverse_card.png'
+
+};
+
+
+/* ============================================================
+   ALIASES
+============================================================ */
+
+const EQUIPMENT_ALIASES = {
+
+  'wweactionfigure':
+    'wwe action figure',
+
+  'actionfigure':
+    'action figure',
+
+  'lavaloon':
+    'lavaloon puppet',
+
+  'rocket spear equipment':
+    'rocket spear',
+
+  'revenge deck':
+    'reverse card',
+
+  'revengecard':
+    'reverse card',
+
+  'revenge card':
+    'reverse card',
+
+  /*
+   * Nama dari API CoC yang beda dengan nama file asset.
+   */
+
+  'hog rider puppet':
+    'hog rider doll',
+
+  'henchmen puppet':
+    'henchman',
+
+  'metal pants':
+    'iron pants',
+
+  'stun blaster':
+    'stun blast',
+
+  'noble iron':
+    'power pump'
+
+};
+
+
+/* ============================================================
+   EPIC EQUIPMENT
+============================================================ */
+
+const EPIC_EQUIPMENT = new Set([
+
+  'giant gauntlet',
+  'spiky ball',
+  'snake bracelet',
+  'stick horse',
+  'monolith arrow',
+
+  'frozen arrow',
+  'magic mirror',
+  'action figure',
+  'wwe action figure',
+
+  'fireball',
+  'lavaloon puppet',
+  'heroic torch',
+
+  'dark crown',
+  'meteor staff',
+
+  'rocket spear',
+  'electro boots',
+  'frost flake',
+
+  'rocket backpack',
+  'reverse card',
+  'revenge deck'
+
+]);
+
+
+/* ============================================================
+   HERO MAX LEVEL
+============================================================ */
+
+const HOME_HERO_MAX = {
+
+  4:{
+    'barbarian king':1
+  },
+
+  5:{
+    'barbarian king':1
+  },
+
+  6:{
+    'barbarian king':1
+  },
+
+  7:{
+    'barbarian king':10
+  },
+
+  8:{
+    'barbarian king':20,
+    'archer queen':10
+  },
+
+  9:{
+    'barbarian king':30,
+    'archer queen':30,
+    'minion prince':10
+  },
+
+  10:{
+    'barbarian king':40,
+    'archer queen':40,
+    'minion prince':20
+  },
+
+  11:{
+    'barbarian king':50,
+    'archer queen':50,
+    'minion prince':30,
+    'grand warden':20
+  },
+
+  12:{
+    'barbarian king':65,
+    'archer queen':65,
+    'minion prince':40,
+    'grand warden':40
+  },
+
+  13:{
+    'barbarian king':75,
+    'archer queen':75,
+    'minion prince':50,
+    'grand warden':50,
+    'royal champion':25
+  },
+
+  14:{
+    'barbarian king':85,
+    'archer queen':85,
+    'minion prince':60,
+    'grand warden':60,
+    'royal champion':30
+  },
+
+  15:{
+    'barbarian king':90,
+    'archer queen':90,
+    'minion prince':70,
+    'grand warden':65,
+    'royal champion':40,
+    'dragon duke':10
+  },
+
+  16:{
+    'barbarian king':95,
+    'archer queen':95,
+    'minion prince':80,
+    'grand warden':70,
+    'royal champion':45,
+    'dragon duke':15
+  },
+
+  17:{
+    'barbarian king':100,
+    'archer queen':100,
+    'minion prince':90,
+    'grand warden':75,
+    'royal champion':50,
+    'dragon duke':20
+  },
+
+  18:{
+    'barbarian king':110,
+    'archer queen':110,
+    'minion prince':95,
+    'grand warden':85,
+    'royal champion':55,
+    'dragon duke':25
+  }
+
+};
+
+
+/* ============================================================
+   BUILDER HERO MAX
+============================================================ */
+
+const BUILDER_HERO_MAX = {
+
+  5:{
+    'battle machine':5
+  },
+
+  6:{
+    'battle machine':10
+  },
+
+  7:{
+    'battle machine':20
+  },
+
+  8:{
+    'battle machine':25,
+    'battle copter':25
+  },
+
+  9:{
+    'battle machine':30,
+    'battle copter':30
+  },
+
+  10:{
+    'battle machine':35,
+    'battle copter':35
+  }
+
+};
+
+
+/* ============================================================
+   EQUIPMENT MAX BY TOWN HALL
+============================================================ */
+
+const EQUIPMENT_TH_CAP = {
+
+  8:{
+    common:9,
+    epic:12
+  },
+
+  9:{
+    common:9,
+    epic:12
+  },
+
+  10:{
+    common:12,
+    epic:15
+  },
+
+  11:{
+    common:12,
+    epic:15
+  },
+
+  12:{
+    common:15,
+    epic:18
+  },
+
+  13:{
+    common:15,
+    epic:18
+  },
+
+  14:{
+    common:18,
+    epic:21
+  },
+
+  15:{
+    common:18,
+    epic:24
+  },
+
+  16:{
+    common:18,
+    epic:27
+  },
+
+  17:{
+    common:18,
+    epic:27
+  },
+
+  18:{
+    common:18,
+    epic:27
+  }
+
+};
+
+
+/* ============================================================
+   HELPERS
+============================================================ */
+
+function firstValue() {
+
+  for (
+    let index = 0;
+    index < arguments.length;
+    index += 1
+  ) {
+
+    const value = arguments[index];
+
+    if (
+      value !== undefined &&
+      value !== null &&
+      value !== ''
+    ) {
+      return value;
+    }
+
+  }
+
+  return null;
+
+}
+
+
+function asArray(value) {
+
+  return Array.isArray(value)
+    ? value
+    : [];
+
+}
+
+
+function number(value) {
+
+  const parsed = Number(value);
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : 0;
+
+}
+
+
+function formatNumber(value) {
+
+  return number(value)
+    .toLocaleString('en-US');
+
+}
+
+
+function cleanTag(value) {
+
+  const tag =
+    String(value || '')
+      .trim()
+      .toUpperCase();
+
+  if (!tag) {
+    return '';
+  }
+
+  return tag.charAt(0) === '#'
+    ? tag
+    : '#' + tag;
+
+}
+
+
+function encodedTag(value) {
+
+  return encodeURIComponent(
+    cleanTag(value)
+  );
+
+}
+
+
+function escapeHTML(value) {
+
+  return String(
+    value === undefined ||
+    value === null
+      ? ''
+      : value
+  )
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+
+}
+
+
+function assetKey(value) {
+
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/&/g,' and ')
+    .replace(/['\u2018\u2019]/g,'')
+    .replace(/[_-]+/g,' ')
+    .replace(/[^a-z0-9]+/g,' ')
+    .trim()
+    .replace(/\s+/g,' ');
+
+}
+
+
+function indexedAssets(source) {
+
+  const index = {};
+
+  Object.keys(source).forEach(
+    function(key) {
+
+      index[assetKey(key)] =
+        source[key];
+
+    }
+  );
+
+  return index;
+
+}
+
+
+const HERO_ASSET_INDEX =
+  indexedAssets(HERO_ASSETS);
+
+const EQUIPMENT_ASSET_INDEX =
+  indexedAssets(EQUIPMENT_ASSETS);
+
+
+function resolveAsset(
+  index,
+  name,
+  aliases
+) {
+
+  const key =
+    assetKey(name);
+
+  const alias =
+    aliases && aliases[key]
+      ? assetKey(aliases[key])
+      : key;
+
+  if (index[alias]) {
+    return index[alias];
+  }
+
+  /*
+   * Cadangan: cocokkan nama yang mirip
+   * (puppet/doll, henchmen/henchman, blaster/blast, dst).
+   */
+
+  const wanted =
+    assetStem(alias);
+
+  const match =
+    Object.keys(index).find(
+      function(candidate) {
+
+        return (
+          assetStem(candidate) === wanted
+        );
+
+      }
+    );
+
+  return match
+    ? index[match]
+    : null;
+
+}
+
+
+function assetStem(value) {
+
+  const synonyms = {
+    puppet:'doll',
+    henchmen:'henchman',
+    blaster:'blast',
+    metal:'iron',
+    boot:'boots'
+  };
+
+  return assetKey(value)
+    .split(' ')
+    .filter(Boolean)
+    .map(
+      function(word) {
+
+        return synonyms[word] || word;
+
+      }
+    )
+    .sort()
+    .join(' ');
+
+}
+
+
+/* ============================================================
+   BADGE
+============================================================ */
+
+function badgeUrl(clan) {
+
+  const urls =
+    clan &&
+    firstValue(
+      clan.badgeUrls,
+      clan.iconUrls,
+      clan.badge
+    );
+
+  if (typeof urls === 'string') {
+    return urls;
+  }
+
+  return firstValue(
+    urls && urls.medium,
+    urls && urls.large,
+    urls && urls.small,
+    ''
+  );
+
+}
+
+
+function badgeImage(
+  clan,
+  sizeClass
+) {
+
+  const url =
+    badgeUrl(clan);
+
+  if (!url) {
+    return '';
+  }
+
+  return `
+    <img
+      class="clan-badge${sizeClass ? ' ' + sizeClass : ''}"
+      src="${escapeHTML(url)}"
+      alt=""
+      loading="lazy"
+      onerror="this.style.display='none'"
+    >
+  `;
+
+}
+
+
+/* ============================================================
+   HERO MAX
+============================================================ */
+
+function heroMaxFor(
+  hero,
+  player
+) {
+
+  const apiCap =
+    number(
+      firstValue(
+        hero.maxLevelForTownHall,
+        hero.max_level_for_town_hall
+      )
+    );
+
+  if (apiCap) {
+    return apiCap;
+  }
+
+  const key =
+    assetKey(hero.name);
+
+  if (
+    key === 'battle machine' ||
+    key === 'battle copter'
+  ) {
+
+    const builderHall =
+      number(
+        firstValue(
+          player.builderHallLevel,
+          player.builderBaseLevel,
+          player.builderHall
+        )
+      );
+
+    return number(
+      BUILDER_HERO_MAX[builderHall] &&
+      BUILDER_HERO_MAX[builderHall][key]
+    ) || number(
+      firstValue(
+        hero.maxLevel,
+        hero.max,
+        hero.max_level
+      )
+    );
+
+  }
+
+  const th =
+    number(player.townHallLevel);
+
+  return number(
+    HOME_HERO_MAX[th] &&
+    HOME_HERO_MAX[th][key]
+  ) || number(
+    firstValue(
+      hero.maxLevel,
+      hero.max,
+      hero.max_level
+    )
+  );
+
+}
+
+
+/* ============================================================
+   EQUIPMENT MAX
+============================================================ */
+
+function equipmentMaxFor(
+  item,
+  player,
+  isEpic
+) {
+
+  const apiCap =
+    number(
+      firstValue(
+        item.maxLevelForTownHall,
+        item.max_level_for_town_hall
+      )
+    );
+
+  if (apiCap) {
+    return apiCap;
+  }
+
+  const th =
+    number(player.townHallLevel);
+
+  const cap =
+    EQUIPMENT_TH_CAP[th];
+
+  if (cap) {
+    return isEpic
+      ? cap.epic
+      : cap.common;
+  }
+
+  return number(
+    firstValue(
+      item.maxLevel,
+      item.max
+    )
+  );
+
+}
+
+
+/* ============================================================
+   PROGRESS
+============================================================ */
+
+function progressPercent(
+  current,
+  max
+) {
+
+  const c = number(current);
+  const m = number(max);
+
+  if (!m) {
+    return 0;
+  }
+
+  return Math.min(
+    100,
+    Math.max(
+      0,
+      Math.round((c / m) * 100)
+    )
+  );
+
+}
+
+
+/* ============================================================
+   ASSET IMAGE
+============================================================ */
+
+function assetImage(
+  path,
+  alt,
+  className
+) {
+
+  if (!path) {
+
+    return `
+      <span class="asset-placeholder">
+        Asset belum dipetakan
+      </span>
+    `;
+
+  }
+
+  const safePath =
+    encodeURI(path);
+
+  return `
+    <img
+      class="${className}"
+      src="${escapeHTML(safePath)}"
+      alt="${escapeHTML(alt)}"
+      loading="lazy"
+      onerror="this.classList.add('asset-failed');this.nextElementSibling.hidden=false"
+    >
+    <span
+      class="asset-placeholder"
+      hidden
+    >
+      Asset tidak ditemukan
+    </span>
+  `;
+
+}
+
+
+/* ============================================================
+   PAGE / LOADING
+============================================================ */
+
+function selectedPage() {
+
+  if (mode === 'player') {
+    return 'playerContent';
+  }
+
+  if (mode === 'clan') {
+    return 'clanContent';
+  }
+
+  return 'cwlContent';
+
+}
+
+
+function setLoading(
+  message
+) {
+
+  document.getElementById(
+    selectedPage()
+  ).innerHTML = `
+    <section class="section">
+      <div class="loading">
+        ${escapeHTML(
+          message ||
+          'Sabar bentar Ngab!'
+        )}
+      </div>
+    </section>
+  `;
+
+}
+
+
+function setError(
+  message
+) {
+
+  document.getElementById(
+    selectedPage()
+  ).innerHTML = `
+    <div class="error-box">
+      <strong>Gagal mengambil data</strong>
+      <div>
+        ${escapeHTML(
+          message ||
+          'Unknown error'
+        )}
+      </div>
+    </div>
+  `;
+
+}
+
+
+/* ============================================================
+   MODE
+============================================================ */
+
+function setMode(nextMode) {
+
+  mode = nextMode;
+
+  ['player','clan','cwl'].forEach(
+    function(name) {
+
+      document
+        .getElementById(name + 'Page')
+        .classList.toggle(
+          'active',
+          name === mode
+        );
+
+      document
+        .getElementById(name + 'Tab')
+        .classList.toggle(
+          'active',
+          name === mode
+        );
+
+    }
+  );
+
+  const input =
+    document.getElementById(
+      'searchInput'
+    );
+
+  const hint =
+    document.getElementById(
+      'searchHint'
+    );
+
+  const isPlayer =
+    mode === 'player';
+
+  input.placeholder =
+    isPlayer
+      ? 'Masukkan Player Tag'
+      : 'Masukkan Clan Tag';
+
+  hint.textContent =
+    isPlayer
+      ? 'Contoh: #9UG9LJV8Y'
+      : 'Contoh: #2J0P2GR08';
+
+}
+
+
+/* ============================================================
+   API
+============================================================ */
+
+async function api(
+  endpoint,
+  tag
+) {
+
+  const response =
+    await fetch(
+      API_BASE +
+      '/' +
+      endpoint +
+      '?tag=' +
+      encodedTag(tag),
+      {
+        headers:{
+          Accept:'application/json'
+        },
+        cache:'no-store'
+      }
+    );
+
+  const text =
+    await response.text();
+
+  let body;
+
+  try {
+
+    body =
+      JSON.parse(text);
+
+  } catch (_) {
+
+    throw new Error(
+      'Response API bukan JSON. HTTP ' +
+      response.status
+    );
+
+  }
+
+  if (!response.ok) {
+
+    throw new Error(
+      firstValue(
+        body && body.message,
+        body && body.reason,
+        body && body.error,
+        body &&
+        body.details &&
+        body.details.message,
+        'HTTP ' + response.status
+      )
+    );
+
+  }
+
+  if (
+    body &&
+    typeof body === 'object' &&
+    !Array.isArray(body)
+  ) {
+
+    if (
+      body.data &&
+      typeof body.data === 'object'
+    ) {
+      return body.data;
+    }
+
+    if (
+      body.result &&
+      typeof body.result === 'object'
+    ) {
+      return body.result;
+    }
+
+    if (
+      endpoint === 'player' &&
+      body.player &&
+      typeof body.player === 'object'
+    ) {
+
+      return body.player;
+
+    }
+
+    if (
+      endpoint === 'clan' &&
+      body.clan &&
+      typeof body.clan === 'object'
+    ) {
+
+      return body.clan;
+
+    }
+
+    /*
+     * IMPORTANT:
+     * CWL response dari Worker punya object `cwl`
+     * dan `rounds` di ROOT response.
+     *
+     * Jangan cuma return body.cwl karena
+     * rounds/clans bisa hilang.
+     */
+    if (
+      endpoint === 'cwl' &&
+      body.cwl &&
+      typeof body.cwl === 'object'
+    ) {
+
+      return Object.assign(
+        {},
+        body.cwl,
+        {
+          rounds:
+            Array.isArray(body.rounds)
+              ? body.rounds
+              : body.cwl.rounds,
+
+          clans:
+            Array.isArray(body.clans)
+              ? body.clans
+              : body.cwl.clans,
+
+          currentClan:
+            body.currentClan ||
+            body.cwl.currentClan,
+
+          cwlRoster:
+            body.cwlRoster ||
+            body.cwl.cwlRoster,
+
+          cwlRosterSize:
+            body.cwlRosterSize ??
+            body.cwl.cwlRosterSize,
+
+          cwlTownHallBreakdown:
+            body.cwlTownHallBreakdown ||
+            body.cwl.cwlTownHallBreakdown
+        }
+      );
+
+    }
+
+  }
+
+  return body;
+
+}
+
+
+/* ============================================================
+   SEARCH
+============================================================ */
+
+function searchData() {
+
+  const tag =
+    cleanTag(
+      document
+        .getElementById('searchInput')
+        .value
+    );
+
+  if (!tag) {
+
+    setError(
+      'Masukkan tag terlebih dahulu.'
+    );
+
+    return;
+
+  }
+
+  if (mode === 'player') {
+
+    loadPlayer(tag);
+
+  } else if (mode === 'clan') {
+
+    loadClan(tag);
+
+  } else {
+
+    loadCwl(tag);
+
+  }
+
+}
+
+
+/* ============================================================
+   OPEN CLAN
+============================================================ */
+
+function openClan(tag) {
+
+  const cleaned =
+    cleanTag(tag);
+
+  if (!cleaned) {
+    return;
+  }
+
+  document.getElementById(
+    'searchInput'
+  ).value = cleaned;
+
+  setMode('clan');
+
+  loadClan(cleaned);
+
+}
+
+
+/* ============================================================
+   NORMALIZE PLAYER
+============================================================ */
+
+function normalizePlayer(raw) {
+
+  const player =
+    raw || {};
+
+  const heroes =
+    asArray(player.heroes)
+      .map(
+        function(hero) {
+
+          return {
+
+            name:
+              firstValue(
+                hero.name,
+                hero.heroName,
+                'Hero'
+              ),
+
+            level:
+              number(
+                firstValue(
+                  hero.level,
+                  hero.currentLevel
+                )
+              ),
+
+            maxLevel:
+              number(
+                firstValue(
+                  hero.maxLevel,
+                  hero.max,
+                  hero.max_level
+                )
+              ),
+
+            maxLevelForTownHall:
+              number(
+                firstValue(
+                  hero.maxLevelForTownHall,
+                  hero.max_level_for_town_hall
+                )
+              )
+
+          };
+
+        }
+      );
+
+
+  let equipment =
+    asArray(
+      firstValue(
+        player.heroEquipment,
+        player.equipment
+      )
+    );
+
+
+  if (!equipment.length) {
+
+    equipment =
+      asArray(player.heroes)
+        .flatMap(
+          function(hero) {
+
+            return asArray(
+              hero.equipment
+            ).map(
+              function(item) {
+
+                const copy =
+                  Object.assign({},item);
+
+                if (!copy.hero) {
+
+                  copy.hero =
+                    firstValue(
+                      hero.name,
+                      hero.heroName
+                    );
+
+                }
+
+                return copy;
+
+              }
+            );
+
+          }
+        );
+
+  }
+
+
+  return {
+
+    name:
+      firstValue(
+        player.name,
+        player.playerName,
+        '-'
+      ),
+
+    tag:
+      firstValue(
+        player.tag,
+        player.playerTag,
+        ''
+      ),
+
+    townHallLevel:
+      number(
+        firstValue(
+          player.townHallLevel,
+          player.townhallLevel,
+          player.townHall
+        )
+      ),
+
+    expLevel:
+      number(
+        firstValue(
+          player.expLevel,
+          player.xp,
+          player.experienceLevel
+        )
+      ),
+
+    trophies:
+      number(
+        firstValue(
+          player.trophies,
+          player.trophy
+        )
+      ),
+
+    warStars:
+      number(
+        firstValue(
+          player.warStars,
+          player.war_stars
+        )
+      ),
+
+    builderHallLevel:
+      number(
+        firstValue(
+          player.builderHallLevel,
+          player.builderBaseLevel,
+          player.builderHall
+        )
+      ),
+
+    role:
+      firstValue(
+        player.role,
+        '-'
+      ),
+
+    roleName:
+      firstValue(
+        player.roleName,
+        ''
+      ),
+
+    rank:
+      firstValue(
+        player.leagueTier &&
+        player.leagueTier.name,
+        player.rankedLeague &&
+        player.rankedLeague.name,
+        player.league &&
+        player.league.name,
+        player.rank,
+        '-'
+      ),
+
+    rankIcon:
+      firstValue(
+        player.leagueTier &&
+        player.leagueTier.iconUrls &&
+        player.leagueTier.iconUrls.medium,
+        player.leagueTier &&
+        player.leagueTier.iconUrls &&
+        player.leagueTier.iconUrls.small,
+        player.rankedLeague &&
+        player.rankedLeague.iconUrls &&
+        player.rankedLeague.iconUrls.medium,
+        player.league &&
+        player.league.iconUrls &&
+        player.league.iconUrls.medium,
+        player.league &&
+        player.league.iconUrls &&
+        player.league.iconUrls.small,
+        ''
+      ),
+
+    clan:
+      player.clan || null,
+
+    heroes:
+      heroes,
+
+    equipment:
+      equipment
+
+  };
+
+}
+
+
+/* ============================================================
+   LOAD PLAYER
+============================================================ */
+
+async function loadPlayer(tag) {
+
+  mode = 'player';
+
+  setMode('player');
+
+  setLoading();
+
+  try {
+
+    const raw =
+      await api(
+        'player',
+        tag
+      );
+
+    renderPlayer(
+      normalizePlayer(raw)
+    );
+
+  } catch (error) {
+
+    setError(
+      error &&
+      error.message
+    );
+
+  }
+
+}
+
+
+/* ============================================================
+   RENDER PLAYER
+============================================================ */
+
+function renderPlayer(player) {
+
+  const homeHeroes =
+    player.heroes.filter(
+      function(hero) {
+
+        const key =
+          assetKey(hero.name);
+
+        return (
+          key !== 'battle machine' &&
+          key !== 'battle copter'
+        );
+
+      }
+    );
+
+
+  const builderHeroes =
+    player.heroes.filter(
+      function(hero) {
+
+        const key =
+          assetKey(hero.name);
+
+        return (
+          key === 'battle machine' ||
+          key === 'battle copter'
+        );
+
+      }
+    );
+
+
+  /* =========================
+     HERO CARDS
+  ========================= */
+
+  const heroCards =
+    function(list) {
+
+      if (!list.length) {
+
+        return `
+          <div class="empty">
+            Data hero tidak tersedia.
+          </div>
+        `;
+
+      }
+
+
+      return list.map(
+        function(hero) {
+
+          const path =
+            resolveAsset(
+              HERO_ASSET_INDEX,
+              hero.name
+            );
+
+          const max =
+            heroMaxFor(
+              hero,
+              player
+            );
+
+          const level =
+            number(hero.level);
+
+          const percent =
+            progressPercent(
+              level,
+              max
+            );
+
+          const maxed =
+            max > 0 &&
+            level >= max;
+
+
+          return `
+            <div class="hero-card${maxed ? ' maxed' : ''}">
+
+              ${assetImage(
+                path,
+                hero.name,
+                'hero-img'
+              )}
+
+              <div class="hero-info">
+
+                <div class="item-name">
+                  ${escapeHTML(hero.name)}
+                </div>
+
+                <div class="hero-level">
+                  ${escapeHTML(level)}/${escapeHTML(max || '-')}
+                  ${maxed ? '<span class="max-tag">MAX</span>' : ''}
+                </div>
+
+                <div class="hero-progress">
+                  <div
+                    class="hero-progress-fill"
+                    style="width:${percent}%"
+                  ></div>
+                </div>
+
+              </div>
+
+            </div>
+          `;
+
+        }
+      ).join('');
+
+    };
+
+
+  const homeHTML = `
+
+    <div class="hero-group">
+
+      <div class="hero-group-title">
+        Home Village
+        <span>Desa Utama</span>
+      </div>
+
+      <div class="hero-grid">
+        ${heroCards(homeHeroes)}
+      </div>
+
+    </div>
+
+  `;
+
+
+  const builderHTML = `
+
+    <div class="hero-group">
+
+      <div class="hero-group-title">
+        Builder Base
+        <span>Desa Builder</span>
+      </div>
+
+      <div class="hero-grid">
+        ${heroCards(builderHeroes)}
+      </div>
+
+    </div>
+
+  `;
+
+
+  /* =========================
+     EQUIPMENT
+  ========================= */
+
+  const equipmentHTML =
+    player.equipment.length
+
+      ? player.equipment.map(
+          function(item) {
+
+            const name =
+              firstValue(
+                item.name,
+                item.equipmentName,
+                'Equipment'
+              );
+
+            const key =
+              assetKey(name);
+
+            const path =
+              resolveAsset(
+                EQUIPMENT_ASSET_INDEX,
+                name,
+                EQUIPMENT_ALIASES
+              );
+
+            const level =
+              number(
+                firstValue(
+                  item.level,
+                  item.currentLevel,
+                  0
+                )
+              );
+
+            const epicKey =
+              EQUIPMENT_ALIASES[key] ||
+              key;
+
+            const isEpic =
+              EPIC_EQUIPMENT.has(
+                epicKey
+              );
+
+            const max =
+              equipmentMaxFor(
+                item,
+                player,
+                isEpic
+              );
+
+            const percent =
+              progressPercent(
+                level,
+                max
+              );
+
+            const rarityClass =
+              isEpic
+                ? 'gear-epic'
+                : 'gear-common';
+
+            const gearMaxed =
+              max > 0 &&
+              level >= max;
+
+
+            return `
+              <div class="equipment-card ${isEpic ? 'epic' : 'common'}${gearMaxed ? ' maxed' : ''}">
+
+                ${assetImage(
+                  path,
+                  name,
+                  'equipment-img'
+                )}
+
+                <div class="equipment-info">
+
+                  <div class="item-name ${rarityClass}">
+                    ${escapeHTML(name)}
+                  </div>
+
+                  <div class="equipment-level">
+                    ${escapeHTML(level)}/${escapeHTML(max || '-')}
+                  </div>
+
+                  <div class="equipment-progress">
+                    <div
+                      class="equipment-progress-fill"
+                      style="width:${percent}%"
+                    ></div>
+                  </div>
+
+                </div>
+
+              </div>
+            `;
+
+          }
+        ).join('')
+
+      : `
+        <div class="empty">
+          Data equipment tidak tersedia.
+        </div>
+      `;
+
+
+  /* =========================
+     CLAN SHORTCUT
+  ========================= */
+
+  const clanTagValue =
+    cleanTag(
+      firstValue(
+        player.clan &&
+        player.clan.tag,
+
+        player.clan &&
+        player.clan.clanTag
+      )
+    );
+
+
+  const clanHTML =
+    player.clan &&
+    clanTagValue
+
+      ? `
+        <button
+          type="button"
+          class="player-clan-link"
+          onclick="openClan('${escapeHTML(clanTagValue)}')"
+        >
+
+          ${badgeImage(
+            player.clan,
+            ''
+          )}
+
+          <span class="player-clan-copy">
+
+            <strong>
+              ${escapeHTML(
+                firstValue(
+                  player.clan.name,
+                  player.clan.clanName,
+                  'Clan'
+                )
+              )}
+            </strong>
+
+            <span>
+              ${escapeHTML(clanTagValue)}
+              · Buka detail clan
+            </span>
+
+          </span>
+
+        </button>
+      `
+
+      : `
+        <div class="player-clan-link">
+
+          <span class="player-clan-copy">
+
+            <strong>
+              Belum bergabung clan
+            </strong>
+
+          </span>
+
+        </div>
+      `;
+
+
+  /* =========================
+     OVERALL PROGRESS
+  ========================= */
+
+  const heroTotals =
+    player.heroes.reduce(
+      function(total,hero) {
+        const max = heroMaxFor(hero,player);
+        const level = number(hero.level);
+
+        return {
+          current:total.current + level,
+          max:total.max + max
+        };
+      },
+      {
+        current:0,
+        max:0
+      }
+    );
+
+  const gearTotals =
+    player.equipment.reduce(
+      function(total,item) {
+        const name =
+          firstValue(
+            item.name,
+            item.equipmentName,
+            'Equipment'
+          );
+
+        const key =
+          assetKey(name);
+
+        const epicKey =
+          EQUIPMENT_ALIASES[key] || key;
+
+        const isEpic =
+          EPIC_EQUIPMENT.has(epicKey);
+
+        const max =
+          equipmentMaxFor(
+            item,
+            player,
+            isEpic
+          );
+
+        const level =
+          number(
+            firstValue(
+              item.level,
+              item.currentLevel,
+              0
+            )
+          );
+
+        return {
+          current:total.current + level,
+          max:total.max + max
+        };
+      },
+      {
+        current:0,
+        max:0
+      }
+    );
+
+  const heroProgress =
+    progressPercent(
+      heroTotals.current,
+      heroTotals.max
+    );
+
+  const gearProgress =
+    progressPercent(
+      gearTotals.current,
+      gearTotals.max
+    );
+
+  /* =========================
+     PLAYER CONTENT
+  ========================= */
+
+  document.getElementById(
+    'playerContent'
+  ).innerHTML = `
+
+    <div class="clan-header">
+
+      <div class="player-name-row">
+
+        <div class="clan-name">
+          ${escapeHTML(player.name)}
+        </div>
+
+        <div class="xp-bubble">
+          XP ${escapeHTML(
+            player.expLevel || '-'
+          )}
+        </div>
+
+      </div>
+
+      <div class="clan-tag">
+        ${escapeHTML(player.tag)}
+      </div>
+
+      ${clanHTML}
+
+      <div class="summary">
+
+        <div class="meta">
+          Town Hall
+          <strong>
+            ${escapeHTML(
+              player.townHallLevel || '-'
+            )}
+          </strong>
+        </div>
+
+        <div class="meta">
+          Trophies
+          <strong>
+            ${formatNumber(
+              player.trophies
+            )}
+          </strong>
+        </div>
+
+        <div class="meta">
+          War Stars
+          <strong>
+            ${formatNumber(
+              player.warStars
+            )}
+          </strong>
+        </div>
+
+        <div class="meta">
+          Rank
+          <strong>
+            ${
+              player.rankIcon
+                ? `
+                  <span class="rank-box">
+                    <img
+                      src="${escapeHTML(player.rankIcon)}"
+                      alt=""
+                      loading="lazy"
+                      onerror="this.style.display='none'"
+                    >
+                    ${escapeHTML(player.rank)}
+                  </span>
+                `
+                : escapeHTML(player.rank || '-')
+            }
+          </strong>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div class="section-title">
+          Heroes
+        </div>
+
+        <div class="section-value">
+          ${player.heroes.length} Hero
+        </div>
+
+      </div>
+
+      ${homeHTML}
+      ${builderHTML}
+
+    </section>
+
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div class="section-title">
+          Hero Equipment
+        </div>
+
+        <div class="section-value">
+          ${player.equipment.length} Item
+        </div>
+
+      </div>
+
+      <div class="equipment-grid">
+        ${equipmentHTML}
+      </div>
+
+      <div class="progress-summary">
+
+        <div class="progress-card">
+          <div class="progress-card-head">
+            <span>Progress Hero</span>
+            <span class="progress-card-value">${heroProgress}%</span>
+          </div>
+
+          <div class="progress-card-track">
+            <div
+              class="progress-card-fill"
+              style="width:${heroProgress}%"
+            ></div>
+          </div>
+
+          <div class="progress-card-detail">
+            ${formatNumber(heroTotals.current)}/${formatNumber(heroTotals.max)} level
+          </div>
+        </div>
+
+        <div class="progress-card">
+          <div class="progress-card-head">
+            <span>Progress Gear</span>
+            <span class="progress-card-value">${gearProgress}%</span>
+          </div>
+
+          <div class="progress-card-track">
+            <div
+              class="progress-card-fill"
+              style="width:${gearProgress}%"
+            ></div>
+          </div>
+
+          <div class="progress-card-detail">
+            ${formatNumber(gearTotals.current)}/${formatNumber(gearTotals.max)} level
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  `;
+
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+
+}
+
+
+/* ============================================================
+   NORMALIZE MEMBERS
+============================================================ */
+
+function normalizeMembers(source) {
+
+  return asArray(source)
+    .map(
+      function(member) {
+
+        return {
+
+          tag:
+            firstValue(
+              member.tag,
+              member.playerTag,
+              ''
+            ),
+
+          name:
+            firstValue(
+              member.name,
+              member.playerName,
+              '-'
+            ),
+
+          townHallLevel:
+            number(
+              firstValue(
+                member.townHallLevel,
+                member.townhallLevel,
+                member.townHall
+              )
+            ),
+
+          trophies:
+            number(
+              firstValue(
+                member.trophies,
+                member.trophy
+              )
+            ),
+
+          clanRank:
+            number(
+              firstValue(
+                member.clanRank,
+                member.rank
+              )
+            ),
+
+          expLevel:
+            number(
+              firstValue(
+                member.expLevel,
+                member.xp,
+                member.experienceLevel
+              )
+            ),
+
+          leagueName:
+            firstValue(
+              member.leagueTier &&
+              member.leagueTier.name,
+              member.rankedLeague &&
+              member.rankedLeague.name,
+              member.league &&
+              member.league.name,
+              ''
+            ),
+
+          leagueIcon:
+            firstValue(
+              member.leagueTier &&
+              member.leagueTier.iconUrls &&
+              member.leagueTier.iconUrls.small,
+              member.leagueTier &&
+              member.leagueTier.iconUrls &&
+              member.leagueTier.iconUrls.medium,
+              member.rankedLeague &&
+              member.rankedLeague.iconUrls &&
+              member.rankedLeague.iconUrls.small,
+              member.league &&
+              member.league.iconUrls &&
+              member.league.iconUrls.small,
+              member.league &&
+              member.league.iconUrls &&
+              member.league.iconUrls.medium,
+              ''
+            ),
+
+          role:
+            firstValue(
+              member.role,
+              member.roleName,
+              'Member'
+            )
+
+        };
+
+      }
+    );
+
+}
+
+
+/* ============================================================
+   CLAN DISPLAY HELPERS
+============================================================ */
+
+function clanTypeName(value) {
+
+  const key = assetKey(value);
+
+  if (key === 'open') {
+    return 'Terbuka';
+  }
+
+  if (key === 'invite only' || key === 'invite only clan') {
+    return 'Hanya Undangan';
+  }
+
+  if (key === 'closed') {
+    return 'Tertutup';
+  }
+
+  return firstValue(value,'-');
+
+}
+
+
+function clanLocationName(location) {
+
+  if (!location) {
+    return '-';
+  }
+
+  return firstValue(
+    location.localizedName,
+    location.name,
+    typeof location === 'string' ? location : null,
+    '-'
+  );
+
+}
+
+
+function clanLanguageName(language) {
+
+  if (!language) {
+    return '-';
+  }
+
+  return firstValue(
+    language.name,
+    language.languageName,
+    language.language,
+    typeof language === 'string' ? language : null,
+    '-'
+  );
+
+}
+
+
+/* ============================================================
+   NORMALIZE CLAN
+============================================================ */
+
+function normalizeClan(raw) {
+
+  const clan =
+    raw || {};
+
+  const members =
+    normalizeMembers(
+      firstValue(
+        clan.memberList,
+        clan.membersList,
+        Array.isArray(clan.members)
+          ? clan.members
+          : []
+      )
+    );
+
+
+  return {
+
+    tag:
+      firstValue(
+        clan.tag,
+        clan.clanTag,
+        ''
+      ),
+
+    name:
+      firstValue(
+        clan.name,
+        clan.clanName,
+        '-'
+      ),
+
+    clanLevel:
+      firstValue(
+        clan.clanLevel,
+        clan.level,
+        '-'
+      ),
+
+    members:
+      number(
+        firstValue(
+          typeof clan.members === 'number'
+            ? clan.members
+            : null,
+          clan.memberCount,
+          members.length
+        )
+      ),
+
+    memberList:
+      members,
+
+    description:
+      firstValue(
+        clan.description,
+        clan.desc,
+        ''
+      ),
+
+    type:
+      firstValue(
+        clan.type,
+        clan.clanType,
+        '-'
+      ),
+
+    location:
+      firstValue(
+        clan.location,
+        clan.clanLocation,
+        null
+      ),
+
+    chatLanguage:
+      firstValue(
+        clan.chatLanguage,
+        clan.language,
+        clan.chat_language,
+        null
+      ),
+
+    badgeUrls:
+      firstValue(
+        clan.badgeUrls,
+        clan.iconUrls,
+        null
+      )
+
+  };
+
+}
+
+
+/* ============================================================
+   ROLE
+============================================================ */
+
+function roleOrder(role) {
+
+  const key =
+    assetKey(role);
+
+  if (key === 'leader') {
+    return 1;
+  }
+
+  if (
+    key === 'co leader' ||
+    key === 'coleader'
+  ) {
+    return 2;
+  }
+
+  if (
+    key === 'elder' ||
+    key === 'admin'
+  ) {
+    return 3;
+  }
+
+  return 4;
+
+}
+
+
+function roleName(role) {
+
+  const order =
+    roleOrder(role);
+
+  if (order === 1) {
+    return 'Leader';
+  }
+
+  if (order === 2) {
+    return 'Co-Leader';
+  }
+
+  if (order === 3) {
+    return 'Elder';
+  }
+
+  return 'Member';
+
+}
+
+
+/* ============================================================
+   SORT
+============================================================ */
+
+function compareText(a,b) {
+
+  return String(a || '')
+    .localeCompare(
+      String(b || ''),
+      undefined,
+      {
+        sensitivity:'base'
+      }
+    );
+
+}
+
+
+function sortClanMembers(members) {
+
+  return members
+    .slice()
+    .sort(
+      function(a,b) {
+
+        let result = 0;
+
+        if (clanSort === 'role') {
+
+          result =
+            roleOrder(a.role) -
+            roleOrder(b.role) ||
+            number(a.clanRank) -
+            number(b.clanRank);
+
+        }
+
+        if (clanSort === 'th-desc') {
+
+          result =
+            number(b.townHallLevel) -
+            number(a.townHallLevel) ||
+            number(a.clanRank) -
+            number(b.clanRank);
+
+        }
+
+        if (clanSort === 'th-asc') {
+
+          result =
+            number(a.townHallLevel) -
+            number(b.townHallLevel) ||
+            number(a.clanRank) -
+            number(b.clanRank);
+
+        }
+
+        if (clanSort === 'trophy-desc') {
+
+          result =
+            number(b.trophies) -
+            number(a.trophies) ||
+            number(a.clanRank) -
+            number(b.clanRank);
+
+        }
+
+        if (clanSort === 'trophy-asc') {
+
+          result =
+            number(a.trophies) -
+            number(b.trophies) ||
+            number(a.clanRank) -
+            number(b.clanRank);
+
+        }
+
+        if (clanSort === 'rank') {
+
+          result =
+            number(a.clanRank) -
+            number(b.clanRank);
+
+        }
+
+        if (clanSort === 'xp-desc') {
+
+          result =
+            number(b.expLevel) -
+            number(a.expLevel) ||
+            number(a.clanRank) -
+            number(b.clanRank);
+
+        }
+
+        if (clanSort === 'xp-asc') {
+
+          result =
+            number(a.expLevel) -
+            number(b.expLevel) ||
+            number(a.clanRank) -
+            number(b.clanRank);
+
+        }
+
+        return (
+          result ||
+          compareText(
+            a.name,
+            b.name
+          )
+        );
+
+      }
+    );
+
+}
+
+
+/* ============================================================
+   CLAN SORT
+============================================================ */
+
+function setClanSort(value) {
+
+  clanSort = value;
+
+  if (currentClan) {
+    renderClan(currentClan);
+  }
+
+}
+
+
+/* ============================================================
+   LOAD CLAN
+============================================================ */
+
+async function loadClan(tag) {
+
+  mode = 'clan';
+
+  setMode('clan');
+
+  setLoading();
+
+  try {
+
+    currentClan =
+      normalizeClan(
+        await api(
+          'clan',
+          tag
+        )
+      );
+
+    renderClan(
+      currentClan
+    );
+
+  } catch (error) {
+
+    setError(
+      error &&
+      error.message
+    );
+
+  }
+
+}
+
+
+/* ============================================================
+   RENDER CLAN
+============================================================ */
+
+function renderClan(clan) {
+
+  const members =
+    sortClanMembers(
+      clan.memberList
+    );
+
+  const clanBadgeHTML =
+    badgeImage(
+      clan,
+      ''
+    );
+
+
+  const memberHTML =
+    members.length
+
+      ? members
+          .map(
+            function(member,index) {
+
+              const role =
+                roleName(
+                  member.role
+                );
+
+              const roleClass =
+                role === 'Leader'
+                  ? 'role-leader'
+                  : role === 'Co-Leader'
+                    ? 'role-coleader'
+                    : role === 'Elder'
+                      ? 'role-elder'
+                      : 'role-member';
+
+              const leagueHTML =
+                member.leagueIcon
+                  ? `
+                    <img
+                      class="member-league"
+                      src="${escapeHTML(member.leagueIcon)}"
+                      alt="${escapeHTML(member.leagueName)}"
+                      title="${escapeHTML(member.leagueName)}"
+                      loading="lazy"
+                      onerror="this.style.visibility='hidden'"
+                    >
+                  `
+                  : '<span class="member-league empty"></span>';
+
+
+              return `
+                <button
+                  type="button"
+                  class="member"
+                  onclick="loadPlayer('${escapeHTML(member.tag)}')"
+                >
+
+                  <div class="member-rank">
+                    ${String(index + 1).padStart(2,'0')}
+                  </div>
+
+                  ${leagueHTML}
+
+                  <div class="member-info">
+
+                    <div class="member-name">
+                      ${escapeHTML(member.name)}
+                    </div>
+
+                    <div class="member-detail">
+                      ${formatNumber(member.trophies)}
+                      trophies ·
+                      <span class="role-chip ${roleClass}">
+                        ${role}
+                      </span>
+                    </div>
+
+                  </div>
+
+                  <div class="member-th">
+                    TH ${escapeHTML(
+                      member.townHallLevel || '-'
+                    )}
+                    <span class="member-xp">
+                      XP ${escapeHTML(
+                        member.expLevel || '-'
+                      )}
+                    </span>
+                  </div>
+
+                </button>
+              `;
+
+            }
+          )
+          .join('')
+
+      : `
+        <div class="empty">
+          Member tidak tersedia.
+        </div>
+      `;
+
+
+  document.getElementById(
+    'clanContent'
+  ).innerHTML = `
+
+    <div class="clan-header">
+
+      <div class="player-name-row">
+
+        ${clanBadgeHTML}
+
+        <div>
+
+          <div class="clan-name">
+            ${escapeHTML(clan.name)}
+          </div>
+
+          <div class="clan-tag">
+            ${escapeHTML(clan.tag)}
+          </div>
+
+        </div>
+
+      </div>
+
+
+      ${
+        clan.description
+          ? `
+            <div class="clan-description">
+              ${escapeHTML(
+                clan.description
+              )}
+            </div>
+          `
+          : ''
+      }
+
+
+      <div class="clan-meta">
+
+        <div class="meta">
+          Member
+          <strong>
+            ${formatNumber(clan.members)}/50
+          </strong>
+        </div>
+
+        <div class="meta">
+          Level
+          <strong>
+            ${escapeHTML(
+              clan.clanLevel
+            )}
+          </strong>
+        </div>
+
+        <div class="meta">
+          Type
+          <strong>
+            ${escapeHTML(
+              clanTypeName(clan.type)
+            )}
+          </strong>
+        </div>
+
+        <div class="meta">
+          Lokasi
+          <strong>
+            ${escapeHTML(
+              clanLocationName(clan.location)
+            )}
+          </strong>
+        </div>
+
+        <div class="meta">
+          Bahasa
+          <strong>
+            ${escapeHTML(
+              clanLanguageName(clan.chatLanguage)
+            )}
+          </strong>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div>
+
+          <div class="section-title">
+            Clan Members
+          </div>
+
+          <div class="section-value">
+            ${members.length}/50
+          </div>
+
+        </div>
+
+
+        <label class="sort-control">
+
+          Urutkan
+
+          <select
+            class="sort-select"
+            onchange="setClanSort(this.value)"
+          >
+
+            <option
+              value="rank"
+              ${clanSort === 'rank' ? 'selected' : ''}
+            >
+              Rank (default)
+            </option>
+
+            <option
+              value="role"
+              ${clanSort === 'role' ? 'selected' : ''}
+            >
+              Role → Rank
+            </option>
+
+            <option
+              value="xp-desc"
+              ${clanSort === 'xp-desc' ? 'selected' : ''}
+            >
+              XP tinggi → rendah
+            </option>
+
+            <option
+              value="xp-asc"
+              ${clanSort === 'xp-asc' ? 'selected' : ''}
+            >
+              XP rendah → tinggi
+            </option>
+
+            <option
+              value="th-desc"
+              ${clanSort === 'th-desc' ? 'selected' : ''}
+            >
+              TH tinggi → rendah
+            </option>
+
+            <option
+              value="th-asc"
+              ${clanSort === 'th-asc' ? 'selected' : ''}
+            >
+              TH rendah → tinggi
+            </option>
+
+            <option
+              value="trophy-desc"
+              ${clanSort === 'trophy-desc' ? 'selected' : ''}
+            >
+              Trophy tinggi → rendah
+            </option>
+
+            <option
+              value="trophy-asc"
+              ${clanSort === 'trophy-asc' ? 'selected' : ''}
+            >
+              Trophy rendah → tinggi
+            </option>
+
+          </select>
+
+        </label>
+
+      </div>
+
+
+      <div class="member-list">
+        ${memberHTML}
+      </div>
+
+    </section>
+
+  `;
+
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+
+}
+
+
+/* ============================================================
+   CWL HELPERS
+============================================================ */
+
+function clanTag(clan) {
+
+  return cleanTag(
+    firstValue(
+      clan && clan.tag,
+      clan && clan.clanTag
+    )
+  );
+
+}
+
+
+function cwlClanFor(
+  data,
+  tag
+) {
+
+  const wanted =
+    cleanTag(tag);
+
+  return asArray(
+    data.clans
+  ).find(
+    function(clan) {
+
+      return (
+        clanTag(clan) === wanted
+      );
+
+    }
+  ) || null;
+
+}
+
+
+function normalizeCwl(raw) {
+
+  const data =
+    raw || {};
+
+  const sourceRounds =
+    asArray(
+      firstValue(
+        data.rounds,
+        data.cwlRounds
+      )
+    );
+
+
+  return Object.assign(
+    {},
+    data,
+    {
+
+      currentClan:
+        firstValue(
+          data.currentClan,
+          data.clan,
+          null
+        ),
+
+      clans:
+        asArray(data.clans),
+
+      cwlRoster:
+        asArray(data.cwlRoster),
+
+      cwlRosterSize:
+        number(
+          data.cwlRosterSize
+        ),
+
+      rounds:
+        Array.from(
+          {
+            length:7
+          },
+          function(_,index) {
+
+            const round =
+              sourceRounds[index] ||
+              {};
+
+            return Object.assign(
+              {
+                roundNumber:
+                  index + 1,
+
+                wars:[],
+
+                targetWar:null
+              },
+              round
+            );
+
+          }
+        )
+
+    }
+  );
+
+}
+
+
+function breakdownEntries(source) {
+
+  if (Array.isArray(source)) {
+
+    return source.map(
+      function(item) {
+
+        return {
+
+          th:
+            number(
+              firstValue(
+                item &&
+                item.townHallLevel,
+
+                item &&
+                item.townhallLevel,
+
+                item &&
+                item.th,
+
+                item &&
+                item.level
+              )
+            ),
+
+          count:
+            number(
+              firstValue(
+                item &&
+                item.count,
+
+                item &&
+                item.total,
+
+                item &&
+                item.members
+              )
+            )
+
+        };
+
+      }
+    );
+
+  }
+
+
+  if (
+    source &&
+    typeof source === 'object'
+  ) {
+
+    return Object.keys(source)
+      .map(
+        function(key) {
+
+          const value =
+            source[key];
+
+          return {
+
+            th:
+              number(
+                String(key)
+                  .replace(
+                    /[^0-9]/g,
+                    ''
+                  )
+              ),
+
+            count:
+              number(
+                typeof value === 'object'
+                  ? firstValue(
+                      value.count,
+                      value.total,
+                      value.members
+                    )
+                  : value
+              )
+
+          };
+
+        }
+      );
+
+  }
+
+
+  return [];
+
+}
+
+
+function nonZeroBreakdown(
+  entries
+) {
+
+  const grouped = {};
+
+
+  entries.forEach(
+    function(item) {
+
+      if (
+        number(item.th) > 0 &&
+        number(item.count) > 0
+      ) {
+
+        grouped[number(item.th)] =
+          (
+            grouped[number(item.th)] ||
+            0
+          ) +
+          number(item.count);
+
+      }
+
+    }
+  );
+
+
+  return Object.keys(grouped)
+    .map(
+      function(th) {
+
+        return {
+          th:number(th),
+          count:grouped[th]
+        };
+
+      }
+    )
+    .sort(
+      function(a,b) {
+
+        return b.th - a.th;
+
+      }
+    );
+
+}
+
+
+function rosterBreakdown(
+  roster
+) {
+
+  return nonZeroBreakdown(
+    asArray(roster)
+      .map(
+        function(member) {
+
+          return {
+
+            th:
+              number(
+                firstValue(
+                  member.townHallLevel,
+                  member.townhallLevel,
+                  member.townHall
+                )
+              ),
+
+            count:1
+
+          };
+
+        }
+      )
+  );
+
+}
+
+
+function cwlRosterFor(
+  data,
+  selectedClan
+) {
+
+  if (
+    asArray(
+      data.cwlRoster
+    ).length
+  ) {
+
+    return asArray(
+      data.cwlRoster
+    );
+
+  }
+
+
+  if (
+    selectedClan &&
+    asArray(
+      selectedClan.cwlRoster
+    ).length
+  ) {
+
+    return asArray(
+      selectedClan.cwlRoster
+    );
+
+  }
+
+
+  return [];
+
+}
+
+
+function cwlBreakdownFor(
+  data,
+  selectedClan,
+  roster
+) {
+
+  const rootBreakdown =
+    nonZeroBreakdown(
+      breakdownEntries(
+        data.cwlTownHallBreakdown
+      )
+    );
+
+
+  if (rootBreakdown.length) {
+    return rootBreakdown;
+  }
+
+
+  const rosterDerived =
+    rosterBreakdown(
+      roster
+    );
+
+
+  if (rosterDerived.length) {
+    return rosterDerived;
+  }
+
+
+  const candidates = [
+
+    data.currentClan &&
+    clanTag(data.currentClan) ===
+      data.selectedTag
+      ? data.currentClan.cwlTownHallBreakdown
+      : null,
+
+    selectedClan &&
+      selectedClan.cwlTownHallBreakdown,
+
+    selectedClan &&
+      selectedClan.townHallBreakdown
+
+  ];
+
+
+  for (
+    let index = 0;
+    index < candidates.length;
+    index += 1
+  ) {
+
+    const breakdown =
+      nonZeroBreakdown(
+        breakdownEntries(
+          candidates[index]
+        )
+      );
+
+    if (breakdown.length) {
+      return breakdown;
+    }
+
+  }
+
+
+  return [];
+
+}
+
+
+/* ============================================================
+   CWL WAR
+============================================================ */
+
+function warIncludesClan(
+  war,
+  tag
+) {
+
+  if (!war) {
+    return false;
+  }
+
+  const wanted =
+    cleanTag(tag);
+
+
+  const direct = [
+
+    war.target,
+    war.enemy,
+    war.clan,
+    war.opponent
+
+  ].some(
+    function(side) {
+
+      return (
+        clanTag(side) ===
+        wanted
+      );
+
+    }
+  );
+
+
+  const sides =
+    asArray(
+      firstValue(
+        war.clans,
+        war.sides
+      )
+    );
+
+
+  return (
+    direct ||
+    sides.some(
+      function(side) {
+
+        return (
+          clanTag(side) ===
+          wanted
+        );
+
+      }
+    )
+  );
+
+}
+
+
+function warForRound(
+  round,
+  tag
+) {
+
+  /*
+   * Worker mengirim war ronde ini di round.war.
+   */
+
+  if (
+    warIncludesClan(
+      round.war,
+      tag
+    )
+  ) {
+
+    return round.war;
+
+  }
+
+
+  if (
+    warIncludesClan(
+      round.targetWar,
+      tag
+    )
+  ) {
+
+    return round.targetWar;
+
+  }
+
+
+  return asArray(
+    firstValue(
+      round.wars,
+      round.matches
+    )
+  ).find(
+    function(war) {
+
+      return warIncludesClan(
+        war,
+        tag
+      );
+
+    }
+  ) || null;
+
+}
+
+
+function sidesForWar(
+  war,
+  tag
+) {
+
+  const wanted =
+    cleanTag(tag);
+
+
+  if (
+    war.target &&
+    war.enemy &&
+    clanTag(war.target) ===
+      wanted
+  ) {
+
+    return {
+      mine:war.target,
+      enemy:war.enemy
+    };
+
+  }
+
+
+  if (
+    war.target &&
+    war.enemy &&
+    clanTag(war.enemy) ===
+      wanted
+  ) {
+
+    return {
+      mine:war.enemy,
+      enemy:war.target
+    };
+
+  }
+
+
+  const sides =
+    asArray(
+      firstValue(
+        war.clans,
+        war.sides,
+
+        war.clan &&
+        war.opponent
+          ? [
+              war.clan,
+              war.opponent
+            ]
+          : []
+      )
+    );
+
+
+  const mine =
+    sides.find(
+      function(side) {
+
+        return (
+          clanTag(side) ===
+          wanted
+        );
+
+      }
+    );
+
+
+  const enemy =
+    sides.find(
+      function(side) {
+
+        return (
+          clanTag(side) !==
+          wanted
+        );
+
+      }
+    );
+
+
+  return (
+    mine &&
+    enemy
+  )
+    ? {
+        mine:mine,
+        enemy:enemy
+      }
+    : null;
+
+}
+
+
+function scoreFor(side) {
+
+  return (
+    formatNumber(
+      firstValue(
+        side.stars,
+        side.starCount,
+        side.clanStars
+      )
+    ) +
+    ' ★ · ' +
+    formatNumber(
+      firstValue(
+        side.destructionPercentage,
+        side.destruction
+      )
+    ) +
+    '%'
+  );
+
+}
+
+
+/* ============================================================
+   RENDER CWL ROUND
+============================================================ */
+
+function cwlStateLabel(state) {
+
+  const key =
+    String(state || '').toLowerCase();
+
+  if (key === 'preparation') {
+    return 'Persiapan';
+  }
+
+  if (key === 'inwar') {
+    return 'Sedang perang';
+  }
+
+  if (key === 'warended') {
+    return 'Selesai';
+  }
+
+  return state
+    ? String(state)
+    : 'War';
+
+}
+
+
+function warAttacksUsed(side) {
+
+  return asArray(side.members).reduce(
+    function(total,member) {
+
+      return total + asArray(
+        member && member.attacks
+      ).length;
+
+    },
+    0
+  );
+
+}
+
+
+function warResult(mine,enemy) {
+
+  const myStars =
+    number(mine.stars);
+
+  const enemyStars =
+    number(enemy.stars);
+
+  if (myStars !== enemyStars) {
+
+    return myStars > enemyStars
+      ? 'win'
+      : 'lose';
+
+  }
+
+  const myDestruction =
+    number(mine.destructionPercentage);
+
+  const enemyDestruction =
+    number(enemy.destructionPercentage);
+
+  if (myDestruction !== enemyDestruction) {
+
+    return myDestruction > enemyDestruction
+      ? 'win'
+      : 'lose';
+
+  }
+
+  return 'draw';
+
+}
+
+
+function warSideHTML(
+  side,
+  total,
+  alignRight
+) {
+
+  const name =
+    firstValue(
+      side.name,
+      side.clanName,
+      '-'
+    );
+
+  return `
+    <div class="war-side${alignRight ? ' right' : ''}">
+
+      ${badgeImage(side,'small')}
+
+      <div class="war-name">
+        ${escapeHTML(name)}
+      </div>
+
+      <div class="war-score">
+        ${scoreFor(side)}
+      </div>
+
+      <div class="war-attacks">
+        Serangan
+        ${warAttacksUsed(side)}${total ? '/' + total : ''}
+      </div>
+
+    </div>
+  `;
+
+}
+
+
+function renderCwlRound(
+  round,
+  index,
+  selectedTag
+) {
+
+  const war =
+    warForRound(
+      round,
+      selectedTag
+    );
+
+
+  const numberRound =
+    number(
+      firstValue(
+        round.roundNumber,
+        round.round,
+        index
+      )
+    ) || index;
+
+
+  if (!war) {
+
+    const emptyText =
+      round.warTag
+        ? 'Data war belum tersedia'
+        : 'Belum dimulai';
+
+    return `
+      <div class="round">
+
+        <div class="round-head">
+
+          <div class="round-title">
+            Round ${numberRound}
+          </div>
+
+          <div class="round-status">
+            ${emptyText}
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+  }
+
+
+  const sides =
+    sidesForWar(
+      war,
+      selectedTag
+    );
+
+
+  if (!sides) {
+
+    return `
+      <div class="round">
+
+        <div class="round-head">
+
+          <div class="round-title">
+            Round ${numberRound}
+          </div>
+
+          <div class="round-status">
+            Data war tidak cocok dengan clan ini
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+  }
+
+
+  const state =
+    String(
+      firstValue(
+        war.state,
+        war.status,
+        ''
+      )
+    ).toLowerCase();
+
+  const ended =
+    state === 'warended';
+
+  let chipClass = 'live';
+  let chipText = cwlStateLabel(state);
+
+  if (state === 'preparation') {
+    chipClass = 'prep';
+  }
+
+  if (ended) {
+
+    const result =
+      warResult(
+        sides.mine,
+        sides.enemy
+      );
+
+    chipClass = result;
+
+    chipText =
+      result === 'win'
+        ? 'Menang'
+        : result === 'lose'
+          ? 'Kalah'
+          : 'Seri';
+
+  }
+
+  const total =
+    number(war.teamSize);
+
+
+  return `
+
+    <div class="round">
+
+      <div class="round-head">
+
+        <div class="round-title">
+          Round ${numberRound}
+        </div>
+
+        <div class="round-chip ${chipClass}">
+          ${chipText}
+        </div>
+
+      </div>
+
+
+      <div class="war">
+
+        ${warSideHTML(
+          sides.mine,
+          total,
+          false
+        )}
+
+        <div class="vs">
+          VS
+        </div>
+
+        ${warSideHTML(
+          sides.enemy,
+          total,
+          true
+        )}
+
+      </div>
+
+
+      <div class="war-foot">
+        ${total ? total + ' vs ' + total + ' pemain' : ''}
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+   LOAD CWL
+============================================================ */
+
+async function loadCwl(tag) {
+
+  requestedCwlTag =
+    cleanTag(tag);
+
+  mode = 'cwl';
+
+  setMode('cwl');
+
+  setLoading();
+
+  try {
+
+    currentCwl =
+      normalizeCwl(
+        await api(
+          'cwl',
+          requestedCwlTag
+        )
+      );
+
+    renderCwl(
+      currentCwl
+    );
+
+  } catch (error) {
+
+    setError(
+      error &&
+      error.message
+    );
+
+  }
+
+}
+
+
+/* ============================================================
+   CWL TH TABLE
+============================================================ */
+
+function cwlClansFromRounds(data) {
+
+  const map = new Map();
+
+  function addClan(clan) {
+
+    if (!clan) {
+      return;
+    }
+
+    const tag = clanTag(clan);
+
+    if (!tag) {
+      return;
+    }
+
+    const existing = map.get(tag) || {};
+    const merged = Object.assign({}, existing, clan);
+
+    if (
+      !asArray(merged.cwlRoster).length &&
+      asArray(clan.members).length
+    ) {
+      merged.cwlRoster = clan.members;
+    }
+
+    if (
+      !asArray(merged.cwlRoster).length &&
+      asArray(clan.memberList).length
+    ) {
+      merged.cwlRoster = clan.memberList;
+    }
+
+    if (
+      !merged.cwlTownHallBreakdown &&
+      merged.townHallBreakdown
+    ) {
+      merged.cwlTownHallBreakdown =
+        merged.townHallBreakdown;
+    }
+
+    if (
+      !merged.cwlTownHallBreakdown &&
+      asArray(merged.cwlRoster).length
+    ) {
+      merged.cwlTownHallBreakdown =
+        rosterBreakdown(merged.cwlRoster);
+    }
+
+    map.set(tag, merged);
+  }
+
+  asArray(data.clans).forEach(addClan);
+
+  asArray(data.rounds).forEach(
+    function(round) {
+
+      const wars =
+        asArray(
+          firstValue(
+            round.wars,
+            round.matches
+          )
+        ).slice();
+
+      if (round.targetWar) {
+        wars.push(round.targetWar);
+      }
+
+      wars.forEach(
+        function(war) {
+
+          if (!war) {
+            return;
+          }
+
+          addClan(war.target);
+          addClan(war.enemy);
+          addClan(war.clan);
+          addClan(war.opponent);
+
+          addClan(war.homeClan);
+          addClan(war.awayClan);
+          addClan(war.home);
+          addClan(war.away);
+          addClan(war.clan1);
+          addClan(war.clan2);
+
+          asArray(
+            firstValue(
+              war.clans,
+              war.sides,
+              war.teams
+            )
+          ).forEach(addClan);
+
+        }
+      );
+
+    }
+  );
+
+  return Array.from(map.values());
+
+}
+
+
+function renderClanTownHallTable(
+  clans,
+  selectedTag
+) {
+
+  const towns =
+    Array.from(
+      {
+        length:18
+      },
+      function(_,index) {
+
+        return 18 - index;
+
+      }
+    );
+
+
+  const header =
+    '<tr>' +
+    '<th>Clan</th>' +
+
+    towns
+      .map(
+        function(th) {
+
+          return `
+            <th class="th-column">
+              TH${th}
+            </th>
+          `;
+
+        }
+      )
+      .join('') +
+
+    '</tr>';
+
+
+  const rows =
+    asArray(clans)
+      .map(
+        function(clan) {
+
+          const tag =
+            clanTag(clan);
+
+          const counts = {};
+
+
+          let breakdown =
+            nonZeroBreakdown(
+              breakdownEntries(
+                firstValue(
+                  clan.cwlTownHallBreakdown,
+                  clan.townHallBreakdown,
+                  {}
+                )
+              )
+            );
+
+
+          if (
+            !breakdown.length &&
+            asArray(
+              clan.cwlRoster
+            ).length
+          ) {
+
+            breakdown =
+              rosterBreakdown(
+                clan.cwlRoster
+              );
+
+          }
+
+
+          breakdown.forEach(
+            function(entry) {
+
+              counts[entry.th] =
+                number(
+                  entry.count
+                );
+
+            }
+          );
+
+
+          const cells =
+            towns
+              .map(
+                function(th) {
+
+                  return `
+                    <td>
+                      ${
+                        counts[th]
+                          ? formatNumber(
+                              counts[th]
+                            )
+                          : '–'
+                      }
+                    </td>
+                  `;
+
+                }
+              )
+              .join('');
+
+
+          const name =
+            firstValue(
+              clan.name,
+              clan.clanName,
+              '-'
+            );
+
+
+          const clickable =
+            tag
+
+              ? `
+                <button
+                  type="button"
+                  class="cwl-clan-link"
+                  onclick="openClan('${escapeHTML(tag)}')"
+                >
+                  ${escapeHTML(name)}
+                </button>
+              `
+
+              : escapeHTML(name);
+
+
+          return `
+
+            <tr
+              ${
+                tag === cleanTag(selectedTag)
+                  ? 'class="selected"'
+                  : ''
+              }
+            >
+
+              <td>
+
+                <div class="clan-cell">
+
+                  ${badgeImage(
+                    clan,
+                    'small'
+                  )}
+
+                  <div>
+
+                    <div>
+                      ${clickable}
+                    </div>
+
+                    <div class="clan-tag">
+                      ${escapeHTML(
+                        tag || '-'
+                      )}
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </td>
+
+              ${cells}
+
+            </tr>
+
+          `;
+
+        }
+      )
+      .join('');
+
+
+  return `
+
+    <div class="table-wrap">
+
+      <table class="clan-th-table">
+
+        <thead>
+          ${header}
+        </thead>
+
+        <tbody>
+
+          ${
+            rows ||
+            `
+              <tr>
+                <td colspan="19">
+                  Data clan CWL belum tersedia.
+                </td>
+              </tr>
+            `
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+   RENDER CWL
+============================================================ */
+
+function renderCwl(data) {
+
+  const selectedTag =
+    cleanTag(
+      firstValue(
+        data.tag,
+        data.clanTag,
+
+        data.currentClan &&
+        data.currentClan.tag,
+
+        data.currentClan &&
+        data.currentClan.clanTag,
+
+        requestedCwlTag
+      )
+    );
+
+
+  data.selectedTag =
+    selectedTag;
+
+
+  const selectedClan =
+    cwlClanFor(
+      data,
+      selectedTag
+    );
+
+
+  const currentClanIsSelected =
+    data.currentClan &&
+    clanTag(data.currentClan) ===
+      selectedTag
+
+      ? data.currentClan
+      : null;
+
+
+  const displayedClan =
+    currentClanIsSelected ||
+    selectedClan;
+
+
+  const roster =
+    cwlRosterFor(
+      data,
+      selectedClan
+    );
+
+
+  const breakdown =
+    cwlBreakdownFor(
+      data,
+      selectedClan,
+      roster
+    );
+
+
+  const rosterSize =
+    roster.length ||
+    number(
+      firstValue(
+        data.cwlRosterSize,
+        selectedClan &&
+        selectedClan.cwlRosterSize
+      )
+    );
+
+
+  const max =
+    Math.max.apply(
+      null,
+      [1].concat(
+        breakdown.map(
+          function(item) {
+            return item.count;
+          }
+        )
+      )
+    );
+
+
+  const breakdownHTML =
+    breakdown.length
+
+      ? breakdown
+          .sort(
+            function(a,b) {
+              return b.th - a.th;
+            }
+          )
+          .map(
+            function(item) {
+
+              return `
+
+                <div class="th-row">
+
+                  <div class="th-label">
+                    TH${item.th}
+                  </div>
+
+                  <div class="th-bar">
+
+                    <div
+                      class="th-bar-fill"
+                      style="width:${Math.round(
+                        item.count / max * 100
+                      )}%"
+                    ></div>
+
+                  </div>
+
+                  <div class="th-count">
+                    ${formatNumber(
+                      item.count
+                    )}
+                  </div>
+
+                </div>
+
+              `;
+
+            }
+          )
+          .join('')
+
+      : `
+        <div class="empty">
+          Data TH CWL belum tersedia.
+        </div>
+      `;
+
+
+  /*
+   * Daftar pemain yang ikut CWL (roster CWL),
+   * diurutkan TH tertinggi dulu.
+   */
+
+  const rosterSorted =
+    roster
+      .slice()
+      .sort(
+        function(a,b) {
+
+          return (
+            number(b.townHallLevel) -
+            number(a.townHallLevel) ||
+            compareText(a.name,b.name)
+          );
+
+        }
+      );
+
+  const rosterListHTML =
+    rosterSorted.length
+
+      ? `
+        <details class="roster-details">
+
+          <summary>
+            Lihat daftar peserta
+            (${rosterSorted.length})
+          </summary>
+
+          <div class="roster-list">
+
+            ${rosterSorted.map(
+              function(member,i) {
+
+                return `
+                  <button
+                    type="button"
+                    class="roster-row"
+                    onclick="loadPlayer('${escapeHTML(member.tag)}')"
+                  >
+
+                    <span class="roster-no">
+                      ${i + 1}
+                    </span>
+
+                    <span class="roster-name">
+                      ${escapeHTML(member.name)}
+                      <small>
+                        ${escapeHTML(member.tag)}
+                      </small>
+                    </span>
+
+                    <span class="member-th">
+                      TH ${escapeHTML(
+                        member.townHallLevel || '-'
+                      )}
+                    </span>
+
+                  </button>
+                `;
+
+              }
+            ).join('')}
+
+          </div>
+
+        </details>
+      `
+
+      : '';
+
+
+  const clanName =
+    firstValue(
+      displayedClan &&
+      displayedClan.name,
+
+      displayedClan &&
+      displayedClan.clanName,
+
+      'CWL'
+    );
+
+
+  const clanLink =
+    selectedTag
+
+      ? `
+        <button
+          type="button"
+          class="cwl-clan-link"
+          onclick="openClan('${escapeHTML(selectedTag)}')"
+        >
+          ${escapeHTML(clanName)}
+        </button>
+      `
+
+      : `
+        <div class="clan-name">
+          ${escapeHTML(clanName)}
+        </div>
+      `;
+
+
+  const roundsHTML =
+    data.rounds
+      .map(
+        function(round,index) {
+
+          return renderCwlRound(
+            round,
+            index + 1,
+            selectedTag
+          );
+
+        }
+      )
+      .join('');
+
+
+  const cwlClans =
+    cwlClansFromRounds(
+      data
+    );
+
+  const clanTableHTML =
+    renderClanTownHallTable(
+      cwlClans,
+      selectedTag
+    );
+
+
+  document.getElementById(
+    'cwlContent'
+  ).innerHTML = `
+
+    <div class="clan-header">
+
+      <div class="clan-name">
+        ${clanLink}
+      </div>
+
+      <div class="clan-tag">
+        ${escapeHTML(
+          selectedTag || '-'
+        )}
+      </div>
+
+
+      <div class="clan-meta">
+
+        <div class="meta">
+
+          Peserta CWL
+
+          <strong>
+            ${formatNumber(
+              rosterSize
+            )} Player
+          </strong>
+
+        </div>
+
+
+        <div class="meta">
+
+          Season
+
+          <strong>
+            ${escapeHTML(
+              firstValue(
+                data.season,
+                '-'
+              )
+            )}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div class="section-title">
+          Town Hall Breakdown
+        </div>
+
+        ${
+          selectedTag
+            ? `
+              <button
+                type="button"
+                class="cwl-clan-link"
+                onclick="openClan('${escapeHTML(selectedTag)}')"
+              >
+                ${escapeHTML(clanName)}
+              </button>
+            `
+            : ''
+        }
+
+      </div>
+
+
+      <div class="th-breakdown">
+        ${breakdownHTML}
+      </div>
+
+      ${rosterListHTML}
+
+    </section>
+
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div class="section-title">
+          Komposisi Town Hall
+        </div>
+
+      </div>
+
+      ${clanTableHTML}
+
+    </section>
+
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <div class="section-title">
+          CWL Battle Rounds
+        </div>
+
+        <div class="section-value">
+          7 Rounds
+        </div>
+
+      </div>
+
+      ${roundsHTML}
+
+    </section>
+
+  `;
+
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+
+}
+
+
+/* ============================================================
+   ENTER KEY
+============================================================ */
+
+document
+  .getElementById('searchInput')
+  .addEventListener(
+    'keydown',
+    function(event) {
+
+      if (
+        event.key === 'Enter'
+      ) {
+
+        searchData();
+
+      }
+
+    }
+  );
+
+
+/* ============================================================
+   INITIAL MODE
+============================================================ */
+
+setMode('player');
+
+</script>
+
+</body>
+</html>
