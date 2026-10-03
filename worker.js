@@ -351,88 +351,6 @@ function normalizeRole(role) {
 
 
 /* =========================================================
-   CLAN NORMALIZER
-========================================================= */
-
-function normalizeClan(
-  clan,
-  cwlRoster = null
-) {
-  const memberList =
-    Array.isArray(clan.memberList)
-      ? clan.memberList
-      : [];
-
-  const roster =
-    Array.isArray(cwlRoster)
-      ? cwlRoster
-      : [];
-
-  const effectiveRoster =
-    roster.length
-      ? roster
-      : memberList;
-
-  return {
-    tag: clan.tag,
-    name: clan.name,
-
-    clanLevel:
-      number(clan.clanLevel),
-
-    members:
-      number(clan.members),
-
-    memberList,
-
-    badgeUrls:
-      normalizeBadge(clan),
-
-    description:
-      clan.description || "",
-
-    clanPoints:
-      number(clan.clanPoints),
-
-    clanCapitalPoints:
-      number(clan.clanCapitalPoints),
-
-    warWins:
-      number(clan.warWins),
-
-    warWinStreak:
-      number(clan.warWinStreak),
-
-    warLosses:
-      number(clan.warLosses),
-
-    warLeague:
-      clan.warLeague || null,
-
-    type:
-      clan.type || null,
-
-    location:
-      clan.location || null,
-
-    chatLanguage:
-      clan.chatLanguage || null,
-
-    cwlRoster:
-      effectiveRoster,
-
-    cwlRosterSize:
-      effectiveRoster.length,
-
-    townHallBreakdown:
-      townHallBreakdown(
-        effectiveRoster
-      )
-  };
-}
-
-
-/* =========================================================
    CWL CLAN NORMALIZER
 ========================================================= */
 
@@ -444,10 +362,18 @@ function normalizeCWLClan(
     return null;
   }
 
+  /*
+   * Detail clan dari /clans/{tag} memakai memberList (array)
+   * dan members (angka). Data sisi war memakai members (array).
+   * Dua-duanya harus didukung.
+   */
+
   const members =
-    Array.isArray(clan.members)
-      ? clan.members
-      : [];
+    Array.isArray(clan.memberList)
+      ? clan.memberList
+      : Array.isArray(clan.members)
+        ? clan.members
+        : [];
 
   const roster =
     Array.isArray(cwlRoster)
@@ -470,7 +396,10 @@ function normalizeCWLClan(
       number(
         firstValue(
           clan.membersCount,
-          clan.members,
+          typeof clan.members ===
+            "number"
+            ? clan.members
+            : null,
           members.length
         )
       ),
@@ -518,6 +447,11 @@ function normalizeCWLClan(
       effectiveRoster.length,
 
     townHallBreakdown:
+      townHallBreakdown(
+        effectiveRoster
+      ),
+
+    cwlTownHallBreakdown:
       townHallBreakdown(
         effectiveRoster
       )
@@ -671,70 +605,6 @@ function normalizeClan(
   };
 }
 
-
-/* =========================================================
-   CWL SNAPSHOT
-========================================================= */
-
-function normalizeCWLClan(
-  clan,
-  roster = []
-) {
-  const currentMembers =
-    Array.isArray(clan.memberList)
-      ? clan.memberList
-      : [];
-
-  const cwlRoster =
-    Array.isArray(roster)
-      ? roster
-      : [];
-
-  return {
-    tag: clan.tag,
-
-    name: clan.name,
-
-    clanLevel:
-      number(clan.clanLevel),
-
-    members:
-      number(clan.members),
-
-    memberList:
-      currentMembers,
-
-    badgeUrls:
-      normalizeBadge(clan),
-
-    type:
-      clan.type || null,
-
-    location:
-      clan.location || null,
-
-    chatLanguage:
-      clan.chatLanguage || null,
-
-    description:
-      clan.description || "",
-
-    cwlRoster,
-
-    cwlRosterSize:
-      cwlRoster.length,
-
-    cwlTownHallBreakdown:
-      townHallBreakdown(
-        cwlRoster
-      ),
-
-    townHallBreakdown:
-      townHallBreakdown(
-        cwlRoster
-      )
-  };
-}
 
 
 /* =========================================================
@@ -1053,10 +923,21 @@ async function getLeagueWar(
         env
       );
 
-    return normalizeWar(
-      war,
-      wantedTag
-    );
+    const normalized =
+      normalizeWar(
+        war,
+        wantedTag
+      );
+
+    if (
+      normalized &&
+      !normalized.warTag
+    ) {
+      normalized.warTag =
+        cleanTag(warTag);
+    }
+
+    return normalized;
   } catch (error) {
     return {
       warTag:
@@ -1168,6 +1049,34 @@ async function kvPut(
   } catch {
     return false;
   }
+}
+
+
+/* =========================================================
+   CWL ROUND WAR TAGS
+   Satu ronde CWL berisi beberapa warTag (4 war untuk
+   8 clan). Ambil semuanya, bukan cuma yang pertama.
+========================================================= */
+
+function roundWarTagList(round) {
+  const raw = [];
+
+  if (Array.isArray(round?.warTags)) {
+    raw.push(...round.warTags);
+  }
+
+  if (round?.warTag) {
+    raw.push(round.warTag);
+  }
+
+  return [
+    ...new Set(
+      raw
+        .filter(Boolean)
+        .map(cleanTag)
+        .filter(isRealWarTag)
+    )
+  ];
 }
 
 
@@ -1408,20 +1317,9 @@ async function getCWL(
       const round
       of leagueGroup.rounds
     ) {
-      const warTag =
-        firstValue(
-          round.warTag,
-          round.warTags?.[0]
-        );
-
-      if (
-        warTag &&
-        isRealWarTag(warTag)
-      ) {
-        roundWarTags.push(
-          cleanTag(warTag)
-        );
-      }
+      roundWarTags.push(
+        ...roundWarTagList(round)
+      );
     }
   }
 
@@ -1504,24 +1402,28 @@ async function getCWL(
         round,
         index
       ) => {
-        const warTag =
-          firstValue(
-            round.warTag,
-            round.warTags?.[0]
-          );
+        /*
+         * Cari war di ronde ini yang melibatkan
+         * clan yang dicari (warMap hanya berisi
+         * war milik clan tersebut).
+         */
+
+        const tags =
+          roundWarTagList(round);
+
+        const foundTag =
+          tags.find(
+            t => warMap[t]
+          ) || null;
 
         const normalizedWarTag =
-          warTag
-            ? cleanTag(
-                warTag
-              )
-            : null;
+          foundTag ||
+          tags[0] ||
+          null;
 
         const war =
-          normalizedWarTag
-            ? warMap[
-                normalizedWarTag
-              ] || null
+          foundTag
+            ? warMap[foundTag]
             : null;
 
         rounds.push({
