@@ -3,10 +3,6 @@ const COC_API = "https://cocproxy.royaleapi.dev/v1";
 const ALLOWED_ORIGIN =
   "https://mujib-syarif.github.io";
 
-/* =========================================================
-   CORS
-========================================================= */
-
 function corsHeaders(request) {
   const origin =
     request.headers.get("Origin") || "";
@@ -28,11 +24,6 @@ function corsHeaders(request) {
   };
 }
 
-
-/* =========================================================
-   RESPONSE
-========================================================= */
-
 function json(data, request, status = 200) {
   return new Response(
     JSON.stringify(data),
@@ -49,7 +40,6 @@ function json(data, request, status = 200) {
   );
 }
 
-
 function errorResponse(
   request,
   message,
@@ -65,11 +55,6 @@ function errorResponse(
   );
 }
 
-
-/* =========================================================
-   HELPERS
-========================================================= */
-
 function firstValue(...values) {
   for (const value of values) {
     if (
@@ -84,7 +69,6 @@ function firstValue(...values) {
   return null;
 }
 
-
 function number(value) {
   const n = Number(value);
 
@@ -92,7 +76,6 @@ function number(value) {
     ? n
     : 0;
 }
-
 
 function cleanTag(value) {
   return String(value || "")
@@ -102,13 +85,11 @@ function cleanTag(value) {
     .replace(/^#?/, "#");
 }
 
-
 function encodedTag(tag) {
   return encodeURIComponent(
     cleanTag(tag)
   );
 }
-
 
 function isRealWarTag(tag) {
   if (!tag) return false;
@@ -120,14 +101,9 @@ function isRealWarTag(tag) {
   );
 }
 
-
 function normalizeBadge(source) {
   if (!source) {
     return {};
-  }
-
-  if (source.badgeUrls) {
-    return source.badgeUrls;
   }
 
   if (source.badgeUrls) {
@@ -146,11 +122,6 @@ function normalizeBadge(source) {
 
   return {};
 }
-
-
-/* =========================================================
-   TOWN HALL
-========================================================= */
 
 function townHallBreakdown(
   members = []
@@ -177,11 +148,6 @@ function townHallBreakdown(
 
   return result;
 }
-
-
-/* =========================================================
-   PLAYER NORMALIZER
-========================================================= */
 
 function normalizePlayer(player) {
   if (!player) {
@@ -279,6 +245,15 @@ function normalizePlayer(player) {
     roleName:
       normalizeRole(player.role),
 
+    league:
+      player.league || null,
+
+    leagueTier:
+      player.leagueTier || null,
+
+    builderBaseLeague:
+      player.builderBaseLeague || null,
+
     clan:
       player.clan
         ? {
@@ -309,11 +284,6 @@ function normalizePlayer(player) {
   };
 }
 
-
-/* =========================================================
-   ROLE
-========================================================= */
-
 function normalizeRole(role) {
   const value =
     String(role || "")
@@ -339,11 +309,6 @@ function normalizeRole(role) {
 
   return "Member";
 }
-
-
-/* =========================================================
-   CLAN NORMALIZER
-========================================================= */
 
 function normalizeClan(
   clan,
@@ -378,6 +343,15 @@ function normalizeClan(
 
     badgeUrls:
       normalizeBadge(clan),
+
+    type:
+      clan.type || null,
+
+    location:
+      clan.location || null,
+
+    chatLanguage:
+      clan.chatLanguage || null,
 
     description:
       clan.description || "",
@@ -418,11 +392,6 @@ function normalizeClan(
   };
 }
 
-
-/* =========================================================
-   CWL SNAPSHOT
-========================================================= */
-
 function normalizeCWLClan(
   clan,
   roster = []
@@ -454,6 +423,15 @@ function normalizeCWLClan(
     badgeUrls:
       normalizeBadge(clan),
 
+    type:
+      clan.type || null,
+
+    location:
+      clan.location || null,
+
+    chatLanguage:
+      clan.chatLanguage || null,
+
     cwlRoster,
 
     cwlRosterSize:
@@ -470,11 +448,6 @@ function normalizeCWLClan(
       )
   };
 }
-
-
-/* =========================================================
-   WAR SIDE
-========================================================= */
 
 function normalizeWarSide(
   side
@@ -524,13 +497,9 @@ function normalizeWarSide(
   };
 }
 
-
-/* =========================================================
-   WAR
-========================================================= */
-
 function normalizeWar(
-  war
+  war,
+  wantedTag = null
 ) {
   if (!war) {
     return null;
@@ -543,15 +512,31 @@ function normalizeWar(
     war.clan &&
     war.opponent
   ) {
-    target =
+    const clanSide =
       normalizeWarSide(
         war.clan
       );
 
-    enemy =
+    const opponentSide =
       normalizeWarSide(
         war.opponent
       );
+
+    const wanted =
+      wantedTag
+        ? cleanTag(wantedTag)
+        : null;
+
+    if (
+      wanted &&
+      cleanTag(war.opponent.tag) === wanted
+    ) {
+      target = opponentSide;
+      enemy = clanSide;
+    } else {
+      target = clanSide;
+      enemy = opponentSide;
+    }
   }
 
   return {
@@ -586,11 +571,6 @@ function normalizeWar(
       war.warTag || null
   };
 }
-
-
-/* =========================================================
-   API FETCH
-========================================================= */
 
 async function cocFetch(
   path,
@@ -644,11 +624,6 @@ async function cocFetch(
   return data;
 }
 
-
-/* =========================================================
-   PLAYER
-========================================================= */
-
 async function getPlayer(
   tag,
   env
@@ -664,11 +639,6 @@ async function getPlayer(
   );
 }
 
-
-/* =========================================================
-   CLAN
-========================================================= */
-
 async function getClan(
   tag,
   env
@@ -682,11 +652,6 @@ async function getClan(
   return clan;
 }
 
-
-/* =========================================================
-   CWL LEAGUE GROUP
-========================================================= */
-
 async function getLeagueGroup(
   tag,
   env
@@ -697,18 +662,14 @@ async function getLeagueGroup(
   );
 }
 
-
-/* =========================================================
-   CWL WAR
-========================================================= */
-
 async function getLeagueWar(
-  tag,
-  env
+  warTag,
+  env,
+  wantedTag = null
 ) {
   if (
-    !tag ||
-    !isRealWarTag(tag)
+    !warTag ||
+    !isRealWarTag(warTag)
   ) {
     return null;
   }
@@ -716,23 +677,19 @@ async function getLeagueWar(
   try {
     const war =
       await cocFetch(
-        `/clans/${encodedTag(tag)}/currentwar`,
+        `/clanwarleagues/wars/${encodedTag(warTag)}`,
         env
       );
 
     return normalizeWar(
-      war
+      war,
+      wantedTag
     );
 
   } catch {
     return null;
   }
 }
-
-
-/* =========================================================
-   BUILD CWL ROSTER FROM WAR
-========================================================= */
 
 function buildCwlRosterSnapshots(
   rounds,
@@ -818,11 +775,6 @@ function buildCwlRosterSnapshots(
   return snapshots;
 }
 
-
-/* =========================================================
-   KV CWL SNAPSHOT
-========================================================= */
-
 async function getStoredCwlRoster(
   env,
   clanTag,
@@ -856,7 +808,6 @@ async function getStoredCwlRoster(
     return null;
   }
 }
-
 
 async function saveCwlRoster(
   env,
@@ -926,11 +877,6 @@ async function saveCwlRoster(
   );
 }
 
-
-/* =========================================================
-   CWL
-========================================================= */
-
 async function getCWL(
   clanTag,
   env
@@ -953,12 +899,6 @@ async function getCWL(
         .slice(0, 7)
     );
 
-  /*
-   * Ambil clan sekarang.
-   * Ini digunakan untuk snapshot roster
-   * pertama kali CWL ditemukan.
-   */
-
   const currentClanRaw =
     await getClan(
       wantedTag,
@@ -972,27 +912,12 @@ async function getCWL(
       ? currentClanRaw.memberList
       : [];
 
-
-  /*
-   * Ambil snapshot KV.
-   */
-
   let storedRoster =
     await getStoredCwlRoster(
       env,
       wantedTag,
       season
     );
-
-
-  /*
-   * Kalau belum ada snapshot:
-   *
-   * Simpan memberList clan saat pertama
-   * kali endpoint CWL dipanggil.
-   *
-   * Setelah tersimpan TIDAK overwrite.
-   */
 
   if (
     !storedRoster &&
@@ -1048,24 +973,12 @@ async function getCWL(
       );
   }
 
-
-  /*
-   * League group rounds.
-   *
-   * CWL normalnya 7 rounds.
-   */
-
   const rawRounds =
     Array.isArray(
       leagueGroup.rounds
     )
       ? leagueGroup.rounds
       : [];
-
-
-  /*
-   * Selalu expose 7 round.
-   */
 
   const rounds =
     Array.from(
@@ -1091,11 +1004,6 @@ async function getCWL(
       }
     );
 
-
-  /*
-   * Ambil semua war tag unik.
-   */
-
   const uniqueWarTags =
     Array.from(
       new Set(
@@ -1110,25 +1018,21 @@ async function getCWL(
       )
     );
 
-
-  /*
-   * Fetch semua war paralel.
-   */
-
   const fetchedWars =
     await Promise.all(
       uniqueWarTags.map(
         async warTag => ({
           warTag,
+
           war:
             await getLeagueWar(
               warTag,
-              env
+              env,
+              wantedTag
             )
         })
       )
     );
-
 
   const warMap = {};
 
@@ -1136,14 +1040,9 @@ async function getCWL(
     const item of fetchedWars
   ) {
     warMap[
-      item.warTag
+      cleanTag(item.warTag)
     ] = item.war;
   }
-
-
-  /*
-   * Isi rounds.
-   */
 
   for (
     const round of rounds
@@ -1159,52 +1058,26 @@ async function getCWL(
         .filter(Boolean);
   }
 
-
-  /*
-   * Fallback roster dari war.
-   */
-
   const snapshots =
     buildCwlRosterSnapshots(
       rounds,
       warMap
     );
 
-
   const warRoster =
     snapshots[wantedTag] ||
     [];
-
-
-  /*
-   * Prioritas:
-   *
-   * 1. KV snapshot
-   * 2. roster dari war
-   * 3. memberList sekarang
-   */
 
   const cwlRoster =
     storedRoster ||
     warRoster ||
     currentMembers;
 
-
-  /*
-   * Current clan response.
-   */
-
   const currentClan =
     normalizeCWLClan(
       currentClanRaw,
       cwlRoster
     );
-
-
-  /*
-   * Cari semua clan yang muncul
-   * di CWL.
-   */
 
   const clanMap = {};
 
@@ -1242,16 +1115,29 @@ async function getCWL(
           clanMap[tag] =
             {
               tag,
+
               name:
                 side.name || "-",
+
               clanLevel:
                 number(
                   side.clanLevel
                 ),
+
               badgeUrls:
                 normalizeBadge(
                   side
                 ),
+
+              type:
+                side.type || null,
+
+              location:
+                side.location || null,
+
+              chatLanguage:
+                side.chatLanguage || null,
+
               cwlRoster:
                 snapshots[tag] ||
                 []
@@ -1260,12 +1146,6 @@ async function getCWL(
       }
     }
   }
-
-
-  /*
-   * Pastikan clan yang dicari
-   * selalu masuk.
-   */
 
   clanMap[wantedTag] =
     {
@@ -1287,6 +1167,15 @@ async function getCWL(
       badgeUrls:
         currentClan.badgeUrls,
 
+      type:
+        currentClan.type,
+
+      location:
+        currentClan.location,
+
+      chatLanguage:
+        currentClan.chatLanguage,
+
       cwlRoster,
 
       cwlRosterSize:
@@ -1303,7 +1192,6 @@ async function getCWL(
         )
     };
 
-
   const clans =
     Object.values(
       clanMap
@@ -1315,20 +1203,10 @@ async function getCWL(
         )
     );
 
-
-  /*
-   * Breakdown HANYA selected clan.
-   */
-
   const selectedBreakdown =
     townHallBreakdown(
       cwlRoster
     );
-
-
-  /*
-   * State.
-   */
 
   const completedRounds =
     rounds.filter(
@@ -1336,15 +1214,10 @@ async function getCWL(
         round.wars.some(
           war =>
             war &&
-            (
-              war.state ===
-                "warEnded" ||
-              war.state ===
-                "warEnded"
-            )
+            war.state ===
+              "warEnded"
         )
     ).length;
-
 
   const preparationRounds =
     rounds.filter(
@@ -1357,7 +1230,6 @@ async function getCWL(
         )
     ).length;
 
-
   const activeRounds =
     rounds.filter(
       round =>
@@ -1368,7 +1240,6 @@ async function getCWL(
               "inWar"
         )
     ).length;
-
 
   return {
     ok: true,
@@ -1418,16 +1289,8 @@ async function getCWL(
         selectedBreakdown,
 
       badgeUrls:
-        currentClan.badgeUrls,
-
-      warLeague:
-        leagueGroup.warLeague ||
-        null
+        currentClan.badgeUrls
     },
-
-    /*
-     * Frontend-friendly root fields.
-     */
 
     tag:
       wantedTag,
@@ -1456,11 +1319,6 @@ async function getCWL(
   };
 }
 
-
-/* =========================================================
-   ROUTER
-========================================================= */
-
 async function router(
   request,
   env
@@ -1485,7 +1343,6 @@ async function router(
     );
   }
 
-
   if (
     pathname ===
     "/" ||
@@ -1497,13 +1354,14 @@ async function router(
         ok: true,
         service:
           "Sarjana Checker API",
+
         version:
           "2026.10"
       },
+
       request
     );
   }
-
 
   if (
     pathname ===
@@ -1533,6 +1391,7 @@ async function router(
           ok: true,
           player
         },
+
         request
       );
 
@@ -1541,11 +1400,11 @@ async function router(
         request,
         error.message ||
           "Gagal mengambil data player.",
+
         502
       );
     }
   }
-
 
   if (
     pathname ===
@@ -1573,11 +1432,13 @@ async function router(
       return json(
         {
           ok: true,
+
           clan:
             normalizeClan(
               clan
             )
         },
+
         request
       );
 
@@ -1586,11 +1447,11 @@ async function router(
         request,
         error.message ||
           "Gagal mengambil data clan.",
+
         502
       );
     }
   }
-
 
   if (
     pathname ===
@@ -1614,6 +1475,7 @@ async function router(
           tag,
           env
         ),
+
         request
       );
 
@@ -1622,11 +1484,11 @@ async function router(
         request,
         error.message ||
           "Gagal mengambil data CWL.",
+
         502
       );
     }
   }
-
 
   return errorResponse(
     request,
@@ -1634,11 +1496,6 @@ async function router(
     404
   );
 }
-
-
-/* =========================================================
-   ENTRY
-========================================================= */
 
 export default {
   async fetch(
