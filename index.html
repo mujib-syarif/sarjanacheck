@@ -359,7 +359,7 @@
 
     .hero-grid {
       display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-columns:repeat(auto-fill,minmax(96px,1fr));
       gap:8px;
     }
 
@@ -627,25 +627,54 @@
 
     .member {
       width:100%;
-      display:flex;
+      display:grid;
+      grid-template-columns:24px 36px minmax(0,1fr) auto;
       align-items:center;
-      gap:10px;
+      gap:9px;
       text-align:left;
       color:var(--text);
       background:#f8fbff;
       border:1px solid var(--line);
       border-radius:11px;
-      padding:10px;
+      padding:8px 10px;
+      transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
     }
 
     .member:hover {
       border-color:var(--accent);
+      box-shadow:0 4px 12px rgba(18,59,131,.12);
+    }
+
+    .member:active {
+      transform:scale(.99);
     }
 
     .member-rank {
       color:var(--accent2);
       font-weight:800;
-      width:24px;
+      font-size:12px;
+    }
+
+    .member-league {
+      width:36px;
+      height:36px;
+      object-fit:contain;
+      filter:drop-shadow(0 2px 3px rgba(18,59,131,.18));
+    }
+
+    .member-league.empty {
+      display:block;
+      border-radius:50%;
+      background:#dde8f6;
+    }
+
+    .role-chip {
+      display:inline-block;
+      padding:0 7px;
+      border-radius:99px;
+      font-size:10px;
+      font-weight:800;
+      line-height:17px;
     }
 
     .member-info {
@@ -669,18 +698,37 @@
       color:var(--accent2);
       font-weight:800;
       font-size:12px;
+      text-align:right;
+      white-space:nowrap;
     }
 
+    .member-xp {
+      display:block;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:700;
+    }
+
+    /* Warna role: merah, ungu, hijau, kuning */
+
     .role-leader {
-      color:#b47a00;
+      color:#bb1d36;
+      background:#fde7ea;
     }
 
     .role-coleader {
-      color:var(--accent2);
+      color:#7a31b5;
+      background:#f1e6fb;
     }
 
     .role-elder {
-      color:var(--green);
+      color:#0b7a42;
+      background:#dcf4e6;
+    }
+
+    .role-member {
+      color:#8a6200;
+      background:#fff0b8;
     }
 
     /* =========================
@@ -893,6 +941,117 @@
       text-align:right;
     }
 
+    .war-side .clan-badge {
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .war-side.right .clan-badge {
+      margin-left:auto;
+    }
+
+    .war-attacks {
+      color:var(--muted);
+      font-size:10px;
+      margin-top:2px;
+    }
+
+    .war-foot {
+      margin-top:10px;
+      padding-top:8px;
+      border-top:1px dashed var(--line);
+      color:var(--muted);
+      font-size:10px;
+      text-align:center;
+    }
+
+    .round-chip {
+      padding:2px 10px;
+      border-radius:99px;
+      font-size:10px;
+      font-weight:800;
+    }
+
+    .round-chip.win {
+      color:#0b7a42;
+      background:#dcf4e6;
+    }
+
+    .round-chip.lose {
+      color:#bb1d36;
+      background:#fde7ea;
+    }
+
+    .round-chip.draw {
+      color:#52677f;
+      background:#e3ebf5;
+    }
+
+    .round-chip.live {
+      color:#0d5dc0;
+      background:#dbeafd;
+    }
+
+    .round-chip.prep {
+      color:#8a6200;
+      background:#fff0b8;
+    }
+
+    /* Daftar peserta CWL */
+
+    .roster-details {
+      margin-top:12px;
+      border-top:1px dashed var(--line);
+      padding-top:10px;
+    }
+
+    .roster-details summary {
+      cursor:pointer;
+      color:var(--accent2);
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .roster-list {
+      display:grid;
+      gap:5px;
+      margin-top:9px;
+    }
+
+    .roster-row {
+      display:grid;
+      grid-template-columns:24px minmax(0,1fr) auto;
+      align-items:center;
+      gap:8px;
+      width:100%;
+      padding:7px 9px;
+      text-align:left;
+      color:var(--text);
+      background:#f8fbff;
+      border:1px solid var(--line);
+      border-radius:9px;
+    }
+
+    .roster-no {
+      color:var(--muted);
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .roster-name {
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-weight:700;
+    }
+
+    .roster-name small {
+      display:block;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:600;
+    }
+
     .war-name {
       font-weight:800;
       overflow-wrap:anywhere;
@@ -1005,6 +1164,160 @@
 
     .basenama-link {
       color:#1683d8 !important;
+    }
+
+    /* =========================
+       HERO KOMPAK (hemat scroll)
+    ========================= */
+
+    .hero-card {
+      flex-direction:column;
+      justify-content:flex-start;
+      gap:3px;
+      padding:9px 5px 9px;
+      text-align:center;
+    }
+
+    .hero-img {
+      width:46px;
+      height:46px;
+    }
+
+    .hero-card .asset-placeholder {
+      width:46px;
+      min-height:46px;
+    }
+
+    .hero-info {
+      width:100%;
+      flex:0 0 auto;
+    }
+
+    .hero-card .item-name {
+      font-size:10.5px;
+      line-height:1.2;
+      overflow-wrap:normal;
+      word-break:normal;
+    }
+
+    .hero-level {
+      margin-top:2px;
+      font-size:11px;
+    }
+
+    .max-tag {
+      display:inline-block;
+      margin-left:3px;
+      padding:0 4px;
+      border-radius:5px;
+      background:#c69a3a;
+      color:#fff;
+      font-size:8px;
+      line-height:13px;
+      vertical-align:1px;
+    }
+
+    .hero-card.maxed {
+      border-color:#d8b25a;
+      background:linear-gradient(160deg,#fffaf0,#f8edd2);
+    }
+
+    .hero-card.maxed .hero-progress-fill {
+      background:linear-gradient(90deg,#c69a3a,#e6c26a);
+    }
+
+    /* =========================
+       POLISH TAMPILAN
+    ========================= */
+
+    .clan-header {
+      position:relative;
+      overflow:hidden;
+    }
+
+    .clan-header::before {
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      top:0;
+      height:4px;
+      background:linear-gradient(
+        90deg,
+        #c69a3a,
+        #123b83 50%,
+        #0d5dc0
+      );
+    }
+
+    .section-title {
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .section-title::before {
+      content:"";
+      width:4px;
+      height:15px;
+      border-radius:3px;
+      background:linear-gradient(180deg,#c69a3a,#e2bd62);
+    }
+
+    .meta {
+      border:1px solid #d3e0f1;
+      background:linear-gradient(135deg,#f3f8ff,#e3edfb);
+    }
+
+    .switch button.active,
+    .search-btn {
+      background:linear-gradient(135deg,#123b83,#0d5dc0);
+      box-shadow:0 4px 12px rgba(18,59,131,.25);
+    }
+
+    .search-btn:active,
+    .switch button:active {
+      transform:scale(.97);
+    }
+
+    .equipment-card.epic {
+      border-color:#d9bdee;
+      background:linear-gradient(160deg,#fcf7ff,#f3e8fb);
+    }
+
+    .equipment-card.common {
+      border-color:#bcd3ea;
+    }
+
+    .equipment-card.maxed {
+      box-shadow:inset 0 0 0 1px #d8b25a;
+    }
+
+    .th-bar-fill {
+      border-radius:8px;
+    }
+
+    @keyframes rise {
+      from {
+        opacity:0;
+        transform:translateY(8px);
+      }
+      to {
+        opacity:1;
+        transform:none;
+      }
+    }
+
+    .section,
+    .clan-header {
+      animation:rise .35s ease both;
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      .section,
+      .clan-header {
+        animation:none;
+      }
     }
 
     /* =========================
@@ -1157,10 +1470,6 @@
 
       .app {
         padding-top:30px;
-      }
-
-      .hero-grid {
-        grid-template-columns:repeat(4,1fr);
       }
 
       .equipment-grid {
@@ -1346,7 +1655,7 @@ let mode = 'player';
 let currentClan = null;
 let currentCwl = null;
 let requestedCwlTag = '';
-let clanSort = 'role';
+let clanSort = 'rank';
 
 
 /* ============================================================
@@ -1542,7 +1851,29 @@ const EQUIPMENT_ALIASES = {
     'reverse card',
 
   'revengecard':
-    'reverse card'
+    'reverse card',
+
+  'revenge card':
+    'reverse card',
+
+  /*
+   * Nama dari API CoC yang beda dengan nama file asset.
+   */
+
+  'hog rider puppet':
+    'hog rider doll',
+
+  'henchmen puppet':
+    'henchman',
+
+  'metal pants':
+    'iron pants',
+
+  'stun blaster':
+    'stun blast',
+
+  'noble iron':
+    'power pump'
 
 };
 
@@ -1946,7 +2277,58 @@ function resolveAsset(
       ? assetKey(aliases[key])
       : key;
 
-  return index[alias] || null;
+  if (index[alias]) {
+    return index[alias];
+  }
+
+  /*
+   * Cadangan: cocokkan nama yang mirip
+   * (puppet/doll, henchmen/henchman, blaster/blast, dst).
+   */
+
+  const wanted =
+    assetStem(alias);
+
+  const match =
+    Object.keys(index).find(
+      function(candidate) {
+
+        return (
+          assetStem(candidate) === wanted
+        );
+
+      }
+    );
+
+  return match
+    ? index[match]
+    : null;
+
+}
+
+
+function assetStem(value) {
+
+  const synonyms = {
+    puppet:'doll',
+    henchmen:'henchman',
+    blaster:'blast',
+    metal:'iron',
+    boot:'boots'
+  };
+
+  return assetKey(value)
+    .split(' ')
+    .filter(Boolean)
+    .map(
+      function(word) {
+
+        return synonyms[word] || word;
+
+      }
+    )
+    .sort()
+    .join(' ');
 
 }
 
@@ -2849,9 +3231,13 @@ function renderPlayer(player) {
               max
             );
 
+          const maxed =
+            max > 0 &&
+            level >= max;
+
 
           return `
-            <div class="hero-card">
+            <div class="hero-card${maxed ? ' maxed' : ''}">
 
               ${assetImage(
                 path,
@@ -2867,6 +3253,7 @@ function renderPlayer(player) {
 
                 <div class="hero-level">
                   ${escapeHTML(level)}/${escapeHTML(max || '-')}
+                  ${maxed ? '<span class="max-tag">MAX</span>' : ''}
                 </div>
 
                 <div class="hero-progress">
@@ -2986,9 +3373,13 @@ function renderPlayer(player) {
                 ? 'gear-epic'
                 : 'gear-common';
 
+            const gearMaxed =
+              max > 0 &&
+              level >= max;
+
 
             return `
-              <div class="equipment-card">
+              <div class="equipment-card ${isEpic ? 'epic' : 'common'}${gearMaxed ? ' maxed' : ''}">
 
                 ${assetImage(
                   path,
@@ -3403,6 +3794,46 @@ function normalizeMembers(source) {
               )
             ),
 
+          expLevel:
+            number(
+              firstValue(
+                member.expLevel,
+                member.xp,
+                member.experienceLevel
+              )
+            ),
+
+          leagueName:
+            firstValue(
+              member.leagueTier &&
+              member.leagueTier.name,
+              member.rankedLeague &&
+              member.rankedLeague.name,
+              member.league &&
+              member.league.name,
+              ''
+            ),
+
+          leagueIcon:
+            firstValue(
+              member.leagueTier &&
+              member.leagueTier.iconUrls &&
+              member.leagueTier.iconUrls.small,
+              member.leagueTier &&
+              member.leagueTier.iconUrls &&
+              member.leagueTier.iconUrls.medium,
+              member.rankedLeague &&
+              member.rankedLeague.iconUrls &&
+              member.rankedLeague.iconUrls.small,
+              member.league &&
+              member.league.iconUrls &&
+              member.league.iconUrls.small,
+              member.league &&
+              member.league.iconUrls &&
+              member.league.iconUrls.medium,
+              ''
+            ),
+
           role:
             firstValue(
               member.role,
@@ -3714,6 +4145,26 @@ function sortClanMembers(members) {
 
         }
 
+        if (clanSort === 'xp-desc') {
+
+          result =
+            number(b.expLevel) -
+            number(a.expLevel) ||
+            number(a.clanRank) -
+            number(b.clanRank);
+
+        }
+
+        if (clanSort === 'xp-asc') {
+
+          result =
+            number(a.expLevel) -
+            number(b.expLevel) ||
+            number(a.clanRank) -
+            number(b.clanRank);
+
+        }
+
         return (
           result ||
           compareText(
@@ -3818,7 +4269,21 @@ function renderClan(clan) {
                     ? 'role-coleader'
                     : role === 'Elder'
                       ? 'role-elder'
-                      : '';
+                      : 'role-member';
+
+              const leagueHTML =
+                member.leagueIcon
+                  ? `
+                    <img
+                      class="member-league"
+                      src="${escapeHTML(member.leagueIcon)}"
+                      alt="${escapeHTML(member.leagueName)}"
+                      title="${escapeHTML(member.leagueName)}"
+                      loading="lazy"
+                      onerror="this.style.visibility='hidden'"
+                    >
+                  `
+                  : '<span class="member-league empty"></span>';
 
 
               return `
@@ -3832,6 +4297,8 @@ function renderClan(clan) {
                     ${String(index + 1).padStart(2,'0')}
                   </div>
 
+                  ${leagueHTML}
+
                   <div class="member-info">
 
                     <div class="member-name">
@@ -3841,7 +4308,7 @@ function renderClan(clan) {
                     <div class="member-detail">
                       ${formatNumber(member.trophies)}
                       trophies ·
-                      <span class="${roleClass}">
+                      <span class="role-chip ${roleClass}">
                         ${role}
                       </span>
                     </div>
@@ -3849,9 +4316,14 @@ function renderClan(clan) {
                   </div>
 
                   <div class="member-th">
-                    TH${escapeHTML(
+                    TH ${escapeHTML(
                       member.townHallLevel || '-'
                     )}
+                    <span class="member-xp">
+                      XP ${escapeHTML(
+                        member.expLevel || '-'
+                      )}
+                    </span>
                   </div>
 
                 </button>
@@ -3983,10 +4455,31 @@ function renderClan(clan) {
           >
 
             <option
+              value="rank"
+              ${clanSort === 'rank' ? 'selected' : ''}
+            >
+              Rank (default)
+            </option>
+
+            <option
               value="role"
               ${clanSort === 'role' ? 'selected' : ''}
             >
               Role → Rank
+            </option>
+
+            <option
+              value="xp-desc"
+              ${clanSort === 'xp-desc' ? 'selected' : ''}
+            >
+              XP tinggi → rendah
+            </option>
+
+            <option
+              value="xp-asc"
+              ${clanSort === 'xp-asc' ? 'selected' : ''}
+            >
+              XP rendah → tinggi
             </option>
 
             <option
@@ -4015,13 +4508,6 @@ function renderClan(clan) {
               ${clanSort === 'trophy-asc' ? 'selected' : ''}
             >
               Trophy rendah → tinggi
-            </option>
-
-            <option
-              value="rank"
-              ${clanSort === 'rank' ? 'selected' : ''}
-            >
-              Rank
             </option>
 
           </select>
@@ -4508,6 +4994,22 @@ function warForRound(
   tag
 ) {
 
+  /*
+   * Worker mengirim war ronde ini di round.war.
+   */
+
+  if (
+    warIncludesClan(
+      round.war,
+      tag
+    )
+  ) {
+
+    return round.war;
+
+  }
+
+
   if (
     warIncludesClan(
       round.targetWar,
@@ -4661,6 +5163,118 @@ function scoreFor(side) {
    RENDER CWL ROUND
 ============================================================ */
 
+function cwlStateLabel(state) {
+
+  const key =
+    String(state || '').toLowerCase();
+
+  if (key === 'preparation') {
+    return 'Persiapan';
+  }
+
+  if (key === 'inwar') {
+    return 'Sedang perang';
+  }
+
+  if (key === 'warended') {
+    return 'Selesai';
+  }
+
+  return state
+    ? String(state)
+    : 'War';
+
+}
+
+
+function warAttacksUsed(side) {
+
+  return asArray(side.members).reduce(
+    function(total,member) {
+
+      return total + asArray(
+        member && member.attacks
+      ).length;
+
+    },
+    0
+  );
+
+}
+
+
+function warResult(mine,enemy) {
+
+  const myStars =
+    number(mine.stars);
+
+  const enemyStars =
+    number(enemy.stars);
+
+  if (myStars !== enemyStars) {
+
+    return myStars > enemyStars
+      ? 'win'
+      : 'lose';
+
+  }
+
+  const myDestruction =
+    number(mine.destructionPercentage);
+
+  const enemyDestruction =
+    number(enemy.destructionPercentage);
+
+  if (myDestruction !== enemyDestruction) {
+
+    return myDestruction > enemyDestruction
+      ? 'win'
+      : 'lose';
+
+  }
+
+  return 'draw';
+
+}
+
+
+function warSideHTML(
+  side,
+  total,
+  alignRight
+) {
+
+  const name =
+    firstValue(
+      side.name,
+      side.clanName,
+      '-'
+    );
+
+  return `
+    <div class="war-side${alignRight ? ' right' : ''}">
+
+      ${badgeImage(side,'small')}
+
+      <div class="war-name">
+        ${escapeHTML(name)}
+      </div>
+
+      <div class="war-score">
+        ${scoreFor(side)}
+      </div>
+
+      <div class="war-attacks">
+        Serangan
+        ${warAttacksUsed(side)}${total ? '/' + total : ''}
+      </div>
+
+    </div>
+  `;
+
+}
+
+
 function renderCwlRound(
   round,
   index,
@@ -4686,6 +5300,11 @@ function renderCwlRound(
 
   if (!war) {
 
+    const emptyText =
+      round.warTag
+        ? 'Data war belum tersedia'
+        : 'Belum dimulai';
+
     return `
       <div class="round">
 
@@ -4696,7 +5315,7 @@ function renderCwlRound(
           </div>
 
           <div class="round-status">
-            Belum tersedia untuk clan ini
+            ${emptyText}
           </div>
 
         </div>
@@ -4737,6 +5356,48 @@ function renderCwlRound(
   }
 
 
+  const state =
+    String(
+      firstValue(
+        war.state,
+        war.status,
+        ''
+      )
+    ).toLowerCase();
+
+  const ended =
+    state === 'warended';
+
+  let chipClass = 'live';
+  let chipText = cwlStateLabel(state);
+
+  if (state === 'preparation') {
+    chipClass = 'prep';
+  }
+
+  if (ended) {
+
+    const result =
+      warResult(
+        sides.mine,
+        sides.enemy
+      );
+
+    chipClass = result;
+
+    chipText =
+      result === 'win'
+        ? 'Menang'
+        : result === 'lose'
+          ? 'Kalah'
+          : 'Seri';
+
+  }
+
+  const total =
+    number(war.teamSize);
+
+
   return `
 
     <div class="round">
@@ -4747,14 +5408,8 @@ function renderCwlRound(
           Round ${numberRound}
         </div>
 
-        <div class="round-status">
-          ${escapeHTML(
-            firstValue(
-              war.state,
-              war.status,
-              'War'
-            )
-          )}
+        <div class="round-chip ${chipClass}">
+          ${chipText}
         </div>
 
       </div>
@@ -4762,52 +5417,27 @@ function renderCwlRound(
 
       <div class="war">
 
-        <div class="war-side">
-
-          <div class="war-name">
-            ${escapeHTML(
-              firstValue(
-                sides.mine.name,
-                sides.mine.clanName,
-                '-'
-              )
-            )}
-          </div>
-
-          <div class="war-score">
-            ${scoreFor(
-              sides.mine
-            )}
-          </div>
-
-        </div>
-
+        ${warSideHTML(
+          sides.mine,
+          total,
+          false
+        )}
 
         <div class="vs">
           VS
         </div>
 
+        ${warSideHTML(
+          sides.enemy,
+          total,
+          true
+        )}
 
-        <div class="war-side right">
+      </div>
 
-          <div class="war-name">
-            ${escapeHTML(
-              firstValue(
-                sides.enemy.name,
-                sides.enemy.clanName,
-                '-'
-              )
-            )}
-          </div>
 
-          <div class="war-score">
-            ${scoreFor(
-              sides.enemy
-            )}
-          </div>
-
-        </div>
-
+      <div class="war-foot">
+        ${total ? total + ' vs ' + total + ' pemain' : ''}
       </div>
 
     </div>
@@ -5325,234 +5955,12 @@ function renderCwl(data) {
       `;
 
 
-  const clanName =
-    firstValue(
-      displayedClan &&
-      displayedClan.name,
-
-      displayedClan &&
-      displayedClan.clanName,
-
-      'CWL'
-    );
-
-
-  const clanLink =
-    selectedTag
-
-      ? `
-        <button
-          type="button"
-          class="cwl-clan-link"
-          onclick="openClan('${escapeHTML(selectedTag)}')"
-        >
-          ${escapeHTML(clanName)}
-        </button>
-      `
-
-      : `
-        <div class="clan-name">
-          ${escapeHTML(clanName)}
-        </div>
-      `;
-
-
-  const roundsHTML =
-    data.rounds
-      .map(
-        function(round,index) {
-
-          return renderCwlRound(
-            round,
-            index + 1,
-            selectedTag
-          );
-
-        }
-      )
-      .join('');
-
-
-  const cwlClans =
-    cwlClansFromRounds(
-      data
-    );
-
-  const clanTableHTML =
-    renderClanTownHallTable(
-      cwlClans,
-      selectedTag
-    );
-
-
-  document.getElementById(
-    'cwlContent'
-  ).innerHTML = `
-
-    <div class="clan-header">
-
-      <div class="clan-name">
-        ${clanLink}
-      </div>
-
-      <div class="clan-tag">
-        ${escapeHTML(
-          selectedTag || '-'
-        )}
-      </div>
-
-
-      <div class="clan-meta">
-
-        <div class="meta">
-
-          CWL Rounds
-
-          <strong>
-            7
-          </strong>
-
-        </div>
-
-
-        <div class="meta">
-
-          Peserta CWL
-
-          <strong>
-            ${formatNumber(
-              rosterSize
-            )} Player
-          </strong>
-
-        </div>
-
-
-        <div class="meta">
-
-          Season
-
-          <strong>
-            ${escapeHTML(
-              firstValue(
-                data.season,
-                '-'
-              )
-            )}
-          </strong>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <section class="section">
-
-      <div class="section-head">
-
-        <div class="section-title">
-          Town Hall Breakdown
-        </div>
-
-        ${
-          selectedTag
-            ? `
-              <button
-                type="button"
-                class="cwl-clan-link"
-                onclick="openClan('${escapeHTML(selectedTag)}')"
-              >
-                ${escapeHTML(clanName)}
-              </button>
-            `
-            : ''
-        }
-
-      </div>
-
-
-      <div class="th-breakdown">
-        ${breakdownHTML}
-      </div>
-
-    </section>
-
-
-    <section class="section">
-
-      <div class="section-head">
-
-        <div class="section-title">
-          Komposisi Town Hall
-        </div>
-
-      </div>
-
-      ${clanTableHTML}
-
-    </section>
-
-
-    <section class="section">
-
-      <div class="section-head">
-
-        <div class="section-title">
-          CWL Battle Rounds
-        </div>
-
-        <div class="section-value">
-          7 Rounds
-        </div>
-
-      </div>
-
-      ${roundsHTML}
-
-    </section>
-
-  `;
-
-
-  window.scrollTo({
-    top:0,
-    behavior:'smooth'
-  });
-
-}
-
-
-/* ============================================================
-   ENTER KEY
-============================================================ */
-
-document
-  .getElementById('searchInput')
-  .addEventListener(
-    'keydown',
-    function(event) {
-
-      if (
-        event.key === 'Enter'
-      ) {
-
-        searchData();
-
-      }
-
-    }
-  );
-
-
-/* ============================================================
-   INITIAL MODE
-============================================================ */
-
-setMode('player');
-
-</script>
-
-</body>
-</html>
+  /*
+   * Daftar pemain yang ikut CWL (roster CWL),
+   * diurutkan TH tertinggi dulu.
+   */
+
+  const rosterSorted =
+    roster
+      .slice()
+ 
