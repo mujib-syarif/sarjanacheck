@@ -836,14 +836,20 @@ async function cocFetch(
         .replace(/\s+/g, " ")
         .slice(0, 180);
 
-    throw new Error(
-      `CoC API HTTP ${response.status} (${new URL(COC_API + path).hostname})` +
-      (
-        preview
-          ? `: ${preview}`
-          : ""
-      )
-    );
+    if (response.status === 500 || response.status === 525) {
+  throw new Error(
+    "Server Clash of Clans sedang mengalami gangguan atau sedang down. Silakan coba lagi nanti 🙂"
+  );
+}
+
+throw new Error(
+  `CoC API HTTP ${response.status} (${new URL(COC_API + path).hostname})` +
+  (
+    preview
+      ? `: ${preview}`
+      : ""
+  )
+);
   }
 
   return data;
