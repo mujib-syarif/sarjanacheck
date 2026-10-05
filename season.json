@@ -1,0 +1,24 @@
+{
+  "id": "2026-10",
+  "name": "Cosmic Curse · Panic Portal",
+
+  "heroes": {
+    "barbarian king":  "assets/heroes/cosmiccurse_panicportal_bk_pose01_shadow.png",
+    "archer queen":    "assets/heroes/cosmiccurse_panicportal_aq_pose02_shadow.png",
+    "grand warden":    "assets/heroes/cosmiccurse_panicportal_gw_pose01_shadows.png",
+    "royal champion":  "assets/heroes/cosmiccurse_panicportal_rc_pose03_shadows.png",
+    "minion prince":   "assets/heroes/cosmiccurse_panicportal_mp_pose02_no_shadows.png",
+    "dragon duke":     "assets/heroes/cosmiccurse_panicportal_dd_pose01_no_shadows.png"
+  },
+
+  "background": "assets/bg/2026-10-panic-portal.jpg",
+
+  "theme": {
+    "accent":     "#8f1730",
+    "accent2":    "#c4283f",
+    "accent3":    "#e5566b",
+    "accentDark": "#4f0d1c",
+    "gold":       "#d9a441",
+    "gold2":      "#f0cd7a"
+  }
+}

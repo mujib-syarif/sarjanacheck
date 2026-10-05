@@ -352,38 +352,28 @@ function normalizeRole(role) {
 
 /* =========================================================
    CWL CLAN NORMALIZER
+   Roster = daftar pemain yang didaftarkan untuk CWL.
+   Member clan saat ini (memberList dari /clans) SENGAJA
+   tidak dipakai, karena bisa berubah selama CWL.
 ========================================================= */
 
 function normalizeCWLClan(
   clan,
-  cwlRoster = null
+  roster = []
 ) {
   if (!clan) {
     return null;
   }
 
-  /*
-   * Detail clan dari /clans/{tag} memakai memberList (array)
-   * dan members (angka). Data sisi war memakai members (array).
-   * Dua-duanya harus didukung.
-   */
-
-  const members =
-    Array.isArray(clan.memberList)
-      ? clan.memberList
-      : Array.isArray(clan.members)
-        ? clan.members
-        : [];
-
-  const roster =
-    Array.isArray(cwlRoster)
-      ? cwlRoster
+  const cwlRoster =
+    Array.isArray(roster)
+      ? roster
       : [];
 
-  const effectiveRoster =
-    roster.length
-      ? roster
-      : members;
+  const breakdown =
+    townHallBreakdown(
+      cwlRoster
+    );
 
   return {
     tag: clan.tag,
@@ -393,19 +383,10 @@ function normalizeCWLClan(
       number(clan.clanLevel),
 
     members:
-      number(
-        firstValue(
-          clan.membersCount,
-          typeof clan.members ===
-            "number"
-            ? clan.members
-            : null,
-          members.length
-        )
-      ),
+      cwlRoster.length,
 
     memberList:
-      effectiveRoster,
+      cwlRoster,
 
     badgeUrls:
       normalizeBadge(clan),
@@ -440,21 +421,16 @@ function normalizeCWLClan(
     chatLanguage:
       clan.chatLanguage || null,
 
-    cwlRoster:
-      effectiveRoster,
+    cwlRoster,
 
     cwlRosterSize:
-      effectiveRoster.length,
+      cwlRoster.length,
 
     townHallBreakdown:
-      townHallBreakdown(
-        effectiveRoster
-      ),
+      breakdown,
 
     cwlTownHallBreakdown:
-      townHallBreakdown(
-        effectiveRoster
-      )
+      breakdown
   };
 }
 
@@ -780,79 +756,177 @@ function normalizeWar(
 
 /* =========================================================
    API FETCH
+   - batas waktu per request
+   - coba ulang otomatis kalau proxy sedang gangguan
+   - "budget" membatasi jumlah request per kunjungan
+     (Cloudflare membatasi jumlah subrequest)
 ========================================================= */
+
+const TIMEOUT_MS = 7000;
+const MAX_ATTEMPTS = 3;
+
+const RETRY_STATUS =
+  new Set([429, 500, 502, 503, 504, 525]);
+
+const DOWN_STATUS =
+  new Set([500, 502, 503, 504, 525]);
+
+const DOWN_MESSAGE =
+  "Server Clash of Clans sedang mengalami gangguan atau sedang down. Silakan coba lagi nanti 🙂";
+
+
+function sleep(ms) {
+  return new Promise(
+    resolve => setTimeout(resolve, ms)
+  );
+}
+
+
+function apiError(message, status) {
+  const error = new Error(message);
+
+  error.status = status;
+
+  return error;
+}
+
 
 async function cocFetch(
   path,
-  env
+  env,
+  budget = null
 ) {
   const token =
     env.COC_API_TOKEN;
 
   if (!token) {
-    throw new Error(
-      "COC_API_TOKEN belum tersedia."
+    throw apiError(
+      "COC_API_TOKEN belum tersedia.",
+      0
     );
   }
 
-  const response =
-    await fetch(
-      COC_API + path,
-      {
-        headers: {
-          Authorization:
-            `Bearer ${token}`,
+  let lastError = null;
 
-          Accept:
-            "application/json"
-        }
+  for (
+    let attempt = 1;
+    attempt <= MAX_ATTEMPTS;
+    attempt++
+  ) {
+    if (budget) {
+      if (budget.left <= 0) {
+        throw lastError || apiError(
+          "Terlalu banyak permintaan ke server Clash of Clans. Coba lagi sebentar lagi 🙂",
+          0
+        );
       }
-    );
 
-  const text =
-    await response.text();
+      budget.left--;
+    }
 
-  let data;
+    const controller =
+      new AbortController();
 
-  try {
-    data =
-      JSON.parse(text);
-  } catch {
-    data = {
-      message: text
-    };
+    const timer =
+      setTimeout(
+        () => controller.abort(),
+        TIMEOUT_MS
+      );
+
+    let response;
+    let text;
+
+    try {
+      response =
+        await fetch(
+          COC_API + path,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              Accept:
+                "application/json"
+            },
+
+            signal:
+              controller.signal
+          }
+        );
+
+      text =
+        await response.text();
+    } catch {
+      lastError = apiError(
+        DOWN_MESSAGE,
+        0
+      );
+
+      if (attempt < MAX_ATTEMPTS) {
+        await sleep(350 * attempt);
+        continue;
+      }
+
+      throw lastError;
+    } finally {
+      clearTimeout(timer);
+    }
+
+    let data;
+
+    try {
+      data =
+        JSON.parse(text);
+    } catch {
+      data = {
+        message: text
+      };
+    }
+
+    if (response.ok) {
+      return data;
+    }
+
+    if (DOWN_STATUS.has(response.status)) {
+      lastError = apiError(
+        DOWN_MESSAGE,
+        response.status
+      );
+    } else {
+      const bodyMessage =
+        String(
+          (data && (data.reason || data.message)) ||
+          ""
+        ).trim();
+
+      const preview =
+        bodyMessage
+          .replace(/\s+/g, " ")
+          .slice(0, 180);
+
+      lastError = apiError(
+        `CoC API HTTP ${response.status} (${new URL(COC_API + path).hostname})` +
+        (
+          preview
+            ? `: ${preview}`
+            : ""
+        ),
+        response.status
+      );
+    }
+
+    if (
+      RETRY_STATUS.has(response.status) &&
+      attempt < MAX_ATTEMPTS
+    ) {
+      await sleep(350 * attempt);
+      continue;
+    }
+
+    throw lastError;
   }
 
-  if (!response.ok) {
-    const bodyMessage =
-      String(
-        data.reason ||
-        data.message ||
-        ""
-      ).trim();
-
-    const preview =
-      bodyMessage
-        .replace(/\s+/g, " ")
-        .slice(0, 180);
-
-    if (response.status === 500 || response.status === 525) {
-  throw new Error(
-    "Server Clash of Clans sedang mengalami gangguan atau sedang down. Silakan coba lagi nanti 🙂"
-  );
-}
-
-throw new Error(
-  `CoC API HTTP ${response.status} (${new URL(COC_API + path).hostname})` +
-  (
-    preview
-      ? `: ${preview}`
-      : ""
-  )
-);
-  }
-
-  return data;
+  throw lastError || apiError(DOWN_MESSAGE, 0);
 }
 
 
@@ -882,12 +956,14 @@ async function getPlayer(
 
 async function getClan(
   tag,
-  env
+  env,
+  budget = null
 ) {
   const clan =
     await cocFetch(
       `/clans/${encodedTag(tag)}`,
-      env
+      env,
+      budget
     );
 
   return clan;
@@ -900,11 +976,13 @@ async function getClan(
 
 async function getLeagueGroup(
   tag,
-  env
+  env,
+  budget = null
 ) {
   return cocFetch(
     `/clans/${encodedTag(tag)}/currentwar/leaguegroup`,
-    env
+    env,
+    budget
   );
 }
 
@@ -916,7 +994,8 @@ async function getLeagueGroup(
 async function getLeagueWar(
   warTag,
   env,
-  wantedTag = null
+  wantedTag = null,
+  budget = null
 ) {
   if (!isRealWarTag(warTag)) {
     return null;
@@ -926,7 +1005,8 @@ async function getLeagueWar(
     const war =
       await cocFetch(
         `/clanwarleagues/wars/${encodedTag(warTag)}`,
-        env
+        env,
+        budget
       );
 
     const normalized =
@@ -958,58 +1038,6 @@ async function getLeagueWar(
         true
     };
   }
-}
-
-
-/* =========================================================
-   CWL ROSTER SNAPSHOT
-========================================================= */
-
-function buildCwlRosterSnapshots(
-  leagueGroup,
-  clanDetailsMap
-) {
-  const result = {};
-
-  if (
-    !leagueGroup ||
-    !Array.isArray(
-      leagueGroup.clans
-    )
-  ) {
-    return result;
-  }
-
-  for (
-    const leagueClan
-    of leagueGroup.clans
-  ) {
-    const tag =
-      cleanTag(
-        leagueClan.tag
-      );
-
-    const detail =
-      clanDetailsMap[tag];
-
-    if (!detail) {
-      continue;
-    }
-
-    const members =
-      Array.isArray(
-        detail.memberList
-      )
-        ? detail.memberList
-        : [];
-
-    result[tag] =
-      members.map(
-        normalizeMember
-      );
-  }
-
-  return result;
 }
 
 
@@ -1099,7 +1127,8 @@ async function kvGet(
 async function kvPut(
   env,
   key,
-  value
+  value,
+  options = undefined
 ) {
   if (!env.CWL_ROSTER) {
     return false;
@@ -1108,7 +1137,8 @@ async function kvPut(
   try {
     await env.CWL_ROSTER.put(
       key,
-      JSON.stringify(value)
+      JSON.stringify(value),
+      options
     );
 
     return true;
@@ -1189,6 +1219,192 @@ function cwlSeasonKey(
    CWL DATA
 ========================================================= */
 
+function emptyCwl(
+  wantedTag,
+  state
+) {
+  return {
+    ok: true,
+
+    tag: wantedTag,
+
+    state:
+      state || "notInWar",
+
+    season: null,
+
+    clans: [],
+
+    selectedClan: null,
+
+    rounds: [],
+
+    completedRounds: 0,
+
+    totalRounds: 0,
+
+    hasWarData: false,
+
+    rosterSource: "none",
+
+    roster: [],
+
+    rosterSize: 0,
+
+    cwlRoster: [],
+
+    cwlRosterSize: 0,
+
+    cwlTownHallBreakdown:
+      townHallBreakdown([])
+  };
+}
+
+
+/*
+ * Ambil war tiap ronde. Dalam satu ronde ada beberapa
+ * warTag (4 war untuk 8 clan); dicari satu per satu
+ * sampai ketemu war milik clan yang dicari, supaya
+ * request ke proxy tidak berlebihan.
+ */
+
+async function loadRounds(
+  leagueGroup,
+  wantedTag,
+  env,
+  budget
+) {
+  const sourceRounds =
+    Array.isArray(
+      leagueGroup.rounds
+    )
+      ? leagueGroup.rounds
+      : [];
+
+  return Promise.all(
+    sourceRounds.map(
+      async (round, index) => {
+        const tags =
+          roundWarTagList(round);
+
+        let war = null;
+        let failed = 0;
+        let lastError = null;
+
+        for (const warTag of tags) {
+          const result =
+            await getLeagueWar(
+              warTag,
+              env,
+              wantedTag,
+              budget
+            );
+
+          if (!result) {
+            continue;
+          }
+
+          if (result.unavailable) {
+            failed++;
+            lastError = result.error;
+            continue;
+          }
+
+          war = result;
+          break;
+        }
+
+        return {
+          round:
+            index + 1,
+
+          warTag:
+            war?.warTag ||
+            tags[0] ||
+            null,
+
+          state:
+            war?.state ||
+            (
+              failed
+                ? "unavailable"
+                : "notAvailable"
+            ),
+
+          available:
+            !!war,
+
+          unavailable:
+            !war && failed > 0,
+
+          error:
+            !war && failed > 0
+              ? lastError
+              : null,
+
+          war
+        };
+      }
+    )
+  );
+}
+
+
+function addWarMembers(
+  target,
+  side
+) {
+  if (!side?.tag) {
+    return;
+  }
+
+  const tag =
+    cleanTag(side.tag);
+
+  target[tag] =
+    target[tag] || {};
+
+  for (
+    const member
+    of side.members || []
+  ) {
+    if (!member?.tag) {
+      continue;
+    }
+
+    target[tag][member.tag] = {
+      tag:
+        member.tag,
+
+      name:
+        member.name,
+
+      townHallLevel:
+        number(
+          firstValue(
+            member.townhallLevel,
+            member.townHallLevel
+          )
+        )
+    };
+  }
+}
+
+
+function rosterSignature(rosters) {
+  return JSON.stringify(
+    Object.keys(rosters)
+      .sort()
+      .map(tag => [
+        tag,
+        rosters[tag]
+          .map(m => m.tag)
+          .sort()
+      ])
+  );
+}
+
+
 async function getCWL(
   tag,
   env
@@ -1196,457 +1412,289 @@ async function getCWL(
   const wantedTag =
     cleanTag(tag);
 
-  if (!wantedTag) {
+  if (wantedTag === "#") {
     throw new Error(
       "Clan tag tidak valid."
     );
   }
 
-  /*
-   * Ambil current CWL group.
-   */
+  const budget = {
+    left: 40
+  };
 
-  const leagueGroup =
-    await getLeagueGroup(
-      wantedTag,
-      env
-    );
+
+  /* =======================================================
+     1. CURRENT CWL GROUP
+  ======================================================= */
+
+  let leagueGroup = null;
+
+  try {
+    leagueGroup =
+      await getLeagueGroup(
+        wantedTag,
+        env,
+        budget
+      );
+  } catch (error) {
+    if (
+      error &&
+      error.status === 404
+    ) {
+      return emptyCwl(
+        wantedTag,
+        "notInWar"
+      );
+    }
+
+    throw error;
+  }
 
   if (
     !leagueGroup ||
     !Array.isArray(
       leagueGroup.clans
-    )
+    ) ||
+    !leagueGroup.clans.length
   ) {
-    return {
-      ok: true,
-
-      tag: wantedTag,
-
-      state:
-        leagueGroup?.state ||
-        "notFound",
-
-      clans: [],
-
-      rounds: [],
-
-      completedRounds: 0,
-
-      totalRounds: 0
-    };
-  }
-
-
-  /* =======================================================
-     1. AMBIL DETAIL SEMUA CLAN DI CWL
-  ======================================================= */
-
-  const clanDetailsMap = {};
-
-  /*
-   * leagueGroup.clans berisi clan yang
-   * terdaftar dalam CWL.
-   */
-
-  const uniqueClanTags =
-    [
-      ...new Set(
-        leagueGroup.clans
-          .map(
-            clan =>
-              cleanTag(clan.tag)
-          )
-          .filter(Boolean)
-      )
-    ];
-
-
-  /*
-   * Fetch paralel supaya tidak lambat.
-   */
-
-  const clanResults =
-    await Promise.all(
-      uniqueClanTags.map(
-        async clanTag => {
-          try {
-            const clan =
-              await getClan(
-                clanTag,
-                env
-              );
-
-            return {
-              tag: clanTag,
-              clan
-            };
-          } catch {
-            return {
-              tag: clanTag,
-              clan: null
-            };
-          }
-        }
-      )
+    return emptyCwl(
+      wantedTag,
+      leagueGroup?.state
     );
-
-
-  for (
-    const item
-    of clanResults
-  ) {
-    if (item.clan) {
-      clanDetailsMap[
-        item.tag
-      ] = item.clan;
-    }
   }
 
-
-  /* =======================================================
-     2. ROSTER SNAPSHOT
-  ======================================================= */
+  const state =
+    leagueGroup.state || null;
 
   const season =
     cwlSeasonKey(
       leagueGroup
     );
 
-  const rosterKey =
-    `cwl:${season}:${wantedTag}`;
-
-  let storedRoster =
-    await kvGet(
-      env,
-      rosterKey
-    );
-
-
   /*
-   * Roster CWL asli dari leaguegroup
-   * (pemain yang ikut CWL sejak dimulai).
-   * Ini yang diprioritaskan. KV hanya disimpan
-   * sebagai cadangan kalau data ini kosong.
+   * Roster yang didaftarkan untuk CWL, semua clan.
    */
 
-  const leagueRoster =
+  const leagueRosters =
     buildLeagueRosters(
       leagueGroup
-    )[wantedTag] || [];
-
-  if (leagueRoster.length) {
-    const sameAsStored =
-      Array.isArray(storedRoster) &&
-      JSON.stringify(
-        storedRoster.map(
-          m => m && m.tag
-        )
-      ) ===
-      JSON.stringify(
-        leagueRoster.map(
-          m => m.tag
-        )
-      );
-
-    if (!sameAsStored) {
-      await kvPut(
-        env,
-        rosterKey,
-        leagueRoster
-      );
-    }
-
-    storedRoster =
-      leagueRoster;
-  }
-
-
-  /*
-   * Hanya buat snapshot dari member
-   * saat CWL masih preparation.
-   */
-
-  const isPreparation =
-    String(
-      leagueGroup.state || ""
-    ).toLowerCase() ===
-    "preparation";
-
-
-  if (
-    !storedRoster &&
-    isPreparation
-  ) {
-    const snapshots =
-      buildCwlRosterSnapshots(
-        leagueGroup,
-        clanDetailsMap
-      );
-
-    const selectedRoster =
-      snapshots[wantedTag];
-
-
-    if (
-      Array.isArray(
-        selectedRoster
-      ) &&
-      selectedRoster.length
-    ) {
-      storedRoster =
-        selectedRoster;
-
-      await kvPut(
-        env,
-        rosterKey,
-        selectedRoster
-      );
-    }
-  }
-
-
-  /* =======================================================
-     3. AMBIL SEMUA WAR TAG
-  ======================================================= */
-
-  const roundWarTags =
-    [];
-
-  if (
-    Array.isArray(
-      leagueGroup.rounds
-    )
-  ) {
-    for (
-      const round
-      of leagueGroup.rounds
-    ) {
-      roundWarTags.push(
-        ...roundWarTagList(round)
-      );
-    }
-  }
-
-
-  /*
-   * Hilangkan duplikat,
-   * tetapi pertahankan urutan ronde.
-   */
-
-  const uniqueWarTags =
-    [
-      ...new Set(
-        roundWarTags
-      )
-    ];
-
-
-  /* =======================================================
-     4. FETCH SEMUA WAR
-  ======================================================= */
-
-  const warResults =
-    await Promise.all(
-      uniqueWarTags.map(
-        async warTag => {
-          const war =
-            await getLeagueWar(
-              warTag,
-              env,
-              wantedTag
-            );
-
-          return {
-            warTag,
-            war
-          };
-        }
-      )
     );
 
-
   /*
-   * Key harus menggunakan cleanTag()
-   * agar lookup konsisten.
+   * Key baru (cwl2) supaya snapshot lama yang
+   * isinya member clan saat ini tidak terpakai.
    */
 
-  const warMap = {};
-
-  for (
-    const item
-    of warResults
-  ) {
-    if (
-      item.war &&
-      !item.war.unavailable
-    ) {
-      warMap[
-        cleanTag(
-          item.warTag
-        )
-      ] = item.war;
-    }
-  }
+  const snapshotKey =
+    `cwl2:${season}:${wantedTag}`;
 
 
   /* =======================================================
-     5. ROUNDS
+     2. PARALEL: snapshot KV, detail clan, war tiap ronde
   ======================================================= */
 
-  const rounds =
-    [];
+  const [
+    snapshotRaw,
+    detail,
+    rounds
+  ] = await Promise.all([
+    kvGet(
+      env,
+      snapshotKey
+    ),
+
+    getClan(
+      wantedTag,
+      env,
+      budget
+    ).catch(() => null),
+
+    loadRounds(
+      leagueGroup,
+      wantedTag,
+      env,
+      budget
+    )
+  ]);
+
+  const snapshot =
+    snapshotRaw &&
+    typeof snapshotRaw === "object" &&
+    !Array.isArray(snapshotRaw) &&
+    snapshotRaw.rosters &&
+    typeof snapshotRaw.rosters === "object"
+      ? snapshotRaw
+      : null;
+
+
+  /* =======================================================
+     3. SIMPAN SNAPSHOT (cadangan)
+     Selama preparation boleh diperbarui. Setelah itu
+     hanya ditulis kalau belum ada.
+  ======================================================= */
+
+  const freshRosters = {};
+
+  for (
+    const [clanTag, list]
+    of Object.entries(leagueRosters)
+  ) {
+    if (list.length) {
+      freshRosters[clanTag] = list;
+    }
+  }
 
   if (
-    Array.isArray(
-      leagueGroup.rounds
-    )
+    Object.keys(freshRosters).length
   ) {
-    leagueGroup.rounds.forEach(
+    const isPreparation =
+      String(state || "")
+        .toLowerCase() ===
+      "preparation";
+
+    const needsWrite =
+      !snapshot ||
       (
-        round,
-        index
-      ) => {
-        /*
-         * Cari war di ronde ini yang melibatkan
-         * clan yang dicari (warMap hanya berisi
-         * war milik clan tersebut).
-         */
+        isPreparation &&
+        rosterSignature(freshRosters) !==
+        rosterSignature(
+          snapshot.rosters
+        )
+      );
 
-        const tags =
-          roundWarTagList(round);
-
-        const foundTag =
-          tags.find(
-            t => warMap[t]
-          ) || null;
-
-        const normalizedWarTag =
-          foundTag ||
-          tags[0] ||
-          null;
-
-        const war =
-          foundTag
-            ? warMap[foundTag]
-            : null;
-
-        rounds.push({
-          round:
-            index + 1,
-
-          warTag:
-            normalizedWarTag,
-
-          state:
-            war?.state ||
-            "notAvailable",
-
-          available:
-            !!war,
-
-          war
-        });
-      }
-    );
+    if (needsWrite) {
+      await kvPut(
+        env,
+        snapshotKey,
+        {
+          v: 2,
+          season,
+          state,
+          savedAt:
+            new Date().toISOString(),
+          rosters:
+            freshRosters
+        },
+        {
+          expirationTtl:
+            60 * 24 * 60 * 60
+        }
+      );
+    }
   }
 
 
   /* =======================================================
-     6. COMPLETED ROUND
+     4. ROSTER PER CLAN
+     Urutan: leaguegroup -> snapshot -> data war
   ======================================================= */
 
-  const completedRounds =
-    rounds.filter(
-      round =>
-        round.war &&
-        (
-          round.war.state ===
-            "warEnded"
-        )
-    ).length;
+  const warMembers = {};
 
-
-  /* =======================================================
-     7. KUMPULKAN SEMUA CLAN
-  ======================================================= */
-
-  const clanMap = {};
-
-
-  /*
-   * Clan dari CWL group.
-   */
-
-  for (
-    const clan
-    of leagueGroup.clans
-  ) {
-    const clanTag =
-      cleanTag(
-        clan.tag
-      );
-
-    if (!clanTag) {
+  for (const round of rounds) {
+    if (!round.war) {
       continue;
     }
 
-    const detail =
-      clanDetailsMap[
-        clanTag
-      ];
+    addWarMembers(
+      warMembers,
+      round.war.target
+    );
 
-    clanMap[
-      clanTag
-    ] = {
-      ...(detail || {}),
-      tag:
-        clanTag,
+    addWarMembers(
+      warMembers,
+      round.war.enemy
+    );
+  }
 
-      name:
-        firstValue(
-          detail?.name,
-          clan.name,
-          clanTag
-        ),
+  function resolveRoster(clanTag) {
+    const fromGroup =
+      leagueRosters[clanTag];
 
-      clanLevel:
-        number(
-          firstValue(
-            detail?.clanLevel,
-            clan.clanLevel
+    if (fromGroup?.length) {
+      return {
+        list: fromGroup,
+        source: "leaguegroup"
+      };
+    }
+
+    const fromSnapshot =
+      snapshot?.rosters?.[clanTag];
+
+    if (fromSnapshot?.length) {
+      return {
+        list: fromSnapshot,
+        source: "snapshot"
+      };
+    }
+
+    const fromWars =
+      warMembers[clanTag]
+        ? Object.values(
+            warMembers[clanTag]
           )
-        )
+        : [];
+
+    if (fromWars.length) {
+      return {
+        list: fromWars,
+        source: "wars"
+      };
+    }
+
+    return {
+      list: [],
+      source: "none"
     };
   }
 
 
-  /*
-   * Tambahkan clan dari seluruh
-   * sisi war.
-   *
-   * Ini penting karena data war
-   * juga menjadi sumber clan yang
-   * mungkin tidak lengkap di
-   * leagueGroup.
-   */
+  /* =======================================================
+     5. KUMPULKAN CLAN (8 clan CWL)
+  ======================================================= */
+
+  const entries = [];
+  const seen = new Set();
 
   for (
-    const round
-    of rounds
+    const leagueClan
+    of leagueGroup.clans
   ) {
-    const war =
-      round.war;
+    const clanTag =
+      cleanTag(
+        leagueClan.tag
+      );
 
-    if (!war) {
+    if (
+      !clanTag ||
+      seen.has(clanTag)
+    ) {
+      continue;
+    }
+
+    seen.add(clanTag);
+
+    entries.push({
+      tag: clanTag,
+      base: leagueClan
+    });
+  }
+
+  /*
+   * Jaga-jaga: clan yang muncul di data war tapi
+   * tidak ada di leaguegroup.
+   */
+
+  for (const round of rounds) {
+    if (!round.war) {
       continue;
     }
 
     for (
       const side
       of [
-        war.target,
-        war.enemy
+        round.war.target,
+        round.war.enemy
       ]
     ) {
       if (!side?.tag) {
@@ -1654,165 +1702,77 @@ async function getCWL(
       }
 
       const clanTag =
-        cleanTag(
-          side.tag
-        );
+        cleanTag(side.tag);
 
-      if (
-        clanMap[
-          clanTag
-        ]
-      ) {
+      if (seen.has(clanTag)) {
         continue;
       }
 
-      const detail =
-        clanDetailsMap[
-          clanTag
-        ];
+      seen.add(clanTag);
 
-      clanMap[
-        clanTag
-      ] = {
-        ...(detail || {}),
-
-        tag:
-          clanTag,
-
-        name:
-          firstValue(
-            detail?.name,
-            side.name,
-            clanTag
-          ),
-
-        clanLevel:
-          number(
-            firstValue(
-              detail?.clanLevel,
-              side.clanLevel
-            )
-          ),
-
-        badgeUrls:
-          normalizeBadge(
-            detail || side
-          )
-      };
+      entries.push({
+        tag: clanTag,
+        base: side
+      });
     }
   }
-
-
-  /* =======================================================
-     8. PASTIKAN CLAN YANG DICARI ADA
-  ======================================================= */
-
-  if (
-    !clanMap[
-      wantedTag
-    ]
-  ) {
-    const selectedDetail =
-      clanDetailsMap[
-        wantedTag
-      ];
-
-    if (selectedDetail) {
-      clanMap[
-        wantedTag
-      ] =
-        selectedDetail;
-    }
-  }
-
-
-  /* =======================================================
-     9. NORMALIZE CLANS
-  ======================================================= */
 
   const normalizedClans =
-    Object.values(
-      clanMap
-    ).map(
-      clan => {
-        const clanTag =
-          cleanTag(
-            clan.tag
-          );
+    entries.map(
+      ({ tag: clanTag, base }) => {
+        const resolved =
+          resolveRoster(clanTag);
 
-        /*
-         * Tabel "Komposisi Town Hall" memakai
-         * member clan saat ini untuk semua clan,
-         * jadi roster CWL TIDAK dicampur di sini.
-         * Roster CWL asli dikirim terpisah
-         * lewat cwlRoster di root response.
-         */
+        const source =
+          clanTag === wantedTag &&
+          detail
+            ? {
+                ...base,
+                ...detail
+              }
+            : base;
 
-        return normalizeCWLClan(
-          clan,
-          []
-        );
+        return {
+          ...normalizeCWLClan(
+            {
+              ...source,
+              tag: clanTag
+            },
+            resolved.list
+          ),
+
+          rosterSource:
+            resolved.source
+        };
       }
     );
-
-
-  /* =======================================================
-     10. JIKA ROSTER SNAPSHOT BELUM ADA
-  ======================================================= */
-
-  if (
-    !storedRoster
-  ) {
-    const selectedClan =
-      clanMap[
-        wantedTag
-      ];
-
-    const currentMembers =
-      Array.isArray(
-        selectedClan?.memberList
-      )
-        ? selectedClan.memberList
-        : [];
-
-    if (
-      currentMembers.length
-    ) {
-      storedRoster =
-        currentMembers.map(
-          normalizeMember
-        );
-    }
-  }
-
-
-  /* =======================================================
-     11. SELECTED CLAN
-  ======================================================= */
 
   const selectedClan =
     normalizedClans.find(
       clan =>
-        cleanTag(
-          clan.tag
-        ) === wantedTag
+        cleanTag(clan.tag) ===
+        wantedTag
     ) || null;
+
+  const wantedRoster =
+    resolveRoster(wantedTag);
 
 
   /* =======================================================
-     12. HAS DATA
+     6. RESPONSE
   ======================================================= */
+
+  const completedRounds =
+    rounds.filter(
+      round =>
+        round.war &&
+        round.war.state === "warEnded"
+    ).length;
 
   const hasWarData =
     rounds.some(
-      round =>
-        !!round.war
+      round => !!round.war
     );
-
-
-  /* =======================================================
-     13. RESPONSE
-  ======================================================= */
 
   return {
     ok: true,
@@ -1820,9 +1780,7 @@ async function getCWL(
     tag:
       wantedTag,
 
-    state:
-      leagueGroup.state ||
-      null,
+    state,
 
     season,
 
@@ -1844,49 +1802,34 @@ async function getCWL(
 
     hasWarData,
 
+    rosterSource:
+      wantedRoster.source,
+
     roster:
-      Array.isArray(
-        storedRoster
-      )
-        ? storedRoster
-        : [],
+      wantedRoster.list,
 
     rosterSize:
-      Array.isArray(
-        storedRoster
-      )
-        ? storedRoster.length
-        : 0,
+      wantedRoster.list.length,
 
     /*
-     * Dibaca frontend untuk kartu "Peserta CWL"
-     * dan "Town Hall Breakdown".
+     * Dibaca frontend untuk "Peserta CWL" dan
+     * "Town Hall Breakdown".
      */
 
     cwlRoster:
-      Array.isArray(
-        storedRoster
-      )
-        ? storedRoster
-        : [],
+      wantedRoster.list,
 
     cwlRosterSize:
-      Array.isArray(
-        storedRoster
-      )
-        ? storedRoster.length
-        : 0,
+      wantedRoster.list.length,
 
     cwlTownHallBreakdown:
       townHallBreakdown(
-        Array.isArray(
-          storedRoster
-        )
-          ? storedRoster
-          : []
+        wantedRoster.list
       )
   };
 }
+
+
 /* =========================================================
    ROUTER
 ========================================================= */
