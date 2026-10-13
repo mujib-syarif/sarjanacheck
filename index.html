@@ -4101,6 +4101,92 @@ async function loadPlayer(tag) {
 
 let playerShareText = '';
 
+let upgradeAdvisorItems = [];
+let upgradeAdvisorFilter = 'all';
+let upgradeAdvisorSort = 'priority';
+let upgradeAdvisorExpanded = false;
+
+function renderUpgradeAdvisorCards() {
+  let items = upgradeAdvisorItems.slice();
+
+  if (upgradeAdvisorFilter !== 'all') {
+    items = items.filter(function(item) {
+      return item.type === upgradeAdvisorFilter;
+    });
+  }
+
+  items.sort(function(a,b) {
+    if (upgradeAdvisorSort === 'gap') {
+      return b.gap - a.gap || a.percent - b.percent || a.name.localeCompare(b.name);
+    }
+    if (upgradeAdvisorSort === 'name') {
+      return a.name.localeCompare(b.name);
+    }
+    return a.percent - b.percent || b.gap - a.gap || a.name.localeCompare(b.name);
+  });
+
+  const visible = upgradeAdvisorExpanded ? items : items.slice(0,3);
+  const count = document.getElementById('upgradeAdvisorCount');
+  if (count) {
+    count.textContent = upgradeAdvisorExpanded
+      ? items.length + ' item'
+      : 'Top ' + Math.min(3,items.length) + ' / ' + items.length;
+  }
+
+  const toggle = document.getElementById('upgradeAdvisorToggle');
+  if (toggle) {
+    toggle.style.display = items.length > 3 ? 'inline-flex' : 'none';
+    toggle.textContent = upgradeAdvisorExpanded
+      ? 'Tampilkan 3 rekomendasi'
+      : 'Tampilkan semua (' + items.length + ')';
+  }
+
+  if (!visible.length) {
+    return '<div class="empty">Tidak ada rekomendasi untuk filter ini.</div>';
+  }
+
+  return visible.map(function(item,index) {
+    const label = item.type === 'Hero' ? 'HERO' : 'EQUIPMENT';
+    const gapText = item.gap + ' level menuju batas TH';
+    return `
+      <div class="progress-card">
+        <div class="progress-card-head">
+          <span>${index + 1}. ${escapeHTML(item.name)}</span>
+          <span class="progress-card-value">${item.percent}%</span>
+        </div>
+        <div class="progress-card-detail">
+          <strong>${label}</strong> · Level ${item.level}/${item.max} · ${gapText}
+          <div class="progress-card-track">
+            <div class="progress-card-fill" style="width:${item.percent}%"></div>
+          </div>
+          ${escapeHTML(item.reason)}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function refreshUpgradeAdvisor() {
+  const list = document.getElementById('upgradeAdvisorList');
+  if (list) list.innerHTML = renderUpgradeAdvisorCards();
+}
+
+function setUpgradeAdvisorFilter(value) {
+  upgradeAdvisorFilter = value;
+  upgradeAdvisorExpanded = false;
+  refreshUpgradeAdvisor();
+}
+
+function setUpgradeAdvisorSort(value) {
+  upgradeAdvisorSort = value;
+  refreshUpgradeAdvisor();
+}
+
+function toggleUpgradeAdvisorExpanded() {
+  upgradeAdvisorExpanded = !upgradeAdvisorExpanded;
+  refreshUpgradeAdvisor();
+}
+
 function downloadPlayerShareCard() {
   const canvas = document.createElement('canvas');
   canvas.width = 1200;
@@ -4937,37 +5023,11 @@ function renderPlayer(player) {
     }
   });
 
-  const upgradeRecommendations =
-    upgradeCandidates
-      .sort(function(a,b) {
-        return a.percent - b.percent ||
-          b.gap - a.gap ||
-          a.name.localeCompare(b.name);
-      })
-      .slice(0,3);
-
-  const upgradeAdvisorHTML =
-    upgradeRecommendations.length
-      ? upgradeRecommendations.map(function(item,index) {
-          return `
-            <div class="progress-card">
-              <div class="progress-card-head">
-                <span>${index + 1}. ${escapeHTML(item.name)}</span>
-                <span class="progress-card-value">${item.percent}%</span>
-              </div>
-              <div class="progress-card-detail">
-                ${escapeHTML(item.type)} · Level ${item.level}/${item.max}
-                <br>
-                ${escapeHTML(item.reason)}
-              </div>
-            </div>
-          `;
-        }).join('')
-      : `
-        <div class="empty">
-          Tidak ada rekomendasi dari item dengan batas maksimum yang diketahui.
-        </div>
-      `;
+  upgradeAdvisorItems = upgradeCandidates;
+  upgradeAdvisorFilter = 'all';
+  upgradeAdvisorSort = 'priority';
+  upgradeAdvisorExpanded = false;
+  const upgradeAdvisorHTML = renderUpgradeAdvisorCards();
 
   /* =========================
      PLAYER CONTENT
@@ -5159,8 +5219,27 @@ function renderPlayer(player) {
     <section class="section">
 
       <div class="section-head">
-        <div class="section-title">Smart Upgrade Advisor</div>
-        <div class="section-value">Top 3</div>
+        <div class="section-title">Smart Upgrade Advisor 2.0</div>
+        <div class="section-value" id="upgradeAdvisorCount">Top 3</div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0">
+        <label class="sort-control">
+          Fokus
+          <select class="sort-select" aria-label="Filter rekomendasi upgrade" onchange="setUpgradeAdvisorFilter(this.value)">
+            <option value="all">Semua item</option>
+            <option value="Hero">Hero</option>
+            <option value="Equipment">Equipment</option>
+          </select>
+        </label>
+        <label class="sort-control">
+          Urutan
+          <select class="sort-select" aria-label="Urutan rekomendasi upgrade" onchange="setUpgradeAdvisorSort(this.value)">
+            <option value="priority">Progres terendah</option>
+            <option value="gap">Selisih level terbesar</option>
+            <option value="name">Nama A–Z</option>
+          </select>
+        </label>
       </div>
 
       <div class="section-note">
@@ -5170,8 +5249,12 @@ function renderPlayer(player) {
           : ''}
       </div>
 
-      <div class="progress-summary">
+      <div class="progress-summary" id="upgradeAdvisorList">
         ${upgradeAdvisorHTML}
+      </div>
+
+      <div style="margin-top:10px">
+        <button id="upgradeAdvisorToggle" type="button" class="search-btn" onclick="toggleUpgradeAdvisorExpanded()" style="display:none">Tampilkan semua rekomendasi</button>
       </div>
 
     </section>
