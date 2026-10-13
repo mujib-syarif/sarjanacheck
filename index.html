@@ -1744,27 +1744,29 @@
       }
 
       .equipment-grid {
-        grid-template-columns:repeat(3,minmax(0,1fr));
-        gap:6px;
+        grid-template-columns:repeat(4,minmax(0,1fr));
+        gap:5px;
       }
 
       .equipment-card {
         display:block;
-        padding:8px;
+        min-width:0;
+        padding:6px 3px;
         text-align:center;
       }
 
       .equipment-img,
       .equipment-card .asset-placeholder {
-        width:34px;
-        height:34px;
-        min-height:34px;
-        margin:0 auto 5px;
+        width:28px;
+        height:28px;
+        min-height:28px;
+        margin:0 auto 4px;
       }
 
       .equipment-card .item-name {
-        font-size:10px;
-        line-height:1.2;
+        font-size:9px;
+        line-height:1.15;
+        overflow-wrap:anywhere;
       }
 
       .equipment-level {
@@ -1842,7 +1844,7 @@
       }
 
       .equipment-grid {
-        grid-template-columns:repeat(3,minmax(0,1fr));
+        grid-template-columns:repeat(4,minmax(0,1fr));
       }
 
       .section {
