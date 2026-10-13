@@ -4580,7 +4580,7 @@ function renderPlayer(player) {
         const max = heroMaxFor(hero,player);
         const level = number(hero.level);
 
-        if (max <= 0) {
+        if (hero.levelKnown === false || max <= 0) {
           total.unknown += 1;
           return total;
         }
@@ -4639,7 +4639,7 @@ function renderPlayer(player) {
             )
           );
 
-        if (max <= 0) {
+        if (item.levelKnown === false || max <= 0) {
           total.unknown += 1;
           return total;
         }
