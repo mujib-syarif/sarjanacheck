@@ -4099,6 +4099,47 @@ async function loadPlayer(tag) {
    RENDER PLAYER
 ============================================================ */
 
+let playerShareText = '';
+
+async function copyPlayerSummary() {
+  if (!playerShareText) return;
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(playerShareText);
+    } else {
+      const field = document.createElement('textarea');
+      field.value = playerShareText;
+      field.setAttribute('readonly','');
+      field.style.position = 'fixed';
+      field.style.opacity = '0';
+      document.body.appendChild(field);
+      field.select();
+      const copied = document.execCommand('copy');
+      field.remove();
+      if (!copied) throw new Error('copy failed');
+    }
+
+    const button = document.getElementById('copyPlayerSummaryBtn');
+    if (button) {
+      const previous = button.textContent;
+      button.textContent = 'Tersalin!';
+      button.disabled = true;
+      setTimeout(function() {
+        button.textContent = previous;
+        button.disabled = false;
+      }, 1600);
+    }
+  } catch (_) {
+    alert('Ringkasan tidak dapat disalin otomatis. Coba buka situs melalui browser terbaru.');
+  }
+}
+
+
+/* ============================================================
+   RENDER PLAYER
+============================================================ */
+
 function renderPlayer(player) {
 
   const homeHeroes =
@@ -4694,6 +4735,20 @@ function renderPlayer(player) {
       gearTotals.max
     );
 
+  playerShareText = [
+    'Sarjana Checker — Ringkasan Akun',
+    player.name + ' (' + player.tag + ')',
+    'Town Hall: ' + (player.townHallLevel || '-'),
+    'XP: ' + (player.expLevel || '-'),
+    'Trophies: ' + formatNumber(player.trophies),
+    'War Stars: ' + formatNumber(player.warStars),
+    'Rank: ' + (player.rank || '-'),
+    'Progress Hero: ' + heroProgress + '%',
+    'Progress Equipment: ' + gearProgress + '%',
+    '',
+    'Dibuat melalui Sarjana Checker'
+  ].join('\n');
+
   /*
    * Smart Upgrade Advisor v1: aturan lokal yang transparan.
    * Item tanpa batas maksimum yang diketahui tidak direkomendasikan.
@@ -4820,6 +4875,15 @@ function renderPlayer(player) {
 
       <div class="clan-tag">
         ${escapeHTML(player.tag)}
+      </div>
+
+      <div style="margin-top:10px">
+        <button
+          id="copyPlayerSummaryBtn"
+          type="button"
+          class="search-btn"
+          onclick="copyPlayerSummary()"
+        >Salin Ringkasan Akun</button>
       </div>
 
       ${clanHTML}
