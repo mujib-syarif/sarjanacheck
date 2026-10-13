@@ -5687,8 +5687,16 @@ async function downloadClanShareCard() {
   const button = document.getElementById('clanShareCardBtn');
   if (button) { button.disabled = true; button.textContent = 'Menyiapkan kartu...'; }
   try {
-    let stats = { win:0, lose:0, tie:0, total:0 };
-    try { stats = warLogCounts(normalizeWarLogData(await api('warlog', clan.tag)).wars); } catch (_) {}
+    let stats = { win:0, lose:0, tie:0, unknown:0 };
+    try {
+      const logData = normalizeWarLogData(await api('warlog', clan.tag));
+      stats = warLogCounts(Array.isArray(logData.wars) ? logData.wars : []);
+    } catch (_) {}
+    const decidedWars = stats.win + stats.lose + stats.tie;
+    const totalWars = decidedWars + (stats.unknown || 0);
+    const winRate = decidedWars
+      ? (Math.round(stats.win / decidedWars * 1000) / 10) + '%'
+      : '-';
     const canvas = document.createElement('canvas');
     canvas.width = 1200; canvas.height = 675;
     const ctx = canvas.getContext('2d');
@@ -5708,8 +5716,12 @@ async function downloadClanShareCard() {
     const trophyTotal = clan.memberList.reduce((n,m)=>n+number(m.trophies),0);
     const cards=[['CLAN LEVEL',String(clan.clanLevel || '-')],['MEMBER',String(clan.members || 0)+'/50'],['TOTAL TROPHY',formatNumber(trophyTotal)],['AVG. TROPHY',clan.memberList.length?formatNumber(Math.round(trophyTotal/clan.memberList.length)):'-']];
     cards.forEach((card,i)=>{ const x=64+i*280,y=330; ctx.fillStyle='rgba(255,255,255,.09)';ctx.fillRect(x,y,250,116);ctx.strokeStyle='rgba(255,255,255,.16)';ctx.strokeRect(x,y,250,116);ctx.fillStyle='#b9c9dc';ctx.font='bold 18px Arial';ctx.fillText(card[0],x+18,y+34);ctx.fillStyle='#fff';ctx.font='bold 36px Arial';ctx.fillText(card[1],x+18,y+82); });
-    ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(64,478,1072,94);ctx.fillStyle='#e2bd62';ctx.font='bold 19px Arial';ctx.fillText('WAR LOG',88,514);ctx.fillStyle='#fff';ctx.font='bold 27px Arial';
-    ctx.fillText(stats.total ? 'WIN '+stats.win+'    •    LOSE '+stats.lose+'    •    DRAW '+stats.tie+'    •    '+stats.total+' WARS' : 'Statistik war belum tersedia',88,552);
+    ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(64,470,1072,112);
+    ctx.fillStyle='#e2bd62';ctx.font='bold 19px Arial';ctx.fillText('WAR LOG',88,502);
+    ctx.fillStyle='#fff';ctx.font='bold 25px Arial';
+    ctx.fillText(decidedWars ? 'WIN '+stats.win+'    •    LOSE '+stats.lose+'    •    DRAW '+stats.tie+'    •    '+totalWars+' WARS' : 'Statistik war belum tersedia',88,535);
+    ctx.fillStyle='#b9c9dc';ctx.font='bold 18px Arial';
+    ctx.fillText(decidedWars ? 'WIN RATE '+winRate+'  ·  dihitung dari '+decidedWars+' perang berhasil diklasifikasikan' : 'War log mungkin privat atau belum memiliki data',88,563);
     ctx.fillStyle='#b9c9dc';ctx.font='16px Arial';ctx.fillText('Dibuat melalui Sarjana Checker',64,615);
     const blob=await new Promise((resolve,reject)=>canvas.toBlob(v=>v?resolve(v):reject(new Error('PNG gagal dibuat')),'image/png'));
     const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='sarjana-clan-card.png';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
