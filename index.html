@@ -3260,7 +3260,37 @@ function handleLoadError(error) {
   ) {
 
     setError(
-      'Makanya Jangan Main Naga Petir Biar Nggak Salah Ngetik ID!',
+      'Makanya Jangan Main Naga Petir!',
+      { retry:true }
+    );
+
+    return;
+
+  }
+
+  if (
+    /CoC API HTTP 500|HTTP 500/i.test(
+      message || ''
+    )
+  ) {
+
+    setError(
+      'Yang Rusak Servernya, Bukan Base Lo. Server lagi ngambek. Coba lagi beberapa saat.',
+      { retry:true }
+    );
+
+    return;
+
+  }
+
+  if (
+    /CoC API HTTP 525|HTTP 525/i.test(
+      message || ''
+    )
+  ) {
+
+    setError(
+      'Servernya Lagi Musuhan Sama Server Sebelah. Bukan salah tag lo. Coba lagi nanti.',
       { retry:true }
     );
 
@@ -3404,8 +3434,8 @@ async function api(
     const failure =
       new Error(
         controller.timedOut
-          ? 'Server terlalu lama merespons. Coba lagi sebentar lagi ya 🙂'
-          : 'Tidak bisa terhubung ke server. Cek koneksi internetmu lalu coba lagi.'
+          ? 'Server lagi AFK. Harap Bersabar, Ini Ujian.'
+          : 'Koneksi lagi ngambek. Cek internet lo, terus coba lagi.'
       );
 
     failure.code =
