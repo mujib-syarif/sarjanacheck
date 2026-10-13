@@ -718,8 +718,8 @@
     }
 
     .equipment-img {
-      width:42px;
-      height:42px;
+      width:34px;
+      height:34px;
       object-fit:contain;
       flex:0 0 auto;
     }
@@ -1322,6 +1322,30 @@
       overflow-wrap:anywhere;
     }
 
+    .war-clan-link,
+    .war-player-link {
+      appearance:none;
+      display:inline;
+      padding:0;
+      border:0;
+      background:transparent;
+      color:inherit;
+      font:inherit;
+      font-weight:inherit;
+      text-align:inherit;
+      cursor:pointer;
+    }
+
+    .war-clan-link:hover,
+    .war-player-link:hover {
+      color:var(--accent2);
+      text-decoration:underline;
+    }
+
+    .war-player-link {
+      color:var(--accent2);
+    }
+
     .war-score {
       color:var(--muted);
       font-size:11px;
@@ -1444,13 +1468,13 @@
     }
 
     .hero-img {
-      width:46px;
-      height:46px;
+      width:38px;
+      height:38px;
     }
 
     .hero-card .asset-placeholder {
-      width:46px;
-      min-height:46px;
+      width:38px;
+      min-height:38px;
     }
 
     .hero-info {
@@ -1732,9 +1756,9 @@
 
       .equipment-img,
       .equipment-card .asset-placeholder {
-        width:44px;
-        height:44px;
-        min-height:44px;
+        width:34px;
+        height:34px;
+        min-height:34px;
         margin:0 auto 5px;
       }
 
@@ -6220,7 +6244,7 @@ function warSideHTML(
       ${badgeImage(side,'small')}
 
       <div class="war-name">
-        ${escapeHTML(name)}
+        ${warClanLinkHTML(side,name)}
       </div>
 
       <div class="war-score">
@@ -6605,6 +6629,27 @@ function warLogPercent(value) {
 }
 
 
+function warClanLinkHTML(side,name) {
+
+  const tag =
+    cleanTag(side && side.tag);
+
+  if (!tag) {
+    return escapeHTML(name);
+  }
+
+  return `
+    <button
+      type="button"
+      class="war-clan-link"
+      onclick="openClan('${escapeHTML(tag)}')"
+      title="Buka clan ${escapeHTML(name)}"
+    >${escapeHTML(name)}</button>
+  `;
+
+}
+
+
 function warLogSideHTML(side,alignRight) {
 
   const name =
@@ -6619,7 +6664,7 @@ function warLogSideHTML(side,alignRight) {
       ${badgeImage(side,'small')}
 
       <div class="war-name">
-        ${escapeHTML(name)}
+        ${warClanLinkHTML(side,name)}
       </div>
 
       <div class="war-score">
@@ -6711,8 +6756,8 @@ function warLogDetailHTML(war) {
       <div class="wl-table">
 
         <div class="wl-h"></div>
-        <div class="wl-h">${escapeHTML(mineName)}</div>
-        <div class="wl-h">${escapeHTML(enemyName)}</div>
+        <div class="wl-h">${warClanLinkHTML(mine,mineName)}</div>
+        <div class="wl-h">${warClanLinkHTML(enemy,enemyName)}</div>
 
         ${rows.map(
           function(row) {
@@ -6726,11 +6771,6 @@ function warLogDetailHTML(war) {
           }
         ).join('')}
 
-      </div>
-
-      <div class="wl-note-small">
-        War log dari Supercell hanya memuat ringkasan hasil.
-        Daftar peserta dan serangan tiap pemain tidak disediakan.
       </div>
 
     </details>
@@ -6978,7 +7018,7 @@ function warLogHeaderHTML(log) {
         <div>
 
           <div class="clan-name">
-            ${escapeHTML(clanName)}
+            ${warClanLinkHTML(clan,clanName)}
           </div>
 
           <div class="clan-tag">
@@ -7367,7 +7407,14 @@ function currentWarMemberHTML(member,state) {
       <div class="cw-main">
 
         <div class="cw-name">
-          ${escapeHTML(member.name)}
+          ${member.tag
+            ? `<button
+                type="button"
+                class="war-player-link"
+                onclick="loadPlayer('${escapeHTML(cleanTag(member.tag))}')"
+                title="Buka profil ${escapeHTML(member.name)}"
+              >${escapeHTML(member.name)}</button>`
+            : escapeHTML(member.name)}
           <span>TH${escapeHTML(member.townHallLevel || '-')}</span>
         </div>
 
