@@ -565,8 +565,19 @@
       font-weight:600;
     }
 
+    .cw-roster-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .cw-group {
+      min-width:0;
+    }
+
     .cw-group + .cw-group {
-      margin-top:12px;
+      margin-top:0;
     }
 
     .cw-group-title {
@@ -7583,37 +7594,41 @@ function currentWarSectionHTML(current) {
 
         <summary>Lihat peserta${war.state === 'preparation' ? '' : ' & serangan'}</summary>
 
-        ${lists.map(
-          function(entry) {
+        <div class="cw-roster-grid">
 
-            const side = entry[0];
+          ${lists.map(
+            function(entry) {
 
-            return `
-              <div class="cw-group">
+              const side = entry[0];
 
-                <div class="cw-group-title">
-                  ${escapeHTML(firstValue(side.name,'Klan'))}
-                  <span>${side.members.length} pemain</span>
+              return `
+                <div class="cw-group">
+
+                  <div class="cw-group-title">
+                    ${escapeHTML(firstValue(side.name,'Klan'))}
+                    <span>${side.members.length}</span>
+                  </div>
+
+                  ${side.members.length
+                    ? side.members
+                        .map(
+                          function(member) {
+                            return currentWarMemberHTML(
+                              member,
+                              war.state
+                            );
+                          }
+                        )
+                        .join('')
+                    : '<div class="empty">Daftar peserta belum tersedia.</div>'}
+
                 </div>
+              `;
 
-                ${side.members.length
-                  ? side.members
-                      .map(
-                        function(member) {
-                          return currentWarMemberHTML(
-                            member,
-                            war.state
-                          );
-                        }
-                      )
-                      .join('')
-                  : '<div class="empty">Daftar peserta belum tersedia.</div>'}
+            }
+          ).join('')}
 
-              </div>
-            `;
-
-          }
-        ).join('')}
+        </div>
 
       </details>
 
