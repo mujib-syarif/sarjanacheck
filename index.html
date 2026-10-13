@@ -322,6 +322,13 @@
       color:inherit;
     }
 
+    .error-detail {
+      margin-top:4px;
+      font-size:12px;
+      line-height:1.5;
+      opacity:.9;
+    }
+
     .retry-btn {
       margin-top:12px;
       min-height:36px;
@@ -3173,6 +3180,9 @@ function setError(
           'Terjadi kesalahan yang tidak diketahui.'
         )}
       </div>
+      ${opts.detail
+        ? `<div class="error-detail">${escapeHTML(opts.detail)}</div>`
+        : ''}
       ${retry
         ? `<button
              type="button"
@@ -3254,6 +3264,40 @@ function handleLoadError(error) {
   }
 
   if (
+    error &&
+    error.code === 'timeout'
+  ) {
+
+    setError(
+      'Server lagi AFK. Harap Bersabar, Ini Ujian.',
+      {
+        detail:'Permintaan terlalu lama dijawab. Coba lagi sebentar.',
+        retry:true
+      }
+    );
+
+    return;
+
+  }
+
+  if (
+    error &&
+    error.code === 'network'
+  ) {
+
+    setError(
+      'Koneksi lagi ngambek.',
+      {
+        detail:'Cek internet lo, terus coba lagi.',
+        retry:true
+      }
+    );
+
+    return;
+
+  }
+
+  if (
     /CoC API HTTP 404.*notFound/i.test(
       message || ''
     )
@@ -3261,7 +3305,10 @@ function handleLoadError(error) {
 
     setError(
       'Makanya Jangan Main Naga Petir!',
-      { retry:true }
+      {
+        detail:'Cek lagi tag pemain atau clan lo, Ngab.',
+        retry:true
+      }
     );
 
     return;
@@ -3275,8 +3322,11 @@ function handleLoadError(error) {
   ) {
 
     setError(
-      'Yang Rusak Servernya, Bukan Base Lo. Server lagi ngambek. Coba lagi beberapa saat.',
-      { retry:true }
+      'Yang Rusak Servernya, Bukan Base Lo.',
+      {
+        detail:'Server lagi ngambek. Coba lagi beberapa saat.',
+        retry:true
+      }
     );
 
     return;
@@ -3290,8 +3340,11 @@ function handleLoadError(error) {
   ) {
 
     setError(
-      'Servernya Lagi Musuhan Sama Server Sebelah. Bukan salah tag lo. Coba lagi nanti.',
-      { retry:true }
+      'Servernya Lagi Musuhan Sama Server Sebelah.',
+      {
+        detail:'Bukan salah tag lo. Coba lagi nanti.',
+        retry:true
+      }
     );
 
     return;
