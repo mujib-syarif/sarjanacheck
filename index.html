@@ -4672,6 +4672,82 @@ function renderPlayer(player) {
       gearTotals.max
     );
 
+  /*
+   * Smart Upgrade Advisor v1: aturan lokal yang transparan.
+   * Item tanpa batas maksimum yang diketahui tidak direkomendasikan.
+   */
+  const upgradeCandidates = [];
+
+  player.heroes.forEach(function(hero) {
+    const max = heroMaxFor(hero,player);
+    const level = number(hero.level);
+
+    if (max > 0 && level < max) {
+      upgradeCandidates.push({
+        type:'Hero',
+        name:firstValue(hero.name,'Hero'),
+        level:level,
+        max:max,
+        percent:progressPercent(level,max),
+        gap:max-level,
+        reason:'Progres level masih di bawah batas yang terdeteksi untuk Town Hall akun ini.'
+      });
+    }
+  });
+
+  player.equipment.forEach(function(item) {
+    const name = firstValue(item.name,item.equipmentName,'Equipment');
+    const key = assetKey(name);
+    const epicKey = EQUIPMENT_ALIASES[key] || key;
+    const isEpic = EPIC_EQUIPMENT.has(epicKey);
+    const max = equipmentMaxFor(item,player,isEpic);
+    const level = number(firstValue(item.level,item.currentLevel,0));
+
+    if (max > 0 && level < max) {
+      upgradeCandidates.push({
+        type:'Equipment',
+        name:name,
+        level:level,
+        max:max,
+        percent:progressPercent(level,max),
+        gap:max-level,
+        reason:'Level equipment masih di bawah batas yang terdeteksi untuk Town Hall akun ini.'
+      });
+    }
+  });
+
+  const upgradeRecommendations =
+    upgradeCandidates
+      .sort(function(a,b) {
+        return a.percent - b.percent ||
+          b.gap - a.gap ||
+          a.name.localeCompare(b.name);
+      })
+      .slice(0,3);
+
+  const upgradeAdvisorHTML =
+    upgradeRecommendations.length
+      ? upgradeRecommendations.map(function(item,index) {
+          return `
+            <div class="progress-card">
+              <div class="progress-card-head">
+                <span>${index + 1}. ${escapeHTML(item.name)}</span>
+                <span class="progress-card-value">${item.percent}%</span>
+              </div>
+              <div class="progress-card-detail">
+                ${escapeHTML(item.type)} · Level ${item.level}/${item.max}
+                <br>
+                ${escapeHTML(item.reason)}
+              </div>
+            </div>
+          `;
+        }).join('')
+      : `
+        <div class="empty">
+          Tidak ada rekomendasi dari item dengan batas maksimum yang diketahui.
+        </div>
+      `;
+
   /* =========================
      PLAYER CONTENT
   ========================= */
@@ -4840,6 +4916,23 @@ function renderPlayer(player) {
           </div>
         </div>
 
+      </div>
+
+    </section>
+
+    <section class="section">
+
+      <div class="section-head">
+        <div class="section-title">Smart Upgrade Advisor</div>
+        <div class="section-value">Top 3</div>
+      </div>
+
+      <div class="section-note">
+        Urutan berdasarkan persentase level terendah, lalu selisih level terbesar. Bukan simulasi biaya atau strategi serangan.
+      </div>
+
+      <div class="progress-summary">
+        ${upgradeAdvisorHTML}
       </div>
 
     </section>
