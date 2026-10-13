@@ -4101,6 +4101,117 @@ async function loadPlayer(tag) {
 
 let playerShareText = '';
 
+function downloadPlayerShareCard() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1200;
+  canvas.height = 675;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    alert('Browser tidak mendukung pembuatan Share Card.');
+    return;
+  }
+
+  const gradient = ctx.createLinearGradient(0,0,1200,675);
+  gradient.addColorStop(0,'#071a36');
+  gradient.addColorStop(0.55,'#123b83');
+  gradient.addColorStop(1,'#071225');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0,0,1200,675);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.beginPath(); ctx.arc(1080,90,220,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(80,660,180,0,Math.PI*2); ctx.fill();
+
+  ctx.fillStyle = '#e2bd62';
+  ctx.fillRect(64,58,8,72);
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 38px system-ui, sans-serif';
+  ctx.fillText('SARJANA CHECKER',94,60);
+  ctx.fillStyle = '#b9c9dc';
+  ctx.font = '500 20px system-ui, sans-serif';
+  ctx.fillText('CLASH OF CLANS · PLAYER CARD',96,108);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 48px system-ui, sans-serif';
+  ctx.fillText(String(window.shareCardPlayerName || 'Player').slice(0,28),64,190);
+  ctx.fillStyle = '#e2bd62';
+  ctx.font = '700 24px system-ui, sans-serif';
+  ctx.fillText(String(window.shareCardPlayerTag || '').slice(0,24),66,250);
+
+  function stat(x,y,label,value) {
+    ctx.fillStyle = 'rgba(255,255,255,0.09)';
+    roundRect(ctx,x,y,250,105,18); ctx.fill();
+    ctx.fillStyle = '#b9c9dc';
+    ctx.font = '600 17px system-ui, sans-serif';
+    ctx.fillText(label.toUpperCase(),x+20,y+18);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 31px system-ui, sans-serif';
+    ctx.fillText(String(value).slice(0,15),x+20,y+48);
+  }
+
+  stat(64,325,'Town Hall',window.shareCardTH || '-');
+  stat(334,325,'XP Level',window.shareCardXP || '-');
+  stat(604,325,'Trophies',window.shareCardTrophies || '0');
+  stat(874,325,'War Stars',window.shareCardWarStars || '0');
+
+  function progress(x,y,label,pct) {
+    const value = Math.max(0,Math.min(100,Number(pct)||0));
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 22px system-ui, sans-serif';
+    ctx.fillText(label,66,y);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#e2bd62';
+    ctx.font = '800 24px system-ui, sans-serif';
+    ctx.fillText(value+'%',1135,y-2);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(255,255,255,0.17)';
+    roundRect(ctx,66,y+38,1068,16,8); ctx.fill();
+    ctx.fillStyle = '#54c6a3';
+    roundRect(ctx,66,y+38,1068*value/100,16,8); ctx.fill();
+  }
+
+  progress(66,475,'HERO PROGRESS',window.shareCardHeroProgress);
+  progress(66,555,'EQUIPMENT PROGRESS',window.shareCardGearProgress);
+
+  ctx.fillStyle = '#b9c9dc';
+  ctx.font = '500 16px system-ui, sans-serif';
+  ctx.fillText('mujib-syarif.github.io/sarjanacheck',66,635);
+
+  canvas.toBlob(function(blob) {
+    if (!blob) {
+      alert('Share Card gagal dibuat. Coba browser lain.');
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'sarjana-checker-' + String(window.shareCardPlayerTag || 'player').replace(/[^a-z0-9-]/gi,'') + '.png';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function() { URL.revokeObjectURL(url); },1000);
+    const button = document.getElementById('downloadPlayerShareCardBtn');
+    if (button) {
+      const oldText = button.textContent;
+      button.textContent = 'Share Card dibuat!';
+      setTimeout(function() { button.textContent = oldText; },1800);
+    }
+  },'image/png');
+}
+
+function roundRect(ctx,x,y,w,h,r) {
+  const radius = Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+radius,y);
+  ctx.arcTo(x+w,y,x+w,y+h,radius);
+  ctx.arcTo(x+w,y+h,x,y+h,radius);
+  ctx.arcTo(x,y+h,x,y,radius);
+  ctx.arcTo(x,y,x+w,y,radius);
+  ctx.closePath();
+}
+
+
 async function copyPlayerSummary() {
   if (!playerShareText) return;
 
@@ -4735,6 +4846,15 @@ function renderPlayer(player) {
       gearTotals.max
     );
 
+  window.shareCardPlayerName = player.name;
+  window.shareCardPlayerTag = player.tag;
+  window.shareCardTH = player.townHallLevel || '-';
+  window.shareCardXP = player.expLevel || '-';
+  window.shareCardTrophies = formatNumber(player.trophies);
+  window.shareCardWarStars = formatNumber(player.warStars);
+  window.shareCardHeroProgress = heroProgress;
+  window.shareCardGearProgress = gearProgress;
+
   playerShareText = [
     'Sarjana Checker — Ringkasan Akun',
     player.name + ' (' + player.tag + ')',
@@ -4877,13 +4997,19 @@ function renderPlayer(player) {
         ${escapeHTML(player.tag)}
       </div>
 
-      <div style="margin-top:10px">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
         <button
           id="copyPlayerSummaryBtn"
           type="button"
           class="search-btn"
           onclick="copyPlayerSummary()"
         >Salin Ringkasan Akun</button>
+        <button
+          id="downloadPlayerShareCardBtn"
+          type="button"
+          class="search-btn"
+          onclick="downloadPlayerShareCard()"
+        >Download Share Card PNG</button>
       </div>
 
       ${clanHTML}
