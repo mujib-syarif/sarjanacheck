@@ -496,6 +496,37 @@
       font-size:12px;
     }
 
+    .war-result-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin:-2px -2px 10px;
+      padding:9px 11px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--card2);
+    }
+
+    .war-result-head.win {
+      background:#e7f7ee;
+      border-color:#b9e5cc;
+    }
+
+    .war-result-head.lose {
+      background:#fff0f1;
+      border-color:#f2c4cb;
+    }
+
+    .war-result-head.draw {
+      background:#edf2f8;
+      border-color:#d1dce9;
+    }
+
+    .war-result-head .round-chip {
+      flex:0 0 auto;
+    }
+
     .wl-table {
       display:grid;
       grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);
@@ -6703,20 +6734,28 @@ function warLogDetailHTML(war) {
   ]);
 
   if (
-    mine.attacks !== null &&
-    mine.attacks !== undefined
+    (mine.attacks !== null && mine.attacks !== undefined) ||
+    (enemy.attacks !== null && enemy.attacks !== undefined)
   ) {
 
     const maxAttacks =
       number(war.teamSize) *
       number(war.attacksPerMember);
 
+    function attacksText(side) {
+      if (side.attacks === null || side.attacks === undefined) {
+        return '-';
+      }
+
+      return maxAttacks
+        ? side.attacks + '/' + maxAttacks
+        : side.attacks;
+    }
+
     rows.push([
       'Serangan',
-      maxAttacks
-        ? mine.attacks + '/' + maxAttacks
-        : mine.attacks,
-      '-'
+      attacksText(mine),
+      attacksText(enemy)
     ]);
 
   }
@@ -6810,7 +6849,7 @@ function warLogCardHTML(war) {
   return `
     <div class="round">
 
-      <div class="round-head">
+      <div class="war-result-head ${chip[0]}">
 
         <div class="wl-date">
           ${escapeHTML(warLogDate(war.endTime))}
@@ -7334,7 +7373,7 @@ function currentWarSideHTML(side,total,alignRight) {
       ${badgeImage(side,'small')}
 
       <div class="war-name">
-        ${escapeHTML(name)}
+        ${warClanLinkHTML(side,name)}
       </div>
 
       <div class="war-score">
