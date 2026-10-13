@@ -4527,20 +4527,38 @@ function renderPlayer(player) {
      OVERALL PROGRESS
   ========================= */
 
+  /*
+   * Hanya hitung item dengan batas maksimum yang diketahui.
+   * Jika max tidak tersedia, item tidak boleh diam-diam dianggap
+   * sebagai progres 0% atau membuat persentase total menyesatkan.
+   */
   const heroTotals =
     player.heroes.reduce(
       function(total,hero) {
         const max = heroMaxFor(hero,player);
         const level = number(hero.level);
 
-        return {
-          current:total.current + level,
-          max:total.max + max
-        };
+        if (max <= 0) {
+          total.unknown += 1;
+          return total;
+        }
+
+        total.current += Math.min(level,max);
+        total.max += max;
+        total.known += 1;
+
+        if (level >= max) {
+          total.maxed += 1;
+        }
+
+        return total;
       },
       {
         current:0,
-        max:0
+        max:0,
+        known:0,
+        unknown:0,
+        maxed:0
       }
     );
 
@@ -4579,14 +4597,27 @@ function renderPlayer(player) {
             )
           );
 
-        return {
-          current:total.current + level,
-          max:total.max + max
-        };
+        if (max <= 0) {
+          total.unknown += 1;
+          return total;
+        }
+
+        total.current += Math.min(level,max);
+        total.max += max;
+        total.known += 1;
+
+        if (level >= max) {
+          total.maxed += 1;
+        }
+
+        return total;
       },
       {
         current:0,
-        max:0
+        max:0,
+        known:0,
+        unknown:0,
+        maxed:0
       }
     );
 
@@ -4738,7 +4769,12 @@ function renderPlayer(player) {
           </div>
 
           <div class="progress-card-detail">
-            ${formatNumber(heroTotals.current)}/${formatNumber(heroTotals.max)} level
+            ${heroTotals.max > 0
+              ? `${formatNumber(heroTotals.current)}/${formatNumber(heroTotals.max)} level · ${heroTotals.maxed}/${heroTotals.known} hero MAX`
+              : 'Batas maksimum hero belum tersedia'}
+            ${heroTotals.unknown
+              ? ` · ${heroTotals.unknown} data belum dihitung`
+              : ''}
           </div>
         </div>
 
@@ -4756,7 +4792,12 @@ function renderPlayer(player) {
           </div>
 
           <div class="progress-card-detail">
-            ${formatNumber(gearTotals.current)}/${formatNumber(gearTotals.max)} level
+            ${gearTotals.max > 0
+              ? `${formatNumber(gearTotals.current)}/${formatNumber(gearTotals.max)} level · ${gearTotals.maxed}/${gearTotals.known} gear MAX`
+              : 'Batas maksimum equipment belum tersedia'}
+            ${gearTotals.unknown
+              ? ` · ${gearTotals.unknown} data belum dihitung`
+              : ''}
           </div>
         </div>
 
