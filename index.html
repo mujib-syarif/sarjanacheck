@@ -3854,7 +3854,11 @@ function normalizePlayer(raw) {
               ),
 
             levelKnown:
-              hero.levelKnown !== false,
+              hero.levelKnown !== false &&
+              firstValue(
+                hero.level,
+                hero.currentLevel
+              ) !== null,
 
             maxLevel:
               number(
@@ -3922,6 +3926,21 @@ function normalizePlayer(raw) {
         );
 
   }
+
+
+  equipment =
+    equipment.map(
+      function(item) {
+        const copy = Object.assign({},item);
+        copy.levelKnown =
+          item.levelKnown !== false &&
+          firstValue(
+            item.level,
+            item.currentLevel
+          ) !== null;
+        return copy;
+      }
+    );
 
 
   return {
