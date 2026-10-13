@@ -190,6 +190,10 @@ function normalizePlayer(player) {
     ? player.heroes.map(hero => ({
         name: hero.name,
         level: number(hero.level),
+        levelKnown:
+          hero.level !== undefined &&
+          hero.level !== null &&
+          hero.level !== '',
         maxLevel: number(
           firstValue(
             hero.maxLevel,
@@ -213,6 +217,10 @@ function normalizePlayer(player) {
       ? player.heroEquipment.map(item => ({
           name: item.name,
           level: number(item.level),
+          levelKnown:
+            item.level !== undefined &&
+            item.level !== null &&
+            item.level !== '',
           maxLevel: number(
             firstValue(
               item.maxLevel,
