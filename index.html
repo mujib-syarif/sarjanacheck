@@ -3253,6 +3253,21 @@ function handleLoadError(error) {
 
   }
 
+  if (
+    /CoC API HTTP 404.*notFound/i.test(
+      message || ''
+    )
+  ) {
+
+    setError(
+      'Makanya Jangan Main Naga Petir Biar Nggak Salah Ngetik ID!',
+      { retry:true }
+    );
+
+    return;
+
+  }
+
   setError(
     message,
     { retry:true }
