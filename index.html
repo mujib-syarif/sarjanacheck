@@ -8357,9 +8357,7 @@ function currentWarMemberHTML(member,state) {
 
   const attackRows = started
     ? [1,2].map(function(slot) {
-        const attack = attacks.find(function(item) {
-          return number(item.order) === slot;
-        }) || attacks[slot - 1];
+        const attack = attacks[slot - 1];
 
         return `
           <div class="cw-attack-row">
