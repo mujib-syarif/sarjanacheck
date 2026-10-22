@@ -2213,6 +2213,42 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
   display:none!important;
 }
 
+
+/* Readability pass 2: equipment, heroes, clan roster and metadata */
+.hero-card,.equipment-card,.progress-card,.progress-summary,
+.clan-meta .meta,.summary .meta,.member-card,.member-row,
+.roster-row,.cw-row,.th-row {
+  background:#f1f3f7!important;
+  border-color:#cbd1dc!important;
+  color:#20232b!important;
+}
+.hero-info .item-name,.equipment-info .item-name,
+.equipment-card .item-name,.hero-card .item-name,
+.hero-level,.equipment-level,.progress-card-head,
+.progress-card-value,.progress-card-detail {
+  color:#292d36!important;
+  -webkit-text-fill-color:#292d36!important;
+  font-weight:700!important;
+}
+.hero-group-title { background:#e4e8ef!important;color:#252a34!important; }
+.hero-group-title span { color:#555d6a!important; }
+.clan-header .description,.clan-header p,.clan-description,
+.clan-header .clan-description,.clan-header .clan-meta,
+.clan-header .clan-meta .meta,
+.member-trophies,.member-row .trophies,.member-meta,
+.member-row .member-sub,.member-card .member-sub {
+  color:#444a56!important;
+  -webkit-text-fill-color:#444a56!important;
+}
+.clan-header .clan-meta strong,.member-trophies strong,
+.member-row .trophies strong,.member-meta strong {
+  color:#20242c!important;
+  -webkit-text-fill-color:#20242c!important;
+}
+.hero-level,.equipment-level { color:#282d36!important; }
+#copyPlayerSummaryBtn,#downloadPlayerShareCardBtn,#clanShareCardBtn {
+  display:none!important;
+}
 </style>
 
   <meta name="google-site-verification" content="Gp8DVuMYbp-vC1da-IQYk-xv1tf-mH-btZ_vGcsroGk" />
@@ -5334,20 +5370,7 @@ function renderPlayer(player) {
         ${escapeHTML(player.tag)}
       </div>
 
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
-        <button
-          id="copyPlayerSummaryBtn"
-          type="button"
-          class="search-btn"
-          onclick="copyPlayerSummary()"
-        >Salin Ringkasan Akun</button>
-        <button
-          id="downloadPlayerShareCardBtn"
-          type="button"
-          class="search-btn"
-          onclick="downloadPlayerShareCard()"
-        >Download Share Card PNG</button>
-      </div>
+
 
       ${clanHTML}
 
