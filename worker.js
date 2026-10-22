@@ -1940,6 +1940,7 @@ function normalizeWarLog(raw) {
       : [];
 
   const wars = [];
+  const hiddenCwlEntries = [];
   let hiddenCwl = 0;
 
   for (const item of items) {
@@ -1959,6 +1960,11 @@ function normalizeWarLog(raw) {
       !opponent.name
     ) {
       hiddenCwl += 1;
+      hiddenCwlEntries.push({
+        endTime: cocTimeToIso(item.endTime),
+        teamSize: number(item.teamSize) || null,
+        resultAvailable: false
+      });
       continue;
     }
 
@@ -1994,6 +2000,7 @@ function normalizeWarLog(raw) {
   return {
     wars,
     hiddenCwl,
+    hiddenCwlEntries,
 
     hasMore:
       Boolean(
