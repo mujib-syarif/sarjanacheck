@@ -2249,6 +2249,91 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
 #copyPlayerSummaryBtn,#downloadPlayerShareCardBtn,#clanShareCardBtn {
   display:none!important;
 }
+
+/* Current war: separate attack slots for fast mobile scanning */
+.current-war-section .cw-row-detailed {
+  align-items:start;
+  grid-template-columns:24px minmax(0,1fr);
+  gap:8px;
+  padding:10px;
+  background:#f5f7fa;
+  border:1px solid #d2d8e2;
+  border-radius:14px;
+}
+.current-war-section .cw-row-detailed .cw-main { min-width:0; }
+.cw-attack-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+  margin-top:9px;
+}
+.cw-attack-row {
+  min-width:0;
+  padding:9px;
+  border:1px solid #d8dee8;
+  border-radius:11px;
+  background:#fff;
+}
+.cw-attack-label,.cw-defense-label {
+  margin-bottom:5px;
+  color:#606977;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.035em;
+}
+.cw-attack-result {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  gap:5px;
+  color:#252a34;
+  font-size:12px;
+}
+.cw-attack-result strong { font-size:15px;color:#252a34; }
+.cw-attack-result span { font-weight:750;color:#343b47; }
+.cw-attack-track {
+  width:100%;
+  height:5px;
+  margin-top:7px;
+  overflow:hidden;
+  border-radius:99px;
+  background:#e2e6ed;
+}
+.cw-attack-track span {
+  display:block;height:100%;border-radius:inherit;background:#687b9c;
+}
+.cw-attack-empty {
+  color:#747b87;
+  font-size:11px;
+  font-weight:650;
+  line-height:1.4;
+}
+.cw-defense {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:3px 8px;
+  align-items:center;
+  margin-top:7px;
+  padding:8px 9px;
+  border-radius:10px;
+  background:#e8ecf2;
+  color:#303641;
+  font-size:11px;
+}
+.cw-defense-label { grid-column:1/-1;margin:0; }
+.cw-defense strong { margin-right:6px;color:#252a34; }
+.cw-defense span { color:#3f4754;font-weight:700; }
+.cw-defense small { color:#5d6572;font-size:10px;text-align:right; }
+@media(max-width:420px) {
+  .cw-attack-grid { grid-template-columns:repeat(2,minmax(0,1fr));gap:5px; }
+  .cw-attack-row { padding:7px; }
+  .cw-attack-result { gap:4px;font-size:11px; }
+  .cw-attack-result strong { font-size:14px; }
+  .cw-defense { grid-template-columns:1fr; }
+  .cw-defense small { text-align:left; }
+}
+
 </style>
 
   <meta name="google-site-verification" content="Gp8DVuMYbp-vC1da-IQYk-xv1tf-mH-btZ_vGcsroGk" />
@@ -8265,83 +8350,57 @@ function currentWarSideHTML(side,total,alignRight) {
 
 function currentWarMemberHTML(member,state) {
 
-  const started =
-    state !== 'preparation';
+  const started = state !== 'preparation';
+  const attacks = asArray(member.attacks).slice().sort(
+    function(a,b) { return number(a.order) - number(b.order); }
+  );
 
-  let attackText = '';
-  let defenseText = '';
+  const attackRows = started
+    ? [1,2].map(function(slot) {
+        const attack = attacks.find(function(item) {
+          return number(item.order) === slot;
+        }) || attacks[slot - 1];
 
-  if (started) {
+        return `
+          <div class="cw-attack-row">
+            <div class="cw-attack-label">Serangan ${slot}</div>
+            ${attack
+              ? `<div class="cw-attack-result">
+                  <strong>${escapeHTML(number(attack.stars))} ★</strong>
+                  <span>${escapeHTML(warLogPercent(attack.destructionPercentage))}</span>
+                  <div class="cw-attack-track"><span style="width:${Math.max(0,Math.min(100,number(attack.destructionPercentage)))}%"></span></div>
+                </div>`
+              : '<div class="cw-attack-empty">Belum menyerang</div>'}
+          </div>
+        `;
+      }).join('')
+    : '';
 
-    attackText =
-      member.attacks.length
-        ? 'Serang: ' + member.attacks
-            .slice()
-            .sort(
-              function(a,b) {
-                return a.order - b.order;
-              }
-            )
-            .map(
-              function(attack) {
-
-                return (
-                  attack.stars + '★ ' +
-                  warLogPercent(
-                    attack.destructionPercentage
-                  )
-                );
-
-              }
-            )
-            .join(' · ')
-        : 'Belum menyerang';
-
-    defenseText =
-      member.bestOpponentAttack
-        ? 'Bertahan: terbaik ' +
-          member.bestOpponentAttack.stars + '★ ' +
-          warLogPercent(
-            member.bestOpponentAttack.destructionPercentage
-          ) +
-          ' (' + member.opponentAttacks + 'x diserang)'
-        : 'Belum diserang';
-
-  }
+  const defenseHTML = started
+    ? member.bestOpponentAttack
+      ? `<div class="cw-defense">
+          <div class="cw-defense-label">Pertahanan</div>
+          <div><strong>Terbaik ${escapeHTML(number(member.bestOpponentAttack.stars))} ★</strong>
+          <span>${escapeHTML(warLogPercent(member.bestOpponentAttack.destructionPercentage))}</span></div>
+          <small>Diserang ${escapeHTML(number(member.opponentAttacks))} kali</small>
+        </div>`
+      : `<div class="cw-defense"><div class="cw-defense-label">Pertahanan</div><div class="cw-attack-empty">Belum diserang</div></div>`
+    : '';
 
   return `
-    <div class="cw-row">
-
-      <div class="cw-pos">
-        ${escapeHTML(member.mapPosition || '-')}
-      </div>
-
+    <div class="cw-row cw-row-detailed">
+      <div class="cw-pos">${escapeHTML(member.mapPosition || '-')}</div>
       <div class="cw-main">
-
         <div class="cw-name">
           ${member.tag
-            ? `<button
-                type="button"
-                class="war-player-link"
-                onclick="loadPlayer('${escapeHTML(cleanTag(member.tag))}')"
-                title="Buka profil ${escapeHTML(member.name)}"
-              >${escapeHTML(member.name)}</button>`
+            ? `<button type="button" class="war-player-link" onclick="loadPlayer('${escapeHTML(cleanTag(member.tag))}')" title="Buka profil ${escapeHTML(member.name)}">${escapeHTML(member.name)}</button>`
             : escapeHTML(member.name)}
           <span>TH ${escapeHTML(member.townHallLevel || '-')}</span>
         </div>
-
-        ${started
-          ? `
-            <div class="cw-sub">${escapeHTML(attackText)}</div>
-            <div class="cw-sub">${escapeHTML(defenseText)}</div>
-          `
-          : ''}
-
+        ${started ? `<div class="cw-attack-grid">${attackRows}</div>${defenseHTML}` : ''}
       </div>
-
     </div>
   `;
-
 }
 
 
