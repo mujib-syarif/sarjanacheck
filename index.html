@@ -2249,6 +2249,139 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
 #copyPlayerSummaryBtn,#downloadPlayerShareCardBtn,#clanShareCardBtn {
   display:none!important;
 }
+
+/* Current war: separate attack slots for fast mobile scanning */
+.current-war-section .cw-row-detailed {
+  align-items:start;
+  grid-template-columns:24px minmax(0,1fr);
+  gap:8px;
+  padding:10px;
+  background:#f5f7fa;
+  border:1px solid #d2d8e2;
+  border-radius:14px;
+}
+.current-war-section .cw-row-detailed .cw-main { min-width:0; }
+.cw-attack-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+  margin-top:9px;
+}
+.cw-attack-row {
+  min-width:0;
+  padding:9px;
+  border:1px solid #d8dee8;
+  border-radius:11px;
+  background:#fff;
+}
+.cw-attack-label,.cw-defense-label {
+  margin-bottom:5px;
+  color:#606977;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.035em;
+}
+.cw-attack-result {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  gap:5px;
+  color:#252a34;
+  font-size:12px;
+}
+.cw-attack-result strong { font-size:15px;color:#252a34; }
+.cw-attack-result span { font-weight:750;color:#343b47; }
+.cw-attack-track {
+  width:100%;
+  height:5px;
+  margin-top:7px;
+  overflow:hidden;
+  border-radius:99px;
+  background:#e2e6ed;
+}
+.cw-attack-track span {
+  display:block;height:100%;border-radius:inherit;background:#687b9c;
+}
+.cw-attack-empty {
+  color:#747b87;
+  font-size:11px;
+  font-weight:650;
+  line-height:1.4;
+}
+.cw-defense {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:3px 8px;
+  align-items:center;
+  margin-top:7px;
+  padding:8px 9px;
+  border-radius:10px;
+  background:#e8ecf2;
+  color:#303641;
+  font-size:11px;
+}
+.cw-defense-label { grid-column:1/-1;margin:0; }
+.cw-defense strong { margin-right:6px;color:#252a34; }
+.cw-defense span { color:#3f4754;font-weight:700; }
+.cw-defense small { color:#5d6572;font-size:10px;text-align:right; }
+@media(max-width:420px) {
+  .cw-attack-grid { grid-template-columns:repeat(2,minmax(0,1fr));gap:5px; }
+  .cw-attack-row { padding:7px; }
+  .cw-attack-result { gap:4px;font-size:11px; }
+  .cw-attack-result strong { font-size:14px; }
+  .cw-defense { grid-template-columns:1fr; }
+  .cw-defense small { text-align:left; }
+}
+
+
+/* Compact current-war row: attacks left, player centered, defense right */
+.cw-row-detailed {
+  display:grid!important;
+  grid-template-columns:minmax(76px,.85fr) minmax(100px,1.2fr) minmax(88px,.95fr)!important;
+  align-items:center!important;
+  gap:8px!important;
+  padding:10px 8px!important;
+  background:#f5f7fa!important;
+  border:1px solid #d1d7e1!important;
+  border-radius:13px!important;
+}
+.cw-attacks-left { display:flex;flex-direction:column;gap:5px;min-width:0; }
+.cw-mini-attack {
+  display:grid;grid-template-columns:17px 1fr;gap:1px 4px;align-items:center;
+  min-width:0;padding:5px 6px;border:1px solid #dce1e9;border-radius:8px;background:#fff;
+}
+.cw-mini-label {
+  grid-row:span 2;display:flex;align-items:center;justify-content:center;
+  width:17px;height:17px;border-radius:5px;background:#e7ebf2;color:#303744;font-size:10px;font-weight:900;
+}
+.cw-mini-stars { color:#292f3a;font-size:12px;font-weight:900;line-height:1.1; }
+.cw-mini-percent { color:#596170;font-size:10px;font-weight:700;line-height:1.1; }
+.cw-mini-empty { color:#777f8b;font-size:10px;font-weight:650; }
+.cw-player-center { min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px; }
+.cw-player-center .cw-name { width:100%;justify-content:center;line-height:1.2;overflow-wrap:anywhere;font-size:12px;font-weight:850; }
+.cw-player-center .war-player-link { white-space:normal;text-align:center;overflow-wrap:anywhere; }
+.cw-player-th { color:#4b5361;font-size:11px;font-weight:800; }
+.cw-player-position { color:#7a8290;font-size:9px;font-weight:650; }
+.cw-defense-right { min-width:0; }
+.cw-defense-compact {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  min-height:65px;padding:7px 5px;text-align:center;background:#e8ecf2;border-radius:9px;color:#313844;
+}
+.cw-defense-title { color:#646d7a;font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.025em; }
+.cw-defense-compact strong { color:#252b35;font-size:16px;line-height:1.1; }
+.cw-defense-compact span { color:#3e4653;font-size:11px;font-weight:800; }
+.cw-defense-compact small { color:#606978;font-size:9px;line-height:1.2; }
+@media(max-width:380px) {
+  .cw-row-detailed { grid-template-columns:minmax(66px,.8fr) minmax(90px,1.1fr) minmax(76px,.9fr)!important;gap:5px!important;padding:8px 5px!important; }
+  .cw-mini-attack { padding:4px 3px;grid-template-columns:15px 1fr;gap:1px 3px; }
+  .cw-mini-label { width:15px;height:15px;font-size:9px; }
+  .cw-mini-stars { font-size:11px; }
+  .cw-mini-percent { font-size:9px; }
+  .cw-player-center .cw-name { font-size:11px; }
+  .cw-defense-compact strong { font-size:14px; }
+}
+
 </style>
 
   <meta name="google-site-verification" content="Gp8DVuMYbp-vC1da-IQYk-xv1tf-mH-btZ_vGcsroGk" />
@@ -8265,85 +8398,56 @@ function currentWarSideHTML(side,total,alignRight) {
 
 function currentWarMemberHTML(member,state) {
 
-  const started =
-    state !== 'preparation';
+  const started = state !== 'preparation';
+  const attacks = asArray(member.attacks).slice().sort(
+    function(a,b) { return number(a.order) - number(b.order); }
+  );
 
-  let attackText = '';
-  let defenseText = '';
+  const attackRows = started
+    ? [0,1].map(function(index) {
+        const attack = attacks[index];
+        const slot = index + 1;
+        return `
+          <div class="cw-mini-attack">
+            <span class="cw-mini-label">${slot}</span>
+            ${attack
+              ? `<span class="cw-mini-stars">${escapeHTML(number(attack.stars))}★</span>
+                 <span class="cw-mini-percent">${escapeHTML(warLogPercent(attack.destructionPercentage))}</span>`
+              : '<span class="cw-mini-empty">Belum</span>'}
+          </div>`;
+      }).join('')
+    : '';
 
-  if (started) {
-
-    attackText =
-      member.attacks.length
-        ? 'Serang: ' + member.attacks
-            .slice()
-            .sort(
-              function(a,b) {
-                return a.order - b.order;
-              }
-            )
-            .map(
-              function(attack) {
-
-                return (
-                  attack.stars + '★ ' +
-                  warLogPercent(
-                    attack.destructionPercentage
-                  )
-                );
-
-              }
-            )
-            .join(' · ')
-        : 'Belum menyerang';
-
-    defenseText =
-      member.bestOpponentAttack
-        ? 'Bertahan: terbaik ' +
-          member.bestOpponentAttack.stars + '★ ' +
-          warLogPercent(
-            member.bestOpponentAttack.destructionPercentage
-          ) +
-          ' (' + member.opponentAttacks + 'x diserang)'
-        : 'Belum diserang';
-
-  }
+  const defenseHTML = started
+    ? member.bestOpponentAttack
+      ? `<div class="cw-defense-compact">
+          <div class="cw-defense-title">Pertahanan</div>
+          <strong>${escapeHTML(number(member.bestOpponentAttack.stars))}★</strong>
+          <span>${escapeHTML(warLogPercent(member.bestOpponentAttack.destructionPercentage))}</span>
+          <small>Diserang ${escapeHTML(number(member.opponentAttacks))}x</small>
+        </div>`
+      : `<div class="cw-defense-compact">
+          <div class="cw-defense-title">Pertahanan</div>
+          <span class="cw-mini-empty">Belum diserang</span>
+        </div>`
+    : '';
 
   return `
-    <div class="cw-row">
-
-      <div class="cw-pos">
-        ${escapeHTML(member.mapPosition || '-')}
-      </div>
-
-      <div class="cw-main">
-
+    <div class="cw-row cw-row-detailed">
+      <div class="cw-attacks-left">${started ? attackRows : ''}</div>
+      <div class="cw-player-center">
         <div class="cw-name">
           ${member.tag
-            ? `<button
-                type="button"
-                class="war-player-link"
-                onclick="loadPlayer('${escapeHTML(cleanTag(member.tag))}')"
-                title="Buka profil ${escapeHTML(member.name)}"
-              >${escapeHTML(member.name)}</button>`
+            ? `<button type="button" class="war-player-link" onclick="loadPlayer('${escapeHTML(cleanTag(member.tag))}')" title="Buka profil ${escapeHTML(member.name)}">${escapeHTML(member.name)}</button>`
             : escapeHTML(member.name)}
-          <span>TH ${escapeHTML(member.townHallLevel || '-')}</span>
         </div>
-
-        ${started
-          ? `
-            <div class="cw-sub">${escapeHTML(attackText)}</div>
-            <div class="cw-sub">${escapeHTML(defenseText)}</div>
-          `
-          : ''}
-
+        <div class="cw-player-th">TH ${escapeHTML(member.townHallLevel || '-')}</div>
+        <div class="cw-player-position">Posisi ${escapeHTML(member.mapPosition || '-')}</div>
       </div>
-
+      <div class="cw-defense-right">${defenseHTML}</div>
     </div>
   `;
-
 }
-
 
 function currentWarSectionHTML(current) {
 
