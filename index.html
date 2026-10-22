@@ -8517,16 +8517,29 @@ async function loadCwl(tag) {
 
   try {
 
-    currentCwl =
-      normalizeCwl(
-        await api(
-          'cwl',
-          requestedCwlTag
-        )
-      );
+    const results = await Promise.allSettled([
+      api('cwl', requestedCwlTag),
+      api('warlog', requestedCwlTag)
+    ]);
 
-    renderCwl(
-      currentCwl
+    if (results[0].status === 'rejected') {
+      throw results[0].reason;
+    }
+
+    currentCwl =
+      normalizeCwl(results[0].value);
+
+    const warLogArchive =
+      results[1].status === 'fulfilled'
+        ? results[1].value
+        : null;
+
+    renderCwl(currentCwl);
+
+    renderCwlArchive(
+      warLogArchive && warLogArchive.hiddenCwlEntries
+        ? warLogArchive.hiddenCwlEntries
+        : []
     );
 
   } catch (error) {
@@ -8535,6 +8548,41 @@ async function loadCwl(tag) {
 
   }
 
+}
+
+
+
+/* Arsip CWL yang terdeteksi pada war log klasik. Data ini hanya
+   menyimpan tanggal/ukuran yang tersedia; hasil pertandingan tidak ditebak. */
+function renderCwlArchive(entries) {
+  const root = document.getElementById('cwlContent');
+  if (!root || !Array.isArray(entries) || !entries.length) return;
+
+  const grouped = new Map();
+  entries.forEach(function(entry) {
+    const date = entry && entry.endTime ? new Date(entry.endTime) : null;
+    const valid = date && !Number.isNaN(date.getTime());
+    const key = valid
+      ? date.toLocaleDateString('id-ID', { month:'long', year:'numeric' })
+      : 'Tanggal tidak tersedia';
+    const item = grouped.get(key) || { label:key, count:0, dates:[] };
+    item.count += 1;
+    if (valid) item.dates.push(date);
+    grouped.set(key, item);
+  });
+
+  const groups = Array.from(grouped.values()).map(function(item) {
+    const countLabel = item.count + (item.count === 1 ? ' entri' : ' entri');
+    return '<div class="meta"><strong>' + escapeHTML(item.label) +
+      '</strong><span>' + countLabel +
+      '</span><p>Arsip CWL terdeteksi dari war log. Detail hasil lama tidak tersedia dari data ini.</p></div>';
+  }).join('');
+
+  root.insertAdjacentHTML('beforeend',
+    '<section class="section cwl-archive"><div class="section-head">' +
+    '<div class="section-title">Arsip CWL Terdeteksi</div></div>' +
+    '<div class="section-note">Label bulan/tahun dibuat hanya jika tanggal tersedia. Arsip ini bukan bukti hasil menang/kalah; API war log tidak memberikan detail hasil untuk entri tersebut.</div>' +
+    '<div class="summary">' + groups + '</div></section>');
 }
 
 
