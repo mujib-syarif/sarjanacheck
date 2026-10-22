@@ -2150,6 +2150,69 @@ button:focus-visible,input:focus-visible,select:focus-visible {
   .search-btn { padding:11px 16px; }
 }
 
+
+
+/* Contrast hotfix: readable mobile cards and remove PNG share-card actions */
+.header,.search-panel,.section,.clan-header,.round {
+  background:rgba(250,250,252,.97)!important;
+  color:#202126!important;
+  border-color:#d9dce3!important;
+  box-shadow:0 8px 24px rgba(10,16,28,.10)!important;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.header *, .search-panel *, .section *, .clan-header *, .round * {
+  text-shadow:none;
+}
+.brand-title,.section-title,.clan-name,.clan-header .clan-name,
+.section-head,.meta,.meta strong,.player-name,.member-name,
+.roster-name,.roster-no,.member-th,.clan-tag,
+.search-panel label,.search-panel .hint,.search-panel .example,
+.clan-header p,.clan-header .description {
+  color:#252832!important;
+  -webkit-text-fill-color:#252832;
+}
+.brand-sub,.muted,.hint,.clan-tag,.roster-name small,
+.section-note,.meta-label,.member-sub,.clan-header .muted {
+  color:#626875!important;
+  -webkit-text-fill-color:#626875;
+}
+.switch button:not(.active) {
+  background:#f0f1f4!important;
+  color:#353943!important;
+  border-color:#d8dbe2!important;
+}
+.switch button.active,.search-btn {
+  background:#24262d!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  border-color:#24262d!important;
+}
+input,select,textarea {
+  background:#fff!important;
+  color:#202126!important;
+  border:1px solid #cbd0da!important;
+}
+input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
+.roster-row,.member-row,.member-card,.cw-row,.war,.th-row,
+.clan-meta .meta,.stat-card,.metric-card {
+  background:#f6f8fb!important;
+  color:#272b34!important;
+  border-color:#dce2eb!important;
+}
+.roster-row *, .member-row *, .member-card *, .cw-row *, .war *,
+.th-row *, .stat-card *, .metric-card * {
+  color:#343a46!important;
+  -webkit-text-fill-color:currentColor;
+}
+.roster-row .roster-no,.member-th,.th-label,.th-count {
+  color:#a92743!important;
+  -webkit-text-fill-color:#a92743;
+}
+#downloadPlayerShareCardBtn,#clanShareCardBtn {
+  display:none!important;
+}
+
 </style>
 
   <meta name="google-site-verification" content="Gp8DVuMYbp-vC1da-IQYk-xv1tf-mH-btZ_vGcsroGk" />
