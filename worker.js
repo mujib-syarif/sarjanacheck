@@ -2656,7 +2656,9 @@ export default {
         if (!rawTag) {
           return errorResponse(
             request,
-            "Parameter tag wajib diisi."
+            "Parameter tag wajib diisi.",
+            400,
+            "missingTag"
           );
         }
 
@@ -2716,14 +2718,10 @@ export default {
             );
           }
 
-          return errorResponse(
+          return apiErrorResponse(
             request,
-
-            error instanceof Error
-              ? error.message
-              : String(error),
-
-            502
+            error,
+            "War log"
           );
         }
       }
@@ -2744,7 +2742,9 @@ export default {
         if (!rawTag) {
           return errorResponse(
             request,
-            "Parameter tag wajib diisi."
+            "Parameter tag wajib diisi.",
+            400,
+            "missingTag"
           );
         }
 
@@ -2804,14 +2804,10 @@ export default {
             );
           }
 
-          return errorResponse(
+          return apiErrorResponse(
             request,
-
-            error instanceof Error
-              ? error.message
-              : String(error),
-
-            502
+            error,
+            "Current war"
           );
         }
       }
