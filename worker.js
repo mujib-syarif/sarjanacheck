@@ -174,7 +174,7 @@ function apiErrorResponse(request, error, resourceLabel) {
   if (status === 403) {
     return errorResponse(
       request,
-      `${resourceLabel} ini privat atau aksesnya dibatasi oleh API Clash of Clans.`,
+      `Akses ke data ${resourceLabel.toLowerCase()} ditolak oleh API Clash of Clans. Periksa izin dan konfigurasi API.`,
       403,
       "private"
     );
