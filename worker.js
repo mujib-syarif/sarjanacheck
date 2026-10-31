@@ -2303,15 +2303,25 @@ export default {
       if (
         pathname === "/player"
       ) {
-        const tag =
+        const rawTag =
           url.searchParams.get(
             "tag"
           );
 
-        if (!tag) {
+        if (!rawTag) {
           return errorResponse(
             request,
             "Parameter tag wajib diisi."
+          );
+        }
+
+        const tag = cleanTag(rawTag);
+
+        if (!validClanTag(tag)) {
+          return errorResponse(
+            request,
+            "Format player tag tidak valid. Contoh: #2J0P2GR08",
+            400
           );
         }
 
@@ -2351,15 +2361,25 @@ export default {
       if (
         pathname === "/clan"
       ) {
-        const tag =
+        const rawTag =
           url.searchParams.get(
             "tag"
           );
 
-        if (!tag) {
+        if (!rawTag) {
           return errorResponse(
             request,
             "Parameter tag wajib diisi."
+          );
+        }
+
+        const tag = cleanTag(rawTag);
+
+        if (!validClanTag(tag)) {
+          return errorResponse(
+            request,
+            "Format clan tag tidak valid. Contoh: #2J0P2GR08",
+            400
           );
         }
 
@@ -2402,15 +2422,25 @@ export default {
       if (
         pathname === "/cwl"
       ) {
-        const tag =
+        const rawTag =
           url.searchParams.get(
             "tag"
           );
 
-        if (!tag) {
+        if (!rawTag) {
           return errorResponse(
             request,
             "Parameter tag wajib diisi."
+          );
+        }
+
+        const tag = cleanTag(rawTag);
+
+        if (!validClanTag(tag)) {
+          return errorResponse(
+            request,
+            "Format clan tag tidak valid. Contoh: #2J0P2GR08",
+            400
           );
         }
 
