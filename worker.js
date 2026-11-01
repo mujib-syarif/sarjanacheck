@@ -66,6 +66,61 @@ function errorResponse(
 }
 
 
+/* Ubah error upstream menjadi respons yang aman untuk klien:
+   status yang bermakna dipertahankan, detail internal tidak dibocorkan. */
+function upstreamErrorResponse(
+  request,
+  error,
+  notFoundMessage
+) {
+  const status =
+    Number(error && error.status) || 0;
+
+  if (status === 404) {
+    return errorResponse(
+      request,
+      notFoundMessage,
+      404
+    );
+  }
+
+  if (status === 429) {
+    return errorResponse(
+      request,
+      "Terlalu banyak permintaan ke server data. Coba lagi sebentar.",
+      429
+    );
+  }
+
+  if (
+    error instanceof Error &&
+    error.message === DOWN_MESSAGE
+  ) {
+    return errorResponse(
+      request,
+      DOWN_MESSAGE,
+      502
+    );
+  }
+
+  if (status) {
+    return errorResponse(
+      request,
+      "Data dari Clash of Clans tidak dapat diambil saat ini. Coba lagi nanti.",
+      502
+    );
+  }
+
+  console.error("Unexpected error", error);
+
+  return errorResponse(
+    request,
+    "Terjadi kesalahan pada server.",
+    500
+  );
+}
+
+
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -913,7 +968,7 @@ async function cocFetch(
           .slice(0, 180);
 
       lastError = apiError(
-        `CoC API HTTP ${response.status} (${new URL(COC_API + path).hostname})` +
+        `CoC API HTTP ${response.status}` +
         (
           preview
             ? `: ${preview}`
@@ -2341,14 +2396,10 @@ export default {
             request
           );
         } catch (error) {
-          return errorResponse(
+          return upstreamErrorResponse(
             request,
-
-            error instanceof Error
-              ? error.message
-              : String(error),
-
-            502
+            error,
+            "Player tidak ditemukan."
           );
         }
       }
@@ -2402,14 +2453,10 @@ export default {
             request
           );
         } catch (error) {
-          return errorResponse(
+          return upstreamErrorResponse(
             request,
-
-            error instanceof Error
-              ? error.message
-              : String(error),
-
-            502
+            error,
+            "Clan tidak ditemukan."
           );
         }
       }
@@ -2656,13 +2703,11 @@ export default {
       );
 
     } catch (error) {
+      console.error("Unhandled error", error);
+
       return errorResponse(
         request,
-
-        error instanceof Error
-          ? error.message
-          : String(error),
-
+        "Terjadi kesalahan pada server.",
         500
       );
     }
