@@ -6347,41 +6347,27 @@ function clanHistoryPanelHTML(kind) {
   if(!isWar){
     const currentTags=new Set(asArray(currentClan&&currentClan.memberList).map(member=>String(member.tag||'').toUpperCase()));
     const isEventFeed=items.some(item=>clanHistoryValue(item,['type','eventType','action'])!==null);
-    let records=[];
+    const profileLink=(name,rawTag)=>{
+      const tag=String(rawTag||'').replace(/^#/,'');
+      return tag?'<a class="history-entity-link" href="https://link.clashofclans.com/en?action=OpenPlayerProfile&amp;tag='+encodeURIComponent(tag)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(name||'Unknown')+'</a><div class="history-tag">#'+escapeHTML(tag)+'</div>':'<b>'+escapeHTML(name||'Unknown')+'</b>';
+    };
     if(isEventFeed){
-      const events=items.slice().sort((a,b)=>String(clanHistoryValue(a,['time','eventTime','date'])||'').localeCompare(String(clanHistoryValue(b,['time','eventTime','date'])||'')));
-      const openByTag=new Map();
-      events.forEach(event=>{
-        const tag=String(clanHistoryValue(event,['tag','playerTag','player_tag'])||'').toUpperCase();
-        const name=clanHistoryValue(event,['name','playerName','player_name'])||'Unknown';
-        const time=clanHistoryValue(event,['time','eventTime','date']);
+      const events=items.slice().filter(item=>clanHistoryValue(item,['time','eventTime','date'])!==null).sort((a,b)=>String(clanHistoryValue(b,['time','eventTime','date'])).localeCompare(String(clanHistoryValue(a,['time','eventTime','date']))));
+      const rows=events.map(event=>{
         const type=String(clanHistoryValue(event,['type','eventType','action'])||'').toLowerCase();
-        if(!tag||!time)return;
-        if(type.includes('join')||type.includes('add')||type.includes('enter')){
-          const record={tag,name,joined:time,left:null};
-          records.push(record);
-          openByTag.set(tag,record);
-        }else if(type.includes('leave')||type.includes('remove')||type.includes('kick')){
-          const record=openByTag.get(tag);
-          if(record){record.left=time;openByTag.delete(tag);}
-          else records.push({tag,name,joined:null,left:time});
-        }
-      });
-      records.reverse();
-    }else{
-      records=items.map(item=>({
-        tag:clanHistoryValue(item,['tag','playerTag','player_tag']),
-        name:clanHistoryValue(item,['name','playerName','player_name'])||'Unknown',
-        joined:clanHistoryValue(item,['joinDate','joinedAt','joinTime','joined','startTime','start_time']),
-        left:clanHistoryValue(item,['leaveDate','leftAt','leaveTime','left','endTime','end_time']),
-        current:item.isInClan===true||item.current===true
-      }));
+        const joined=type.includes('join')||type.includes('add')||type.includes('enter');
+        const left=type.includes('leave')||type.includes('remove')||type.includes('kick');
+        const action=joined?'Bergabung':left?'Keluar':String(clanHistoryValue(event,['type','eventType','action'])||'Aktivitas');
+        const tag=clanHistoryValue(event,['tag','playerTag','player_tag']);
+        const name=clanHistoryValue(event,['name','playerName','player_name'])||'Unknown';
+        return '<tr><td>'+profileLink(name,tag)+'</td><td><span class="history-event '+(joined?'join':left?'leave':'')+'">'+escapeHTML(action)+'</span></td><td>'+clanHistoryDate(clanHistoryValue(event,['time','eventTime','date']))+'</td></tr>';
+      }).join('');
+      return '<section class="section"><div class="section-head"><div class="section-title">Member History</div><div class="section-value">'+events.length+' aktivitas</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Pemain</th><th>Aktivitas</th><th>Tanggal</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="history-source-note">Setiap baris adalah event masuk/keluar yang tercatat oleh ClashKing. Riwayat yang tidak terekam penyedia tidak dapat ditampilkan.</div></section>';
     }
+    const records=items.map(item=>({tag:clanHistoryValue(item,['tag','playerTag','player_tag']),name:clanHistoryValue(item,['name','playerName','player_name'])||'Unknown',joined:clanHistoryValue(item,['joinDate','joinedAt','joinTime','joined','startTime','start_time']),left:clanHistoryValue(item,['leaveDate','leftAt','leaveTime','left','endTime','end_time']),current:item.isInClan===true||item.current===true}));
     const rows=records.map(record=>{
       const stillHere=!record.left&&(record.current===true||currentTags.has(String(record.tag||'').toUpperCase()));
-      const tag=String(record.tag||'').replace(/^#/,'');
-      const profile=tag?'<a class="history-entity-link" href="https://link.clashofclans.com/en?action=OpenPlayerProfile&amp;tag='+encodeURIComponent(tag)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(record.name||'Unknown')+'</a>':'<b>'+escapeHTML(record.name||'Unknown')+'</b>';
-      return '<tr><td>'+profile+'<div class="history-tag">'+(tag?'#'+escapeHTML(tag):'')+'</div></td><td>'+clanHistoryDate(record.joined)+'</td><td>'+(stillHere?'<span class="history-current">Masih di klan</span>':clanHistoryDate(record.left))+'</td></tr>';
+      return '<tr><td>'+profileLink(record.name,record.tag)+'</td><td>'+clanHistoryDate(record.joined)+'</td><td>'+(stillHere?'<span class="history-current">Masih di klan</span>':clanHistoryDate(record.left))+'</td></tr>';
     }).join('');
     return '<section class="section"><div class="section-head"><div class="section-title">Member History</div><div class="section-value">'+records.length+' catatan</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Pemain</th><th>Tanggal masuk</th><th>Tanggal keluar</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="history-source-note">Sumber data: ClashKing.</div></section>';
   }
