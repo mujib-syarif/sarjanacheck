@@ -2380,7 +2380,7 @@ async function getClashKingHistory(tag, kind) {
   // on a single capped legacy response.
   const requestPage = async (url) => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 9000);
+    const timer = setTimeout(() => controller.abort(), 4500);
     try {
       const response = await fetch(url.toString(), {
         method: 'GET',
@@ -2427,7 +2427,7 @@ async function getClashKingHistory(tag, kind) {
     const seen = new Set();
     let before = null;
     let pages = 0;
-    const maxPages = 8;
+    const maxPages = 5;
     const pageSize = 250;
 
     for (let page = 0; page < maxPages; page++) {
@@ -2450,8 +2450,15 @@ async function getClashKingHistory(tag, kind) {
         }
       }
 
-      const batch = extractItems(body);
+      let batch = extractItems(body);
       pages++;
+      if (!batch.length && page === 0) {
+        // Some older clan records may still be exposed only by the legacy route.
+        const legacy = new URL('https://api.clashk.ing/war/' + encoded + '/previous');
+        legacy.searchParams.set('limit', '1000');
+        body = await requestPage(legacy);
+        batch = extractItems(body);
+      }
       if (!batch.length) break;
 
       let oldestTime = null;
