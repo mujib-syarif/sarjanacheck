@@ -2390,9 +2390,16 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
 .clan-history-tabs button{min-height:42px;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--text);font-weight:800}
 .clan-history-tabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .clan-history-panel[hidden],#clanMembersSection[hidden]{display:none!important}
-.history-table-wrap{overflow-x:auto}.history-table{width:100%;border-collapse:collapse;font-size:12px}
-.history-table th,.history-table td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;white-space:nowrap}
-.history-table th{color:var(--muted);font-size:10px}.history-tag,.history-source-note{color:var(--muted);font-size:10px}
+.history-war-list{display:grid;gap:10px}
+.history-war-card{padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--card2);min-width:0}
+.history-war-top{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--muted);font-size:11px}
+.history-war-state{flex:0 0 auto;padding:3px 8px;border-radius:99px;background:var(--card);font-weight:800}
+.history-war-opponent{display:block;margin-top:8px;font-size:14px;overflow-wrap:anywhere}
+.history-war-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.history-war-stats span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.history-war-stats small{color:var(--muted);font-size:10px}
+.history-war-stats b{font-size:12px;overflow-wrap:anywhere}
+.history-tag,.history-source-note{color:var(--muted);font-size:10px}
 .history-current{color:var(--green);font-weight:800}.history-source-note{margin-top:10px;line-height:1.5}
 .war-roster-table{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 8px;margin-top:10px}
 .war-roster-side{padding:7px 8px;border-radius:8px;background:var(--card2);font-size:11px;font-weight:800;overflow-wrap:anywhere}
@@ -6285,7 +6292,10 @@ function clanHistoryValue(item,keys) {
 }
 function clanHistoryDate(value) {
   if(!value)return '-';
-  const date=new Date(value);
+  let normalized=String(value);
+  const coc=/^(\\d{4})(\\d{2})(\\d{2})T(\\d{2})(\\d{2})(\\d{2})(?:\\.(\\d{1,3}))?Z$/.exec(normalized);
+  if(coc)normalized=coc[1]+'-'+coc[2]+'-'+coc[3]+'T'+coc[4]+':'+coc[5]+':'+coc[6]+'.'+(coc[7]||'0').padEnd(3,'0')+'Z';
+  const date=new Date(normalized);
   return Number.isNaN(date.getTime())?escapeHTML(value):date.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
 }
 function clanHistoryPanelHTML(kind) {
@@ -6335,11 +6345,15 @@ function clanHistoryPanelHTML(kind) {
   }
   const rows=items.map(war=>{
     const clan=war.clan||war.target||{},opponent=war.opponent||war.enemy||{};
-    const result=clanHistoryValue(war,['result','outcome','state'])||'-';
+    const rawResult=String(clanHistoryValue(war,['result','outcome','state'])||'').toLowerCase();
+    const stateLabel=rawResult==='warended'||rawResult==='ended'?'Selesai':rawResult==='inwar'?'Sedang perang':rawResult==='preparation'?'Persiapan':rawResult||'Selesai';
     const stars=clanHistoryValue(clan,['stars','clanStars']),destruction=clanHistoryValue(clan,['destructionPercentage','destruction']);
-    return '<tr><td>'+clanHistoryDate(clanHistoryValue(war,['endTime','end_time','date','time','startTime']))+'</td><td><b>'+escapeHTML(opponent.name||war.opponentName||'Unknown')+'</b><div class="history-tag">'+escapeHTML(opponent.tag||'')+'</div></td><td>'+escapeHTML(result)+'</td><td>'+escapeHTML(stars==null?'-':stars)+' ★</td><td>'+escapeHTML(destruction==null?'-':destruction)+'%</td><td>'+escapeHTML(clanHistoryValue(war,['teamSize','team_size','size'])||'-')+'</td></tr>';
+    const rounded=destruction==null?'-':Number(destruction).toFixed(1).replace(/\\.0$/,'');
+    const date=clanHistoryDate(clanHistoryValue(war,['endTime','end_time','date','time','startTime']));
+    const size=clanHistoryValue(war,['teamSize','team_size','size']);
+    return '<article class="history-war-card"><div class="history-war-top"><span>'+date+'</span><span class="history-war-state">'+escapeHTML(stateLabel)+'</span></div><b class="history-war-opponent">'+escapeHTML(opponent.name||war.opponentName||'Unknown')+'</b><div class="history-tag">'+escapeHTML(opponent.tag||'')+'</div><div class="history-war-stats"><span><small>Bintang</small><b>'+escapeHTML(stars==null?'-':stars)+' ★</b></span><span><small>Destruction</small><b>'+escapeHTML(rounded)+'%</b></span><span><small>Peserta</small><b>'+escapeHTML(size==null?'-':size)+'</b></span></div></article>';
   }).join('');
-  return '<section class="section"><div class="section-head"><div class="section-title">War History</div><div class="section-value">'+items.length+' perang</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Tanggal</th><th>Lawan</th><th>Hasil</th><th>Bintang</th><th>Destruction</th><th>Peserta</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="history-source-note">Sumber data: ClashKing.</div></section>';
+  return '<section class="section"><div class="section-head"><div class="section-title">War History</div><div class="section-value">'+items.length+' perang</div></div><div class="history-war-list">'+rows+'</div><div class="history-source-note">Sumber data: ClashKing.</div></section>';
 }
 function setClanHistoryTab(tab) {
   if(!['members','history','warhistory'].includes(tab))return;
