@@ -564,7 +564,9 @@ function normalizeCWLClan(
       number(clan.warWins),
 
     warWinStreak:
-      number(clan.warWinStreak),
+      clan.warWinStreak === undefined || clan.warWinStreak === null
+        ? null
+        : number(clan.warWinStreak),
 
     warLosses:
       number(clan.warLosses),
