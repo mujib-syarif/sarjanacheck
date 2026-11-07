@@ -2385,6 +2385,22 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
 </style>
 
   <meta name="google-site-verification" content="Gp8DVuMYbp-vC1da-IQYk-xv1tf-mH-btZ_vGcsroGk" />
+<style>
+.clan-history-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.clan-history-tabs button{min-height:42px;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--text);font-weight:800}
+.clan-history-tabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.clan-history-panel[hidden],#clanMembersSection[hidden]{display:none!important}
+.history-table-wrap{overflow-x:auto}.history-table{width:100%;border-collapse:collapse;font-size:12px}
+.history-table th,.history-table td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;white-space:nowrap}
+.history-table th{color:var(--muted);font-size:10px}.history-tag,.history-source-note{color:var(--muted);font-size:10px}
+.history-current{color:var(--green);font-weight:800}.history-source-note{margin-top:10px;line-height:1.5}
+.war-roster-table{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 8px;margin-top:10px}
+.war-roster-side{padding:7px 8px;border-radius:8px;background:var(--card2);font-size:11px;font-weight:800;overflow-wrap:anywhere}
+.war-roster-cell{display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:4px;min-width:0;padding:7px 5px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+.war-roster-no{font-size:10px;color:var(--muted);font-weight:800}.war-roster-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:700}
+.war-roster-th{font-size:10px;white-space:nowrap;color:var(--accent2)}.war-roster-cell.is-empty{border-color:transparent;background:transparent}
+@media(max-width:380px){.war-roster-table{gap:4px}.war-roster-cell{grid-template-columns:17px minmax(0,1fr);gap:3px;padding:6px 4px}.war-roster-th{grid-column:2;font-size:9px}.war-roster-name{font-size:10px}.war-roster-no{font-size:9px}}
+</style>
 </head>
 
 <body>
@@ -6251,9 +6267,75 @@ async function downloadClanShareCard() {
    RENDER CLAN
 ============================================================ */
 
+let clanHistoryTab = 'members';
+let clanHistoryCache = { memberhistory:null, warhistory:null };
+let clanHistoryError = '';
+let clanHistoryLoading = false;
+function clanHistoryItems(raw,keys) {
+  if(Array.isArray(raw))return raw;
+  if(!raw||typeof raw!=='object')return [];
+  for(const key of keys)if(Array.isArray(raw[key]))return raw[key];
+  if(raw.archive)return clanHistoryItems(raw.archive,keys);
+  if(Array.isArray(raw.data))return raw.data;
+  return [];
+}
+function clanHistoryValue(item,keys) {
+  for(const key of keys)if(item&&item[key]!==undefined&&item[key]!==null&&item[key]!=='')return item[key];
+  return null;
+}
+function clanHistoryDate(value) {
+  if(!value)return '-';
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?escapeHTML(value):date.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+}
+function clanHistoryPanelHTML(kind) {
+  const isWar=kind==='warhistory',cache=clanHistoryCache[kind];
+  const items=clanHistoryItems(cache,isWar?['wars','items','history','results']:['items','members','history','results','joinLeave']);
+  if(clanHistoryLoading&&!cache)return '<section class="section"><div class="loading"><div class="spinner"></div><div class="loading-title">Memuat history...</div></div></section>';
+  if(clanHistoryError&&!cache)return '<section class="section"><div class="error-box"><strong>History gagal dimuat</strong><div>'+escapeHTML(clanHistoryError)+'</div><button type="button" class="retry-btn" onclick="loadClanHistory(\''+kind+'\')">Coba lagi</button></div></section>';
+  if(!cache||!items.length)return '<section class="section"><div class="empty">Belum ada arsip '+(isWar?'war':'member')+' yang tersedia untuk klan ini.</div><div class="history-source-note">Sumber: ClashKing. Arsip hanya tersedia sejak klan mulai dipantau.</div></section>';
+  if(!isWar){
+    const rows=items.map(item=>{
+      const joined=clanHistoryValue(item,['joinDate','joinedAt','joinTime','joined','startTime','start_time']);
+      const left=clanHistoryValue(item,['leaveDate','leftAt','leaveTime','left','endTime','end_time']);
+      const active=!left||item.isInClan===true||item.current===true;
+      return '<tr><td><b>'+escapeHTML(clanHistoryValue(item,['name','playerName','player_name'])||'Unknown')+'</b><div class="history-tag">'+escapeHTML(clanHistoryValue(item,['tag','playerTag','player_tag'])||'')+'</div></td><td>'+clanHistoryDate(joined)+'</td><td>'+(active?'<span class="history-current">Masih di klan</span>':clanHistoryDate(left))+'</td></tr>';
+    }).join('');
+    return '<section class="section"><div class="section-head"><div class="section-title">Member History</div><div class="section-value">'+items.length+' catatan</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Pemain</th><th>Tanggal masuk</th><th>Tanggal keluar</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="history-source-note">Sumber data: ClashKing.</div></section>';
+  }
+  const rows=items.map(war=>{
+    const clan=war.clan||war.target||{},opponent=war.opponent||war.enemy||{};
+    const result=clanHistoryValue(war,['result','outcome','state'])||'-';
+    const stars=clanHistoryValue(clan,['stars','clanStars']),destruction=clanHistoryValue(clan,['destructionPercentage','destruction']);
+    return '<tr><td>'+clanHistoryDate(clanHistoryValue(war,['endTime','end_time','date','time','startTime']))+'</td><td><b>'+escapeHTML(opponent.name||war.opponentName||'Unknown')+'</b><div class="history-tag">'+escapeHTML(opponent.tag||'')+'</div></td><td>'+escapeHTML(result)+'</td><td>'+escapeHTML(stars==null?'-':stars)+' ★</td><td>'+escapeHTML(destruction==null?'-':destruction)+'%</td><td>'+escapeHTML(clanHistoryValue(war,['teamSize','team_size','size'])||'-')+'</td></tr>';
+  }).join('');
+  return '<section class="section"><div class="section-head"><div class="section-title">War History</div><div class="section-value">'+items.length+' perang</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Tanggal</th><th>Lawan</th><th>Hasil</th><th>Bintang</th><th>Destruction</th><th>Peserta</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="history-source-note">Sumber data: ClashKing.</div></section>';
+}
+function setClanHistoryTab(tab) {
+  if(!['members','history','warhistory'].includes(tab))return;
+  clanHistoryTab=tab;
+  const members=document.getElementById('clanMembersSection'),panel=document.getElementById('clanHistoryPanel');
+  document.querySelectorAll('[data-clan-tab]').forEach(button=>{button.classList.toggle('active',button.dataset.clanTab===tab);button.setAttribute('aria-pressed',button.dataset.clanTab===tab?'true':'false');});
+  if(members)members.hidden=tab!=='members';
+  if(panel){panel.hidden=tab==='members';panel.innerHTML=tab==='members'?'':clanHistoryPanelHTML(tab==='history'?'memberhistory':'warhistory');}
+  if(tab!=='members'){const kind=tab==='history'?'memberhistory':'warhistory';if(!clanHistoryCache[kind]&&!clanHistoryLoading)loadClanHistory(kind);}
+}
+async function loadClanHistory(kind) {
+  if(!currentClan||!currentClan.tag||clanHistoryLoading)return;
+  clanHistoryLoading=true;clanHistoryError='';
+  const panel=document.getElementById('clanHistoryPanel');
+  if(panel)panel.innerHTML=clanHistoryPanelHTML(kind);
+  try{clanHistoryCache[kind]=await api(kind,currentClan.tag);}
+  catch(error){clanHistoryError=error&&error.message?error.message:'Gagal mengambil arsip.';}
+  finally{clanHistoryLoading=false;const activeKind=clanHistoryTab==='history'?'memberhistory':'warhistory';if(clanHistoryTab!=='members'&&activeKind===kind&&panel)panel.innerHTML=clanHistoryPanelHTML(kind);}
+}
+
 function renderClan(clan) {
 
   clanShareData = clan;
+  clanHistoryTab = 'members';
+  clanHistoryCache = { memberhistory:null, warhistory:null };
+  clanHistoryError = '';
 
   const members =
     sortClanMembers(
@@ -6443,13 +6525,23 @@ function renderClan(clan) {
             )}
           </strong>
         </div>
+        <div class="meta">
+          WWS
+          <strong>${formatNumber(clan.warWinStreak || 0)}</strong>
+        </div>
 
       </div>
 
     </div>
 
+    <nav class="clan-history-tabs" aria-label="Clan sections">
+      <button type="button" data-clan-tab="members" class="active" onclick="setClanHistoryTab('members')">Members</button>
+      <button type="button" data-clan-tab="history" onclick="setClanHistoryTab('history')">History</button>
+      <button type="button" data-clan-tab="warhistory" onclick="setClanHistoryTab('warhistory')">War History</button>
+    </nav>
+    <div id="clanHistoryPanel" class="clan-history-panel" hidden></div>
 
-    <section class="section">
+    <section class="section" id="clanMembersSection">
 
       <div class="section-head">
 
@@ -7462,6 +7554,11 @@ function renderCwlRound(
       <div class="war-foot">
         ${total ? total + ' vs ' + total + ' pemain' : ''}
       </div>
+      <details class="roster-details">
+        <summary>Lihat daftar peserta</summary>
+        ${warRosterComparisonHTML(sides.mine,sides.enemy)}
+      </details>
+
 
     </div>
 
@@ -8396,6 +8493,21 @@ function currentWarSideHTML(side,total,alignRight) {
 }
 
 
+function warRosterComparisonHTML(leftSide,rightSide) {
+  const left=asArray(leftSide&&leftSide.members).slice().sort((a,b)=>number(a.mapPosition)-number(b.mapPosition));
+  const right=asArray(rightSide&&rightSide.members).slice().sort((a,b)=>number(a.mapPosition)-number(b.mapPosition));
+  const total=Math.max(left.length,right.length);
+  const cell=(member,index)=>{
+    if(!member)return '<div class="war-roster-cell is-empty"></div>';
+    const position=number(member.mapPosition)||index+1;
+    const th=firstValue(member.townHallLevel,member.townhallLevel,member.townHall,'-');
+    return '<div class="war-roster-cell"><span class="war-roster-no">'+position+'.</span><span class="war-roster-name">'+escapeHTML(member.name||'-')+'</span><b class="war-roster-th">TH '+escapeHTML(th)+'</b></div>';
+  };
+  let rows='';
+  for(let i=0;i<total;i++)rows+=cell(left[i],i)+cell(right[i],i);
+  return '<div class="war-roster-table"><div class="war-roster-side">'+escapeHTML(firstValue(leftSide&&leftSide.name,'Klan sendiri'))+'</div><div class="war-roster-side">'+escapeHTML(firstValue(rightSide&&rightSide.name,'Klan lawan'))+'</div>'+rows+'</div>';
+}
+
 function currentWarMemberHTML(member,state) {
 
   const started = state !== 'preparation';
@@ -8555,45 +8667,8 @@ function currentWarSectionHTML(current) {
       </div>
 
       <details class="roster-details">
-
-        <summary>Lihat peserta${war.state === 'preparation' ? '' : ' & serangan'}</summary>
-
-        <div class="cw-roster-grid">
-
-          ${lists.map(
-            function(entry) {
-
-              const side = entry[0];
-
-              return `
-                <div class="cw-group">
-
-                  <div class="cw-group-title">
-                    ${escapeHTML(firstValue(side.name,'Klan'))}
-                    <span>${side.members.length}</span>
-                  </div>
-
-                  ${side.members.length
-                    ? side.members
-                        .map(
-                          function(member) {
-                            return currentWarMemberHTML(
-                              member,
-                              war.state
-                            );
-                          }
-                        )
-                        .join('')
-                    : '<div class="empty">Daftar peserta belum tersedia.</div>'}
-
-                </div>
-              `;
-
-            }
-          ).join('')}
-
-        </div>
-
+        <summary>Lihat daftar peserta</summary>
+        ${warRosterComparisonHTML(war.clan,war.opponent)}
       </details>
 
     </section>
@@ -9643,6 +9718,5 @@ setMode('player');
 
 </script>
 
-<script src="clan-history.js"></script>
 </body>
 </html>
