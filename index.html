@@ -7673,6 +7673,60 @@ const WARLOG_FILTERS = [
 ];
 
 
+function normalizeArchivedWarItem(item, requestedTag) {
+  const source=item||{};
+  const clan=source.clan||source.home||source.ourClan||{};
+  const opponent=source.opponent||source.enemy||source.away||{};
+  const endTime=firstValue(source.endTime,source.end_time,source.endDate,source.date,source.time,source.startTime);
+  const stars=firstValue(clan.stars,clan.clanStars,source.clanStars,source.stars);
+  const enemyStars=firstValue(opponent.stars,opponent.clanStars,source.opponentStars);
+  const destruction=firstValue(clan.destructionPercentage,clan.destruction,source.destructionPercentage);
+  const enemyDestruction=firstValue(opponent.destructionPercentage,opponent.destruction,source.opponentDestructionPercentage);
+  let result=String(firstValue(source.result,source.outcome,'')).toLowerCase();
+  if(!['win','lose','tie'].includes(result)){
+    if(stars!=null&&enemyStars!=null)result=Number(stars)>Number(enemyStars)?'win':Number(stars)<Number(enemyStars)?'lose':'tie';
+    else if(destruction!=null&&enemyDestruction!=null)result=Number(destruction)>Number(enemyDestruction)?'win':Number(destruction)<Number(enemyDestruction)?'lose':'tie';
+    else result='unknown';
+  }
+  return {
+    result,
+    endTime:endTime?(/Z$|[+-]\\d\\d:\\d\\d$/.test(String(endTime))?String(endTime):String(endTime)):null,
+    teamSize:number(firstValue(source.teamSize,source.team_size,source.size))||null,
+    attacksPerMember:number(firstValue(source.attacksPerMember,source.attacks_per_member))||null,
+    clan:{
+      tag:cleanTag(firstValue(clan.tag,clan.clanTag,requestedTag)),
+      name:firstValue(clan.name,clan.clanName,'Klan'),
+      stars:number(stars),
+      destructionPercentage:number(destruction),
+      attacks:clan.attacks==null?null:number(clan.attacks),
+      clanLevel:number(clan.clanLevel)
+    },
+    opponent:{
+      tag:cleanTag(firstValue(opponent.tag,opponent.clanTag,source.opponentTag)),
+      name:firstValue(opponent.name,opponent.clanName,source.opponentName,'Lawan'),
+      stars:number(enemyStars),
+      destructionPercentage:number(enemyDestruction),
+      attacks:opponent.attacks==null?null:number(opponent.attacks),
+      clanLevel:number(opponent.clanLevel)
+    },
+    archiveSource:true
+  };
+}
+
+function mergeWarLogSources(officialRaw, archiveRaw, tag) {
+  const official=normalizeWarLogData(officialRaw||{tag,wars:[]});
+  const archiveItems=Array.isArray(archiveRaw)?archiveRaw:asArray(archiveRaw&&archiveRaw.items).length?archiveRaw.items:asArray(archiveRaw&&archiveRaw.wars);
+  const combined=official.wars.slice();
+  const keys=new Set(combined.map(w=>String(w.endTime||'')+'|'+cleanTag(w.opponent&&w.opponent.tag)));
+  archiveItems.forEach(item=>{
+    const war=normalizeArchivedWarItem(item,tag);
+    const key=String(war.endTime||'')+'|'+cleanTag(war.opponent&&war.opponent.tag);
+    if(!war.endTime||!war.opponent.name||!keys.has(key)){combined.push(war);keys.add(key);}
+  });
+  combined.sort((a,b)=>String(b.endTime||'').localeCompare(String(a.endTime||'')));
+  return {tag:official.tag||cleanTag(tag),wars:combined,hiddenCwl:official.hiddenCwl||0,hasMore:official.hasMore||Boolean(archiveRaw&&archiveRaw.hasMore),archiveCount:archiveItems.length,officialCount:official.wars.length};
+}
+
 function normalizeWarLogData(raw) {
 
   const data =
@@ -7710,7 +7764,8 @@ async function loadWarLog(tag) {
   const results =
     await Promise.allSettled([
       api('warlog', tag),
-      api('currentwar', tag)
+      api('currentwar', tag),
+      api('warhistory', tag)
     ]);
 
   const logFail =
@@ -7721,6 +7776,11 @@ async function loadWarLog(tag) {
   const currentFail =
     results[1].status === 'rejected'
       ? results[1].reason
+      : null;
+
+  const archiveFail =
+    results[2].status === 'rejected'
+      ? results[2].reason
       : null;
 
   if (
@@ -7747,11 +7807,11 @@ async function loadWarLog(tag) {
   }
 
   currentWarLog =
-    logFail
-      ? null
-      : normalizeWarLogData(
-          results[0].value
-        );
+    !logFail
+      ? mergeWarLogSources(results[0].value,archiveFail?null:results[2].value,tag)
+      : !archiveFail
+        ? mergeWarLogSources(null,results[2].value,tag)
+        : null;
 
   currentWarState = {
     data:
@@ -7768,8 +7828,8 @@ async function loadWarLog(tag) {
   };
 
   warLogError =
-    logFail
-      ? logFail.message
+    logFail && archiveFail
+      ? logFail.message + ' | Arsip tambahan: ' + archiveFail.message
       : null;
 
   warLogFilter = 'all';
@@ -8216,7 +8276,7 @@ function warLogHeaderHTML(log) {
 
   const notes = [
     'Berdasarkan ' + wars.length +
-    ' perang terakhir yang tercatat di war log.'
+    ' perang dari War Log resmi dan arsip tambahan ClashKing.'
   ];
 
   if (log.hasMore) {
