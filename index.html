@@ -5984,7 +5984,12 @@ function normalizeClan(raw) {
         clan.badgeUrls,
         clan.iconUrls,
         null
-      )
+      ),
+
+    warWinStreak:
+      clan.warWinStreak === undefined || clan.warWinStreak === null
+        ? null
+        : number(clan.warWinStreak)
 
   };
 
@@ -6207,6 +6212,12 @@ async function loadClan(tag) {
       currentClan
     );
 
+    // Use the official streak when available; otherwise derive a bounded
+    // estimate from recent classic wars. Never display an invented zero.
+    if (currentClan.warWinStreak == null) {
+      loadClanWws(currentClan.tag);
+    }
+
   } catch (error) {
 
     handleLoadError(error);
@@ -6215,6 +6226,37 @@ async function loadClan(tag) {
 
 }
 
+
+async function loadClanWws(tag) {
+  const target=document.getElementById('clanWwsValue');
+  if(!target)return;
+  try {
+    const log=normalizeWarLogData(await api('warlog',tag));
+    if(!currentClan||cleanTag(currentClan.tag)!==cleanTag(tag))return;
+    const wins=[];
+    for(const war of log.wars) {
+      const result=String(war.result||'').toLowerCase();
+      if(result==='win')wins.push(war);
+      else if(result==='lose'||result==='tie')break;
+      else break;
+    }
+    if(!log.wars.length) {
+      target.textContent='-';
+      target.title='Tidak ada data perang yang bisa digunakan untuk menghitung WWS.';
+    } else if(wins.length===log.wars.length && log.hasMore) {
+      target.textContent=wins.length+'+';
+      target.title='Minimal '+wins.length+' kemenangan beruntun. Arsip war log belum lengkap.';
+    } else {
+      target.textContent=String(wins.length);
+      target.title='Dihitung dari hasil Classic War terbaru dalam war log.';
+    }
+  } catch(error) {
+    if(currentClan&&cleanTag(currentClan.tag)===cleanTag(tag)) {
+      target.textContent='-';
+      target.title='WWS tidak tersedia: '+(error&&error.message?error.message:'gagal mengambil war log');
+    }
+  }
+}
 
 /* ============================================================
    RENDER CLAN
@@ -6571,7 +6613,7 @@ function renderClan(clan) {
         </div>
         <div class="meta">
           WWS
-          <strong>${formatNumber(clan.warWinStreak || 0)}</strong>
+          <strong id="clanWwsValue">${clan.warWinStreak == null ? 'Memuat...' : formatNumber(clan.warWinStreak)}</strong>
         </div>
 
       </div>
