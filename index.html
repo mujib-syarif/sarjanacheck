@@ -7689,7 +7689,7 @@ function normalizeArchivedWarItem(item, requestedTag) {
   }
   return {
     result,
-    endTime:endTime?(/Z$|[+-]\\d\\d:\\d\\d$/.test(String(endTime))?String(endTime):String(endTime)):null,
+    endTime:endTime?String(endTime):null,
     teamSize:number(firstValue(source.teamSize,source.team_size,source.size))||null,
     attacksPerMember:number(firstValue(source.attacksPerMember,source.attacks_per_member))||null,
     clan:{
@@ -7791,7 +7791,7 @@ async function loadWarLog(tag) {
 
   /* Dua-duanya gagal (misalnya war log privat) -> satu pesan. */
 
-  if (logFail && currentFail) {
+  if (logFail && currentFail && archiveFail) {
 
     handleLoadError(
       logFail.code === 'private'
@@ -8289,6 +8289,10 @@ function warLogHeaderHTML(log) {
       log.hiddenCwl +
       ' entri CWL tidak dihitung (hanya Classic War).'
     );
+  }
+
+  if (log.archiveCount) {
+    notes.push('Tambahan ' + log.archiveCount + ' catatan arsip ClashKing sebelum digabung dan dideduplikasi.');
   }
 
   return `
