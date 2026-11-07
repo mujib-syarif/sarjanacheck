@@ -2365,6 +2365,22 @@ async function getCurrentWar(
 /* ========================================================= */
 
 
+/* ClashKing public historical archive proxy. Public routes do not require an API key. */
+async function getClashKingHistory(tag, kind) {
+  const route = kind === 'memberhistory' ? 'join-leave' : 'wars';
+  const url = 'https://api.clashk.ing/v2/clan/' + encodeURIComponent(tag) + '/' + route;
+  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+  const text = await response.text();
+  let data;
+  try { data = JSON.parse(text); } catch (_) { throw new Error('ClashKing returned a non-JSON response.'); }
+  if (!response.ok) {
+    const error = new Error((data && (data.message || data.error || data.detail)) || ('ClashKing HTTP ' + response.status));
+    error.status = response.status;
+    throw error;
+  }
+  return data;
+}
+
 /* =========================================================
    ROUTER
 ========================================================= */
@@ -2425,7 +2441,9 @@ export default {
         "/clan",
         "/cwl",
         "/warlog",
-        "/currentwar"
+        "/currentwar",
+        "/memberhistory",
+        "/warhistory"
       ]);
 
       if (apiRoutes.has(pathname)) {
@@ -2824,6 +2842,23 @@ export default {
         }
       }
 
+
+      /* CLAN HISTORY: archived data provided by ClashKing */
+      if (pathname === "/memberhistory" || pathname === "/warhistory") {
+        const rawTag = url.searchParams.get("tag");
+        if (!rawTag) return errorResponse(request, "Parameter tag wajib diisi.", 400, "missingTag");
+        const tag = cleanTag(rawTag);
+        if (!validClanTag(tag)) return errorResponse(request, "Format clan tag tidak valid.", 400, "invalidTag");
+        const kind = pathname === "/memberhistory" ? "memberhistory" : "warhistory";
+        return cachedJson(request, "/__cache/" + kind + "/" + encodeURIComponent(tag), 300, async () => {
+          try {
+            const archive = await getClashKingHistory(tag, kind);
+            return json({ ok: true, tag, source: "ClashKing", archive }, request);
+          } catch (error) {
+            return apiErrorResponse(request, error, kind === "memberhistory" ? "Member history" : "War history");
+          }
+        });
+      }
 
       /* ===================================================
          UNKNOWN ROUTE
