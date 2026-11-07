@@ -2367,76 +2367,75 @@ async function getCurrentWar(
 /* ========================================================= */
 
 
-/* ClashKing historical archive proxy.
-   Clan join-leave is user-authenticated; stored wars are public.
-   Store the ClashKing user access token as Worker secret CLASHKING_API_TOKEN.
+/* ClashKing legacy public archive proxy.
+   The legacy clan join/leave and previous-war endpoints are public,
+   so historical pages do not depend on an Expo account or email token.
 */
-async function getClashKingHistory(tag, kind, env) {
-  const route = kind === 'memberhistory' ? 'join-leave' : 'wars';
-  const base = 'https://api.clashk.ing/v2/clan/' + encodeURIComponent(tag) + '/' + route;
-  const headers = { Accept: 'application/json' };
+async function getClashKingHistory(tag, kind) {
+  const encoded = encodeURIComponent(cleanTag(tag));
+  const path = kind === 'memberhistory'
+    ? '/clan/' + encoded + '/join-leave'
+    : '/war/' + encoded + '/previous';
+  const url = new URL('https://api.clashk.ing' + path);
+  url.searchParams.set('limit', '100');
 
-  if (kind === 'memberhistory') {
-    const token = env.CLASHKING_API_TOKEN;
-    if (!token) {
-      const error = new Error('Token ClashKing belum dikonfigurasi. Tambahkan Worker secret CLASHKING_API_TOKEN.');
-      error.status = 503;
-      throw error;
-    }
-    headers.Authorization = 'Bearer ' + token;
-  }
-
-  const limit = 100;
-  const items = [];
-  const seen = new Set();
-  let before = null;
-  const maxPages = kind === 'warhistory' ? 5 : 1;
-
-  for (let page = 0; page < maxPages; page++) {
-    const url = new URL(base);
-    url.searchParams.set('limit', String(limit));
-    if (before) url.searchParams.set('time[before]', before);
-
-    const response = await fetch(url.toString(), { headers });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
+  let response;
+  let body;
+  try {
+    response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: controller.signal
+    });
     const text = await response.text();
-    let data;
-    try { data = JSON.parse(text); }
-    catch (_) {
-      const error = new Error('ClashKing returned a non-JSON response.');
+    try {
+      body = JSON.parse(text);
+    } catch (_) {
+      const error = new Error('ClashKing legacy API mengembalikan respons non-JSON.');
       error.status = response.status || 502;
       throw error;
     }
-
-    if (!response.ok) {
-      const message = data && (data.message || data.error || data.detail);
-      const error = new Error(message || ('ClashKing HTTP ' + response.status));
-      error.status = response.status;
-      throw error;
-    }
-
-    const batch = Array.isArray(data && data.items) ? data.items : [];
-    for (const item of batch) {
-      const key = kind === 'warhistory'
-        ? String(item.tag || '') + '|' + String(item.endTime || '') + '|' + String(item.opponent && item.opponent.tag || '')
-        : String(item.time || '') + '|' + String(item.type || '') + '|' + String(item.tag || '');
-      if (!seen.has(key)) {
-        seen.add(key);
-        items.push(item);
-      }
-    }
-
-    if (kind !== 'warhistory' || batch.length < limit) break;
-    const oldest = batch.reduce((value, item) => {
-      const time = String(item.endTime || item.time || '');
-      return !value || time < value ? time : value;
-    }, null);
-    if (!oldest || oldest === before) break;
-    before = oldest;
+  } catch (error) {
+    if (error && error.status) throw error;
+    const failure = new Error(
+      error && error.name === 'AbortError'
+        ? 'Permintaan ke ClashKing timeout.'
+        : 'Tidak dapat terhubung ke ClashKing legacy API.'
+    );
+    failure.status = 503;
+    throw failure;
+  } finally {
+    clearTimeout(timer);
   }
 
+  if (!response.ok) {
+    const message = body && (body.message || body.error || body.detail);
+    const error = new Error(message || ('ClashKing legacy HTTP ' + response.status));
+    error.status = response.status;
+    throw error;
+  }
+
+  const sourceItems = Array.isArray(body)
+    ? body
+    : Array.isArray(body && body.items)
+      ? body.items
+      : [];
+
+  const items = kind === 'memberhistory'
+    ? sourceItems.map(item => ({
+        ...item,
+        name: item.name || item.player_name || 'Unknown',
+        tag: item.tag || item.player_tag || '',
+        time: item.time || item.timestamp || '',
+        type: item.type || item.event || ''
+      }))
+    : sourceItems;
+
   return kind === 'warhistory'
-    ? { items, fetched: items.length, pageLimit: limit, maxPages }
-    : { items, available: items.length };
+    ? { items, fetched: items.length, source: 'ClashKing legacy public archive' }
+    : { items, available: items.length, source: 'ClashKing legacy public archive' };
 }
 
 /* =========================================================
@@ -2910,7 +2909,7 @@ export default {
         const kind = pathname === "/memberhistory" ? "memberhistory" : "warhistory";
         return cachedJson(request, "/__cache/" + kind + "/" + encodeURIComponent(tag), 300, async () => {
           try {
-            const archive = await getClashKingHistory(tag, kind, env);
+            const archive = await getClashKingHistory(tag, kind);
             return json({ ok: true, tag, source: "ClashKing", archive }, request);
           } catch (error) {
             const status = Number(error && error.status) || 502;
