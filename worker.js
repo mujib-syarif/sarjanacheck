@@ -2855,7 +2855,18 @@ export default {
             const archive = await getClashKingHistory(tag, kind);
             return json({ ok: true, tag, source: "ClashKing", archive }, request);
           } catch (error) {
-            return apiErrorResponse(request, error, kind === "memberhistory" ? "Member history" : "War history");
+            const status = Number(error && error.status) || 502;
+            const detail = error && error.message
+              ? String(error.message).slice(0, 220)
+              : "Unknown ClashKing error";
+            return errorResponse(
+              request,
+              "ClashKing gagal mengambil " +
+                (kind === "memberhistory" ? "member history" : "war history") +
+                ". HTTP " + status + ": " + detail,
+              status >= 400 && status <= 599 ? status : 502,
+              status === 401 || status === 403 ? "clashKingAccessError" : "clashKingHistoryError"
+            );
           }
         });
       }
