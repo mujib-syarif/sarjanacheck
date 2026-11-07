@@ -31,7 +31,7 @@
     var d = new Date(value);
     return isNaN(d.getTime()) ? String(value) : d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
   }
-  function section() { return document.querySelector('#clanContent .section'); }
+  function section() { var root=document.getElementById('clanContent'); if(!root) return null; return Array.prototype.find.call(root.children,function(el){return el.classList && el.classList.contains('section');}) || null; }
   function draw() {
     var root = document.getElementById('clanContent');
     if (!root) return;
