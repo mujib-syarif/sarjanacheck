@@ -2373,70 +2373,133 @@ async function getCurrentWar(
 */
 async function getClashKingHistory(tag, kind) {
   const encoded = encodeURIComponent(cleanTag(tag));
-  const path = kind === 'memberhistory'
-    ? '/clan/' + encoded + '/join-leave'
-    : '/war/' + encoded + '/previous';
-  const url = new URL('https://api.clashk.ing' + path);
-  // Request the largest practical archive page; the provider may still cap results.
-  url.searchParams.set('limit', '1000');
+  const isWar = kind === 'warhistory';
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 12000);
-  let response;
-  let body;
-  try {
-    response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      signal: controller.signal
-    });
-    const text = await response.text();
+  // ClashKing v2 supports time-window filtering for stored clan history.
+  // Walk backwards by the oldest returned war timestamp instead of relying
+  // on a single capped legacy response.
+  const requestPage = async (url) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 9000);
     try {
-      body = JSON.parse(text);
-    } catch (_) {
-      const error = new Error('ClashKing legacy API mengembalikan respons non-JSON.');
-      error.status = response.status || 502;
-      throw error;
-    }
-  } catch (error) {
-    if (error && error.status) throw error;
-    const failure = new Error(
-      error && error.name === 'AbortError'
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        signal: controller.signal
+      });
+      const text = await response.text();
+      let body;
+      try {
+        body = JSON.parse(text);
+      } catch (_) {
+        const error = new Error('ClashKing mengembalikan respons non-JSON.');
+        error.status = response.status || 502;
+        throw error;
+      }
+      if (!response.ok) {
+        const error = new Error((body && (body.message || body.error || body.detail)) || ('ClashKing HTTP ' + response.status));
+        error.status = response.status;
+        throw error;
+      }
+      return body;
+    } catch (error) {
+      if (error && error.status) throw error;
+      const failure = new Error(error && error.name === 'AbortError'
         ? 'Permintaan ke ClashKing timeout.'
-        : 'Tidak dapat terhubung ke ClashKing legacy API.'
-    );
-    failure.status = 503;
-    throw failure;
-  } finally {
-    clearTimeout(timer);
+        : 'Tidak dapat terhubung ke ClashKing API.');
+      failure.status = 503;
+      throw failure;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  const extractItems = (body) => {
+    if (Array.isArray(body)) return body;
+    for (const key of ['items', 'wars', 'history', 'results', 'data']) {
+      if (Array.isArray(body && body[key])) return body[key];
+    }
+    return [];
+  };
+
+  if (isWar) {
+    const all = [];
+    const seen = new Set();
+    let before = null;
+    let pages = 0;
+    const maxPages = 8;
+    const pageSize = 250;
+
+    for (let page = 0; page < maxPages; page++) {
+      const url = new URL('https://api.clashk.ing/v2/clan/' + encoded + '/wars');
+      url.searchParams.set('limit', String(pageSize));
+      if (before) url.searchParams.set('time[before]', before);
+
+      let body;
+      try {
+        body = await requestPage(url);
+      } catch (error) {
+        // Preserve compatibility with the documented public legacy route
+        // when v2 history is unavailable for a particular clan.
+        if (page === 0) {
+          const legacy = new URL('https://api.clashk.ing/war/' + encoded + '/previous');
+          legacy.searchParams.set('limit', '1000');
+          body = await requestPage(legacy);
+        } else {
+          throw error;
+        }
+      }
+
+      const batch = extractItems(body);
+      pages++;
+      if (!batch.length) break;
+
+      let oldestTime = null;
+      for (const item of batch) {
+        const clan = item && (item.clan || item.target || {});
+        const opponent = item && (item.opponent || item.enemy || {});
+        const endTime = item && (item.endTime || item.end_time || item.time || item.date || item.startTime);
+        const opponentTag = opponent && (opponent.tag || opponent.clanTag || '');
+        const identity = String(endTime || '') + '|' + String(opponentTag || opponent.name || '') + '|' + String(clan && (clan.tag || clan.name) || '');
+        if (!seen.has(identity)) {
+          seen.add(identity);
+          all.push(item);
+        }
+        if (endTime) {
+          const parsed = Date.parse(String(endTime).replace(/^(\\d{4})(\\d{2})(\\d{2})T(\\d{2})(\\d{2})(\\d{2})(?:\\.(\\d+))?Z$/, '$1-$2-$3T$4:$5:$6Z'));
+          if (Number.isFinite(parsed) && (oldestTime === null || parsed < oldestTime.value)) {
+            oldestTime = { value: parsed, raw: endTime };
+          }
+        }
+      }
+
+      // If the provider returned fewer than the requested page size, there
+      // is no evidence of another page. Otherwise move the time boundary back.
+      if (batch.length < pageSize || !oldestTime) break;
+      const nextBefore = new Date(oldestTime.value - 1).toISOString();
+      if (nextBefore === before) break;
+      before = nextBefore;
+    }
+
+    all.sort((a, b) => {
+      const getTime = item => Date.parse(String(item && (item.endTime || item.end_time || item.time || item.date || item.startTime) || '').replace(/^(\\d{4})(\\d{2})(\\d{2})T(\\d{2})(\\d{2})(\\d{2})(?:\\.(\\d+))?Z$/, '$1-$2-$3T$4:$5:$6Z')) || 0;
+      return getTime(b) - getTime(a);
+    });
+    return { items: all, fetched: all.length, pages, source: 'ClashKing v2 stored clan wars' };
   }
 
-  if (!response.ok) {
-    const message = body && (body.message || body.error || body.detail);
-    const error = new Error(message || ('ClashKing legacy HTTP ' + response.status));
-    error.status = response.status;
-    throw error;
-  }
-
-  const sourceItems = Array.isArray(body)
-    ? body
-    : Array.isArray(body && body.items)
-      ? body.items
-      : [];
-
-  const items = kind === 'memberhistory'
-    ? sourceItems.map(item => ({
-        ...item,
-        name: item.name || item.player_name || 'Unknown',
-        tag: item.tag || item.player_tag || '',
-        time: item.time || item.timestamp || '',
-        type: item.type || item.event || ''
-      }))
-    : sourceItems;
-
-  return kind === 'warhistory'
-    ? { items, fetched: items.length, source: 'ClashKing legacy public archive' }
-    : { items, available: items.length, source: 'ClashKing legacy public archive' };
+  const legacy = new URL('https://api.clashk.ing/clan/' + encoded + '/join-leave');
+  legacy.searchParams.set('limit', '1000');
+  const body = await requestPage(legacy);
+  const sourceItems = extractItems(body);
+  const items = sourceItems.map(item => ({
+    ...item,
+    name: item.name || item.player_name || 'Unknown',
+    tag: item.tag || item.player_tag || '',
+    time: item.time || item.timestamp || '',
+    type: item.type || item.event || ''
+  }));
+  return { items, available: items.length, source: 'ClashKing legacy public archive' };
 }
 
 /* =========================================================
