@@ -2473,7 +2473,7 @@ async function getClashKingHistory(tag, kind) {
           all.push(item);
         }
         if (endTime) {
-          const parsed = Date.parse(String(endTime).replace(/^(\\d{4})(\\d{2})(\\d{2})T(\\d{2})(\\d{2})(\\d{2})(?:\\.(\\d+))?Z$/, '$1-$2-$3T$4:$5:$6Z'));
+          const parsed = Date.parse(String(endTime).replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:\\.(\d+))?Z$/, '$1-$2-$3T$4:$5:$6Z'));
           if (Number.isFinite(parsed) && (oldestTime === null || parsed < oldestTime.value)) {
             oldestTime = { value: parsed, raw: endTime };
           }
@@ -2489,7 +2489,7 @@ async function getClashKingHistory(tag, kind) {
     }
 
     all.sort((a, b) => {
-      const getTime = item => Date.parse(String(item && (item.endTime || item.end_time || item.time || item.date || item.startTime) || '').replace(/^(\\d{4})(\\d{2})(\\d{2})T(\\d{2})(\\d{2})(\\d{2})(?:\\.(\\d+))?Z$/, '$1-$2-$3T$4:$5:$6Z')) || 0;
+      const getTime = item => Date.parse(String(item && (item.endTime || item.end_time || item.time || item.date || item.startTime) || '').replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:\\.(\d+))?Z$/, '$1-$2-$3T$4:$5:$6Z')) || 0;
       return getTime(b) - getTime(a);
     });
     return { items: all, fetched: all.length, pages, source: 'ClashKing v2 stored clan wars' };
