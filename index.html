@@ -388,6 +388,74 @@
       margin-top:2px;
     }
 
+    .clan-war-toggle {
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:12px;
+      padding:11px 13px;
+      border:1px solid #c7d7ea;
+      border-radius:11px;
+      background:linear-gradient(135deg,#f5f9ff,#e8f1fc);
+      color:var(--accent);
+      font-weight:800;
+      text-align:left;
+    }
+
+    .clan-war-toggle span:last-child {
+      color:var(--muted);
+      font-size:11px;
+      font-weight:700;
+    }
+
+    .clan-war-stats {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+      margin-top:8px;
+    }
+
+    .clan-war-stats[hidden] {
+      display:none;
+    }
+
+    .clan-war-stat {
+      min-width:0;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:11px;
+      background:#f8fbff;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:700;
+    }
+
+    .clan-war-stat strong {
+      display:block;
+      margin-top:3px;
+      color:var(--text);
+      font-size:18px;
+      font-weight:800;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .clan-war-stat.streak {
+      border-color:#e5cf91;
+      background:linear-gradient(135deg,#fffaf0,#f8edcf);
+    }
+
+    .clan-war-stat.streak strong {
+      color:#8a6200;
+    }
+
+    @media (max-width:560px) {
+      .clan-war-stats {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+    }
+
     /* =========================
        SECTION
     ========================= */
@@ -6308,6 +6376,23 @@ async function downloadClanShareCard() {
 }
 
 /* ============================================================
+   CLAN WAR STATS TOGGLE
+============================================================ */
+
+function toggleClanWarStats() {
+  const panel = document.getElementById('clanWarStats');
+  const button = document.getElementById('clanWarToggle');
+  const label = document.getElementById('clanWarToggleLabel');
+  if (!panel || !button || !label) return;
+
+  const willOpen = panel.hidden;
+  panel.hidden = !willOpen;
+  button.setAttribute('aria-expanded', String(willOpen));
+  label.textContent = willOpen ? 'Sembunyikan' : 'Tampilkan';
+}
+
+
+/* ============================================================
    RENDER CLAN
 ============================================================ */
 
@@ -6504,6 +6589,37 @@ function renderClan(clan) {
           </strong>
         </div>
 
+      </div>
+
+      <button
+        id="clanWarToggle"
+        class="clan-war-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="clanWarStats"
+        onclick="toggleClanWarStats()"
+      >
+        <span>Clan War Statistics</span>
+        <span id="clanWarToggleLabel">Tampilkan</span>
+      </button>
+
+      <div id="clanWarStats" class="clan-war-stats" hidden>
+        <div class="clan-war-stat">
+          War Wins
+          <strong>${formatNumber(clan.warWins)}</strong>
+        </div>
+        <div class="clan-war-stat streak">
+          Current Win Streak
+          <strong>${formatNumber(clan.warWinStreak)}</strong>
+        </div>
+        <div class="clan-war-stat">
+          War Losses
+          <strong>${formatNumber(clan.warLosses)}</strong>
+        </div>
+        <div class="clan-war-stat">
+          War Ties
+          <strong>${formatNumber(clan.warTies)}</strong>
+        </div>
       </div>
 
     </div>
