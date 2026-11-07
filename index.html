@@ -6269,8 +6269,8 @@ async function downloadClanShareCard() {
 
 let clanHistoryTab = 'members';
 let clanHistoryCache = { memberhistory:null, warhistory:null };
-let clanHistoryError = '';
-let clanHistoryLoading = false;
+let clanHistoryError = { memberhistory:'', warhistory:'' };
+let clanHistoryLoading = { memberhistory:false, warhistory:false };
 function clanHistoryItems(raw,keys) {
   if(Array.isArray(raw))return raw;
   if(!raw||typeof raw!=='object')return [];
@@ -6291,8 +6291,8 @@ function clanHistoryDate(value) {
 function clanHistoryPanelHTML(kind) {
   const isWar=kind==='warhistory',cache=clanHistoryCache[kind];
   const items=clanHistoryItems(cache,isWar?['wars','items','history','results']:['items','members','history','results','joinLeave']);
-  if(clanHistoryLoading&&!cache)return '<section class="section"><div class="loading"><div class="spinner"></div><div class="loading-title">Memuat history...</div></div></section>';
-  if(clanHistoryError&&!cache)return '<section class="section"><div class="error-box"><strong>History gagal dimuat</strong><div>'+escapeHTML(clanHistoryError)+'</div><button type="button" class="retry-btn" onclick="loadClanHistory(\''+kind+'\')">Coba lagi</button></div></section>';
+  if(clanHistoryLoading[kind]&&!cache)return '<section class="section"><div class="loading"><div class="spinner"></div><div class="loading-title">Memuat history...</div></div></section>';
+  if(clanHistoryError[kind]&&!cache)return '<section class="section"><div class="error-box"><strong>History gagal dimuat</strong><div>'+escapeHTML(clanHistoryError[kind])+'</div><button type="button" class="retry-btn" onclick="loadClanHistory(\''+kind+'\')">Coba lagi</button></div></section>';
   if(!cache||!items.length)return '<section class="section"><div class="empty">Belum ada arsip '+(isWar?'war':'member')+' yang tersedia untuk klan ini.</div><div class="history-source-note">Sumber: ClashKing. Arsip hanya tersedia sejak klan mulai dipantau.</div></section>';
   if(!isWar){
     const currentTags=new Set(asArray(currentClan&&currentClan.memberList).map(member=>String(member.tag||'').toUpperCase()));
@@ -6348,16 +6348,16 @@ function setClanHistoryTab(tab) {
   document.querySelectorAll('[data-clan-tab]').forEach(button=>{button.classList.toggle('active',button.dataset.clanTab===tab);button.setAttribute('aria-pressed',button.dataset.clanTab===tab?'true':'false');});
   if(members)members.hidden=tab!=='members';
   if(panel){panel.hidden=tab==='members';panel.innerHTML=tab==='members'?'':clanHistoryPanelHTML(tab==='history'?'memberhistory':'warhistory');}
-  if(tab!=='members'){const kind=tab==='history'?'memberhistory':'warhistory';if(!clanHistoryCache[kind]&&!clanHistoryLoading)loadClanHistory(kind);}
+  if(tab!=='members'){const kind=tab==='history'?'memberhistory':'warhistory';if(!clanHistoryCache[kind]&&!clanHistoryLoading[kind])loadClanHistory(kind);}
 }
 async function loadClanHistory(kind) {
-  if(!currentClan||!currentClan.tag||clanHistoryLoading)return;
-  clanHistoryLoading=true;clanHistoryError='';
+  if(!currentClan||!currentClan.tag||clanHistoryLoading[kind])return;
+  clanHistoryLoading[kind]=true;clanHistoryError[kind]='';
   const panel=document.getElementById('clanHistoryPanel');
-  if(panel)panel.innerHTML=clanHistoryPanelHTML(kind);
+  if(panel&&((clanHistoryTab==='history'&&kind==='memberhistory')||(clanHistoryTab==='warhistory'&&kind==='warhistory')))panel.innerHTML=clanHistoryPanelHTML(kind);
   try{clanHistoryCache[kind]=await api(kind,currentClan.tag);}
-  catch(error){clanHistoryError=error&&error.message?error.message:'Gagal mengambil arsip.';}
-  finally{clanHistoryLoading=false;const activeKind=clanHistoryTab==='history'?'memberhistory':'warhistory';if(clanHistoryTab!=='members'&&activeKind===kind&&panel)panel.innerHTML=clanHistoryPanelHTML(kind);}
+  catch(error){clanHistoryError[kind]=error&&error.message?error.message:'Gagal mengambil arsip.';}
+  finally{clanHistoryLoading[kind]=false;const activeKind=clanHistoryTab==='history'?'memberhistory':'warhistory';if(clanHistoryTab!=='members'&&activeKind===kind&&panel)panel.innerHTML=clanHistoryPanelHTML(kind);}
 }
 
 function renderClan(clan) {
@@ -6365,7 +6365,7 @@ function renderClan(clan) {
   clanShareData = clan;
   clanHistoryTab = 'members';
   clanHistoryCache = { memberhistory:null, warhistory:null };
-  clanHistoryError = '';
+  clanHistoryError = { memberhistory:'', warhistory:'' };
 
   const members =
     sortClanMembers(
