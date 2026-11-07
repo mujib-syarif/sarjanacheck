@@ -33,7 +33,7 @@ function corsHeaders(request) {
    RESPONSE
 ========================================================= */
 
-function json(data, request, status = 200) {
+function json(data, request, status = 200, extraHeaders = {}) {
   return new Response(
     JSON.stringify(data),
     {
@@ -43,7 +43,8 @@ function json(data, request, status = 200) {
         "Content-Type":
           "application/json; charset=utf-8",
         "Cache-Control":
-          "no-store"
+          "no-store",
+        ...extraHeaders
       }
     }
   );
@@ -53,70 +54,166 @@ function json(data, request, status = 200) {
 function errorResponse(
   request,
   message,
-  status = 400
+  status = 400,
+  code = null,
+  extraHeaders = {}
 ) {
   return json(
     {
       ok: false,
+      ...(code ? { code } : {}),
       error: message
     },
     request,
-    status
+    status,
+    extraHeaders
   );
 }
 
+const LOCAL_RATE_LIMITS = new Map();
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 30;
 
-/* Ubah error upstream menjadi respons yang aman untuk klien:
-   status yang bermakna dipertahankan, detail internal tidak dibocorkan. */
-function upstreamErrorResponse(
-  request,
-  error,
-  notFoundMessage
-) {
-  const status =
-    Number(error && error.status) || 0;
+/*
+ * Prefer a Cloudflare Rate Limiting binding named API_RATE_LIMITER.
+ * The in-isolate fallback is only a best-effort safety net; it is not
+ * globally consistent across Worker isolates.
+ */
+async function isRateLimited(request, env) {
+  const ip =
+    request.headers.get("CF-Connecting-IP") || "unknown";
+
+  if (
+    env.API_RATE_LIMITER &&
+    typeof env.API_RATE_LIMITER.limit === "function"
+  ) {
+    const result =
+      await env.API_RATE_LIMITER.limit({ key: ip });
+
+    return !result.success;
+  }
+
+  const now = Date.now();
+  const current = LOCAL_RATE_LIMITS.get(ip);
+
+  if (!current || now - current.startedAt >= RATE_LIMIT_WINDOW_MS) {
+    LOCAL_RATE_LIMITS.set(ip, {
+      startedAt: now,
+      count: 1
+    });
+    return false;
+  }
+
+  current.count += 1;
+
+  if (LOCAL_RATE_LIMITS.size > 5000) {
+    for (const [key, value] of LOCAL_RATE_LIMITS) {
+      if (now - value.startedAt >= RATE_LIMIT_WINDOW_MS) {
+        LOCAL_RATE_LIMITS.delete(key);
+      }
+    }
+  }
+
+  return current.count > RATE_LIMIT_MAX_REQUESTS;
+}
+
+async function cachedJson(request, cacheKey, ttlSeconds, loader) {
+  const cache =
+    typeof caches !== "undefined"
+      ? caches.default
+      : null;
+
+  if (!cache) {
+    return loader();
+  }
+
+  const keyUrl = new URL(cacheKey, request.url);
+  const cacheRequest = new Request(keyUrl.toString(), {
+    method: "GET"
+  });
+
+  try {
+    const cached = await cache.match(cacheRequest);
+    if (cached) {
+      return cached;
+    }
+  } catch {
+    // Cache failures must never break the API request.
+  }
+
+  const response = await loader();
+
+  if (!response.ok) {
+    return response;
+  }
+
+  const headers = new Headers(response.headers);
+  headers.set(
+    "Cache-Control",
+    `public, max-age=0, s-maxage=${ttlSeconds}`
+  );
+
+  const cacheable = new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+
+  try {
+    await cache.put(cacheRequest, cacheable.clone());
+  } catch {
+    // Continue serving the successful API response if cache write fails.
+  }
+
+  return cacheable;
+}
+
+function apiErrorResponse(request, error, resourceLabel) {
+  const status = Number(error && error.status) || 0;
+
+  if (status === 403) {
+    return errorResponse(
+      request,
+      `Akses ke data ${resourceLabel.toLowerCase()} ditolak oleh API Clash of Clans. Periksa izin dan konfigurasi API.`,
+      403,
+      "private"
+    );
+  }
 
   if (status === 404) {
     return errorResponse(
       request,
-      notFoundMessage,
-      404
+      `${resourceLabel} tidak ditemukan. Periksa tag yang dimasukkan.`,
+      404,
+      "notFound"
     );
   }
 
   if (status === 429) {
     return errorResponse(
       request,
-      "Terlalu banyak permintaan ke server data. Coba lagi sebentar.",
-      429
+      "Batas permintaan API Clash of Clans tercapai. Coba lagi sebentar.",
+      429,
+      "upstreamRateLimited",
+      { "Retry-After": "30" }
     );
   }
 
-  if (
-    error instanceof Error &&
-    error.message === DOWN_MESSAGE
-  ) {
+  if (status === 401) {
     return errorResponse(
       request,
-      DOWN_MESSAGE,
-      502
+      "Autentikasi API Clash of Clans gagal. Periksa konfigurasi token di Worker.",
+      502,
+      "upstreamAuthError"
     );
   }
-
-  if (status) {
-    return errorResponse(
-      request,
-      "Data dari Clash of Clans tidak dapat diambil saat ini. Coba lagi nanti.",
-      502
-    );
-  }
-
-  console.error("Unexpected error", error);
 
   return errorResponse(
     request,
-    "Terjadi kesalahan pada server.",
-    500
+    "Layanan Clash of Clans sedang bermasalah. Coba lagi beberapa saat.",
+    503,
+    "upstreamUnavailable",
+    { "Retry-After": "30" }
   );
 }
 
@@ -968,24 +1065,8 @@ async function cocFetch(
         response.status
       );
     } else {
-      const bodyMessage =
-        String(
-          (data && (data.reason || data.message)) ||
-          ""
-        ).trim();
-
-      const preview =
-        bodyMessage
-          .replace(/\s+/g, " ")
-          .slice(0, 180);
-
       lastError = apiError(
-        `CoC API HTTP ${response.status}` +
-        (
-          preview
-            ? `: ${preview}`
-            : ""
-        ),
+        `Clash of Clans API returned HTTP ${response.status}.`,
         response.status
       );
     }
@@ -2339,6 +2420,36 @@ export default {
       const pathname =
         url.pathname;
 
+      const apiRoutes = new Set([
+        "/player",
+        "/clan",
+        "/cwl",
+        "/warlog",
+        "/currentwar"
+      ]);
+
+      if (apiRoutes.has(pathname)) {
+        try {
+          if (await isRateLimited(request, env)) {
+            return errorResponse(
+              request,
+              "Terlalu banyak permintaan. Tunggu sebentar sebelum mencoba lagi.",
+              429,
+              "rateLimited",
+              { "Retry-After": "60" }
+            );
+          }
+        } catch {
+          return errorResponse(
+            request,
+            "Pemeriksaan batas permintaan sedang tidak tersedia. Coba lagi sebentar.",
+            503,
+            "rateLimiterUnavailable",
+            { "Retry-After": "30" }
+          );
+        }
+      }
+
 
       /* ===================================================
          ROOT
@@ -2370,50 +2481,59 @@ export default {
       if (
         pathname === "/player"
       ) {
-        const rawTag =
+        const tag =
           url.searchParams.get(
             "tag"
           );
 
-        if (!rawTag) {
+        if (!tag) {
           return errorResponse(
             request,
-            "Parameter tag wajib diisi."
+            "Parameter tag wajib diisi.",
+            400,
+            "missingTag"
           );
         }
 
-        const tag = cleanTag(rawTag);
+        const normalizedTag = cleanTag(tag);
 
-        if (!validClanTag(tag)) {
+        if (!validClanTag(normalizedTag)) {
           return errorResponse(
             request,
             "Format player tag tidak valid. Contoh: #2J0P2GR08",
-            400
+            400,
+            "invalidTag"
           );
         }
 
-        try {
-          const player =
-            await getPlayer(
-              tag,
-              env
-            );
+        return cachedJson(
+          request,
+          `/__cache/player/${encodeURIComponent(normalizedTag)}`,
+          30,
+          async () => {
+            try {
+              const player =
+                await getPlayer(
+                  normalizedTag,
+                  env
+                );
 
-          return json(
-            {
-              ok: true,
-
-              player
-            },
-            request
-          );
-        } catch (error) {
-          return upstreamErrorResponse(
-            request,
-            error,
-            "Player tidak ditemukan."
-          );
-        }
+              return json(
+                {
+                  ok: true,
+                  player
+                },
+                request
+              );
+            } catch (error) {
+              return apiErrorResponse(
+                request,
+                error,
+                "Player"
+              );
+            }
+          }
+        );
       }
 
 
@@ -2424,53 +2544,59 @@ export default {
       if (
         pathname === "/clan"
       ) {
-        const rawTag =
+        const tag =
           url.searchParams.get(
             "tag"
           );
 
-        if (!rawTag) {
+        if (!tag) {
           return errorResponse(
             request,
-            "Parameter tag wajib diisi."
+            "Parameter tag wajib diisi.",
+            400,
+            "missingTag"
           );
         }
 
-        const tag = cleanTag(rawTag);
+        const normalizedTag = cleanTag(tag);
 
-        if (!validClanTag(tag)) {
+        if (!validClanTag(normalizedTag)) {
           return errorResponse(
             request,
             "Format clan tag tidak valid. Contoh: #2J0P2GR08",
-            400
+            400,
+            "invalidTag"
           );
         }
 
-        try {
-          const clan =
-            await getClan(
-              tag,
-              env
-            );
+        return cachedJson(
+          request,
+          `/__cache/clan/${encodeURIComponent(normalizedTag)}`,
+          60,
+          async () => {
+            try {
+              const clan =
+                await getClan(
+                  normalizedTag,
+                  env
+                );
 
-          return json(
-            {
-              ok: true,
-
-              clan:
-                normalizeClan(
-                  clan
-                )
-            },
-            request
-          );
-        } catch (error) {
-          return upstreamErrorResponse(
-            request,
-            error,
-            "Clan tidak ditemukan."
-          );
-        }
+              return json(
+                {
+                  ok: true,
+                  clan: normalizeClan(clan)
+                },
+                request
+              );
+            } catch (error) {
+              return apiErrorResponse(
+                request,
+                error,
+                "Clan"
+              );
+            }
+          }
+        );
       }
 
 
@@ -2481,32 +2607,35 @@ export default {
       if (
         pathname === "/cwl"
       ) {
-        const rawTag =
+        const tag =
           url.searchParams.get(
             "tag"
           );
 
-        if (!rawTag) {
+        if (!tag) {
           return errorResponse(
             request,
-            "Parameter tag wajib diisi."
+            "Parameter tag wajib diisi.",
+            400,
+            "missingTag"
           );
         }
 
-        const tag = cleanTag(rawTag);
+        const normalizedTag = cleanTag(tag);
 
-        if (!validClanTag(tag)) {
+        if (!validClanTag(normalizedTag)) {
           return errorResponse(
             request,
             "Format clan tag tidak valid. Contoh: #2J0P2GR08",
-            400
+            400,
+            "invalidTag"
           );
         }
 
         try {
           const cwl =
             await getCWL(
-              tag,
+              normalizedTag,
               env
             );
 
@@ -2515,14 +2644,10 @@ export default {
             request
           );
         } catch (error) {
-          return errorResponse(
+          return apiErrorResponse(
             request,
-
-            error instanceof Error
-              ? error.message
-              : String(error),
-
-            502
+            error,
+            "CWL"
           );
         }
       }
@@ -2543,7 +2668,9 @@ export default {
         if (!rawTag) {
           return errorResponse(
             request,
-            "Parameter tag wajib diisi."
+            "Parameter tag wajib diisi.",
+            400,
+            "missingTag"
           );
         }
 
@@ -2603,14 +2730,10 @@ export default {
             );
           }
 
-          return errorResponse(
+          return apiErrorResponse(
             request,
-
-            error instanceof Error
-              ? error.message
-              : String(error),
-
-            502
+            error,
+            "War log"
           );
         }
       }
@@ -2631,7 +2754,9 @@ export default {
         if (!rawTag) {
           return errorResponse(
             request,
-            "Parameter tag wajib diisi."
+            "Parameter tag wajib diisi.",
+            400,
+            "missingTag"
           );
         }
 
@@ -2691,14 +2816,10 @@ export default {
             );
           }
 
-          return errorResponse(
+          return apiErrorResponse(
             request,
-
-            error instanceof Error
-              ? error.message
-              : String(error),
-
-            502
+            error,
+            "Current war"
           );
         }
       }
@@ -2715,11 +2836,13 @@ export default {
       );
 
     } catch (error) {
-      console.error("Unhandled error", error);
-
       return errorResponse(
         request,
-        "Terjadi kesalahan pada server.",
+
+        error instanceof Error
+          ? error.message
+          : String(error),
+
         500
       );
     }
