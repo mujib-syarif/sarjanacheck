@@ -8684,7 +8684,7 @@ function warRosterComparisonHTML(leftSide,rightSide) {
     const name=escapeHTML(member.name||'-');
     const tag=cleanTag(member.tag);
     const player=tag
-      ? '<button type="button" class="war-player-link war-roster-player-link" onclick="loadPlayer(\\''+escapeHTML(tag)+'\\')" title="Buka profil '+name+'">'+name+'</button>'
+      ? '<button type="button" class="war-player-link war-roster-player-link" onclick="loadPlayer(\''+escapeHTML(tag)+'\')" title="Buka profil '+name+'">'+name+'</button>'
       : '<span class="war-roster-player-link">'+name+'</span>';
     return '<article class="war-roster-cell"><span class="war-roster-no">'+position+'</span><div class="war-roster-main">'+player+'<small>#'+escapeHTML(tag||'Tag tidak tersedia')+'</small></div><b class="war-roster-th">TH '+escapeHTML(th)+'</b></article>';
   };
