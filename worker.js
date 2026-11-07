@@ -2367,146 +2367,481 @@ async function getCurrentWar(
 /* ========================================================= */
 
 
-/* ClashKing legacy public archive proxy.
-   The legacy clan join/leave and previous-war endpoints are public,
-   so historical pages do not depend on an Expo account or email token.
-*/
-async function getClashKingHistory(tag, kind) {
-  const encoded = encodeURIComponent(cleanTag(tag));
-  const isWar = kind === 'warhistory';
+/* =========================================================
+   CLASHKING ARCHIVE PROXY (member history + war history)
 
-  // ClashKing v2 supports time-window filtering for stored clan history.
-  // Walk backwards by the oldest returned war timestamp instead of relying
-  // on a single capped legacy response.
-  const requestPage = async (url) => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 4500);
-    try {
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-        signal: controller.signal
-      });
-      const text = await response.text();
-      let body;
-      try {
-        body = JSON.parse(text);
-      } catch (_) {
-        const error = new Error('ClashKing mengembalikan respons non-JSON.');
-        error.status = response.status || 502;
-        throw error;
-      }
-      if (!response.ok) {
-        const error = new Error((body && (body.message || body.error || body.detail)) || ('ClashKing HTTP ' + response.status));
-        error.status = response.status;
-        throw error;
-      }
-      return body;
-    } catch (error) {
-      if (error && error.status) throw error;
-      const failure = new Error(error && error.name === 'AbortError'
-        ? 'Permintaan ke ClashKing timeout.'
-        : 'Tidak dapat terhubung ke ClashKing API.');
-      failure.status = 503;
-      throw failure;
-    } finally {
-      clearTimeout(timer);
-    }
-  };
+   Batasan yang harus jujur:
+   - Arsip hanya berisi periode ketika ClashKing memantau klan
+     ini. Tidak ada bukti arsip tersedia sejak 2012.
+   - Bentuk respons dinormalisasi secara toleran. Tidak ada
+     tanggal atau nilai yang dikarang: kalau field tidak ada,
+     hasilnya null.
+   - Setiap permintaan ke ClashKing dicatat di `diagnostics`
+     (endpoint, status, jumlah item, error) supaya sumber data
+     dan kegagalannya bisa dilihat langsung di respons Worker.
+========================================================= */
 
-  const extractItems = (body) => {
-    if (Array.isArray(body)) return body;
-    for (const key of ['items', 'wars', 'history', 'results', 'data']) {
-      if (Array.isArray(body && body[key])) return body[key];
-    }
+const CK_BASE = "https://api.clashk.ing";
+const CK_TIMEOUT_MS = 4500;
+
+/* ISO, "20260930T081502.000Z", epoch detik/milidetik -> ms (atau null) */
+function ckParseTime(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value > 1e11 ? value : value * 1000;
+  }
+
+  const raw = String(value).trim();
+
+  if (/^\d{9,13}(\.\d+)?$/.test(raw)) {
+    const numeric = Number(raw);
+    return numeric > 1e11 ? numeric : numeric * 1000;
+  }
+
+  const coc = cocTimeToIso(raw);
+  const parsed = Date.parse(
+    coc || raw.replace(" ", "T")
+  );
+
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function ckIso(value) {
+  const ms = ckParseTime(value);
+  return ms === null ? null : new Date(ms).toISOString();
+}
+
+/* Bentuk respons ClashKing bervariasi antar versi. */
+function ckExtractItems(body) {
+  if (Array.isArray(body)) {
+    return body;
+  }
+
+  if (!body || typeof body !== "object") {
     return [];
+  }
+
+  for (const key of [
+    "items",
+    "join_leave_list",
+    "joinLeaveList",
+    "join_leave",
+    "events",
+    "wars",
+    "history",
+    "results",
+    "data"
+  ]) {
+    if (Array.isArray(body[key])) {
+      return body[key];
+    }
+  }
+
+  /* data bersarang, misalnya { data: { items: [...] } } */
+  for (const key of ["data", "result", "archive"]) {
+    if (body[key] && typeof body[key] === "object") {
+      const nested = ckExtractItems(body[key]);
+      if (nested.length) {
+        return nested;
+      }
+    }
+  }
+
+  return [];
+}
+
+async function ckRequest(url) {
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(),
+    CK_TIMEOUT_MS
+  );
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal
+    });
+
+    const text = await response.text();
+    let body;
+
+    try {
+      body = JSON.parse(text);
+    } catch (_) {
+      const error = new Error(
+        "ClashKing mengembalikan respons non-JSON."
+      );
+      error.status = response.status || 502;
+      throw error;
+    }
+
+    if (!response.ok) {
+      const error = new Error(
+        (body && (body.message || body.error || body.detail)) ||
+        ("ClashKing HTTP " + response.status)
+      );
+      error.status = response.status;
+      throw error;
+    }
+
+    return body;
+
+  } catch (error) {
+    if (error && error.status) {
+      throw error;
+    }
+
+    const failure = new Error(
+      error && error.name === "AbortError"
+        ? "Permintaan ke ClashKing timeout."
+        : "Tidak dapat terhubung ke ClashKing API."
+    );
+    failure.status = 503;
+    throw failure;
+
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function ckDiagnostic(label, url, outcome) {
+  return {
+    endpoint: label,
+    path: url.pathname,
+    ok: outcome.ok,
+    status: outcome.status || null,
+    count: outcome.count || 0,
+    error: outcome.error || null
+  };
+}
+
+/* Event join/leave: satu pemain bisa punya banyak event. */
+function ckNormalizeMemberEvent(item) {
+  if (!item || typeof item !== "object") {
+    return null;
+  }
+
+  const rawType = String(
+    item.type ?? item.event ?? item.eventType ?? item.action ?? ""
+  ).toLowerCase();
+
+  const event =
+    /join|enter|add/.test(rawType)
+      ? "join"
+      : /leave|left|exit|remove|kick/.test(rawType)
+        ? "leave"
+        : null;
+
+  const rawTime =
+    item.time ??
+    item.timestamp ??
+    item.date ??
+    item.eventTime ??
+    item.created_at ??
+    null;
+
+  const tag =
+    item.tag ?? item.player_tag ?? item.playerTag ?? "";
+
+  return {
+    ...item,
+    name:
+      item.name || item.player_name || item.playerName || null,
+    tag: tag ? cleanTag(tag) : "",
+    type: rawType || null,
+    event,
+    time: ckIso(rawTime) || (rawTime ? String(rawTime) : null)
+  };
+}
+
+async function ckMemberHistory(encoded) {
+  const sources = [
+    {
+      label: "v2 clan join-leave",
+      url: new URL(CK_BASE + "/v2/clan/" + encoded + "/join-leave")
+    },
+    {
+      label: "legacy clan join-leave",
+      url: (() => {
+        const legacy = new URL(
+          CK_BASE + "/clan/" + encoded + "/join-leave"
+        );
+        legacy.searchParams.set("limit", "1000");
+        return legacy;
+      })()
+    }
+  ];
+
+  const settled = await Promise.allSettled(
+    sources.map(source => ckRequest(source.url))
+  );
+
+  const diagnostics = [];
+  const events = [];
+  const seen = new Set();
+  let firstError = null;
+  let anySuccess = false;
+
+  settled.forEach((result, index) => {
+    const { label, url } = sources[index];
+
+    if (result.status === "rejected") {
+      firstError = firstError || result.reason;
+      diagnostics.push(
+        ckDiagnostic(label, url, {
+          ok: false,
+          status: result.reason && result.reason.status,
+          error: result.reason && result.reason.message
+        })
+      );
+      return;
+    }
+
+    anySuccess = true;
+    const items = ckExtractItems(result.value);
+    let added = 0;
+
+    for (const item of items) {
+      const event = ckNormalizeMemberEvent(item);
+      if (!event) {
+        continue;
+      }
+
+      /* Identitas event: tag (bukan nama) + jenis + waktu. */
+      const identity =
+        (event.tag || String(event.name || "").toLowerCase()) +
+        "|" + (event.event || event.type || "") +
+        "|" + (event.time || "");
+
+      if (seen.has(identity)) {
+        continue;
+      }
+
+      seen.add(identity);
+      events.push(event);
+      added += 1;
+    }
+
+    diagnostics.push(
+      ckDiagnostic(label, url, {
+        ok: true,
+        status: 200,
+        count: items.length
+      })
+    );
+  });
+
+  if (!anySuccess) {
+    throw firstError || new Error("ClashKing tidak merespons.");
+  }
+
+  events.sort(
+    (a, b) =>
+      (ckParseTime(b.time) || 0) - (ckParseTime(a.time) || 0)
+  );
+
+  return {
+    items: events,
+    available: events.length,
+    source: "ClashKing join-leave (v2 + legacy, digabung dan dideduplikasi)",
+    diagnostics
+  };
+}
+
+/* Identitas war yang stabil: tag lawan + waktu selesai (detik). */
+function ckWarIdentity(item) {
+  const clan = (item && (item.clan || item.target)) || {};
+  const opponent = (item && (item.opponent || item.enemy)) || {};
+
+  const endMs = ckParseTime(
+    item && (
+      item.endTime ??
+      item.end_time ??
+      item.time ??
+      item.date ??
+      item.startTime
+    )
+  );
+
+  const opponentKey = String(
+    opponent.tag || opponent.clanTag || opponent.name || ""
+  ).toUpperCase();
+
+  return (
+    opponentKey +
+    "|" +
+    (endMs === null ? "?" : Math.floor(endMs / 1000)) +
+    "|" +
+    String(clan.tag || clan.name || "").toUpperCase()
+  );
+}
+
+function ckWarEndMs(item) {
+  return ckParseTime(
+    item && (
+      item.endTime ??
+      item.end_time ??
+      item.time ??
+      item.date ??
+      item.startTime
+    )
+  );
+}
+
+async function ckWarHistory(encoded) {
+  const all = [];
+  const seen = new Set();
+  const diagnostics = [];
+  const maxPages = 5;
+  const pageSize = 250;
+  let before = null;
+  let pages = 0;
+  let partial = false;
+
+  const legacyUrl = () => {
+    const legacy = new URL(
+      CK_BASE + "/war/" + encoded + "/previous"
+    );
+    legacy.searchParams.set("limit", "1000");
+    return legacy;
   };
 
-  if (isWar) {
-    const all = [];
-    const seen = new Set();
-    let before = null;
-    let pages = 0;
-    const maxPages = 5;
-    const pageSize = 250;
+  const addBatch = batch => {
+    let added = 0;
+    for (const item of batch) {
+      const identity = ckWarIdentity(item);
+      if (seen.has(identity)) {
+        continue;
+      }
+      seen.add(identity);
+      all.push(item);
+      added += 1;
+    }
+    return added;
+  };
 
-    for (let page = 0; page < maxPages; page++) {
-      const url = new URL('https://api.clashk.ing/v2/clan/' + encoded + '/wars');
-      url.searchParams.set('limit', String(pageSize));
-      if (before) url.searchParams.set('time[before]', before);
+  for (let page = 0; page < maxPages; page++) {
+    const url = new URL(
+      CK_BASE + "/v2/clan/" + encoded + "/wars"
+    );
+    url.searchParams.set("limit", String(pageSize));
+    if (before) {
+      url.searchParams.set("time[before]", before);
+    }
 
-      let body;
+    let batch = [];
+
+    try {
+      const body = await ckRequest(url);
+      batch = ckExtractItems(body);
+      diagnostics.push(
+        ckDiagnostic("v2 clan wars (halaman " + (page + 1) + ")", url, {
+          ok: true,
+          status: 200,
+          count: batch.length
+        })
+      );
+    } catch (error) {
+      diagnostics.push(
+        ckDiagnostic("v2 clan wars (halaman " + (page + 1) + ")", url, {
+          ok: false,
+          status: error && error.status,
+          error: error && error.message
+        })
+      );
+
+      if (page > 0) {
+        /* Halaman lama sudah terkumpul; jangan buang hasilnya. */
+        partial = true;
+        break;
+      }
+    }
+
+    pages += 1;
+
+    /* Halaman pertama kosong/gagal: coba rute legacy publik. */
+    if (page === 0 && !batch.length) {
+      const url2 = legacyUrl();
       try {
-        body = await requestPage(url);
+        const body = await ckRequest(url2);
+        batch = ckExtractItems(body);
+        diagnostics.push(
+          ckDiagnostic("legacy previous wars", url2, {
+            ok: true,
+            status: 200,
+            count: batch.length
+          })
+        );
       } catch (error) {
-        // Preserve compatibility with the documented public legacy route
-        // when v2 history is unavailable for a particular clan.
-        if (page === 0) {
-          const legacy = new URL('https://api.clashk.ing/war/' + encoded + '/previous');
-          legacy.searchParams.set('limit', '1000');
-          body = await requestPage(legacy);
-        } else {
+        diagnostics.push(
+          ckDiagnostic("legacy previous wars", url2, {
+            ok: false,
+            status: error && error.status,
+            error: error && error.message
+          })
+        );
+        if (!all.length && !diagnostics.some(d => d.ok)) {
           throw error;
         }
       }
-
-      let batch = extractItems(body);
-      pages++;
-      if (!batch.length && page === 0) {
-        // Some older clan records may still be exposed only by the legacy route.
-        const legacy = new URL('https://api.clashk.ing/war/' + encoded + '/previous');
-        legacy.searchParams.set('limit', '1000');
-        body = await requestPage(legacy);
-        batch = extractItems(body);
-      }
-      if (!batch.length) break;
-
-      let oldestTime = null;
-      for (const item of batch) {
-        const clan = item && (item.clan || item.target || {});
-        const opponent = item && (item.opponent || item.enemy || {});
-        const endTime = item && (item.endTime || item.end_time || item.time || item.date || item.startTime);
-        const opponentTag = opponent && (opponent.tag || opponent.clanTag || '');
-        const identity = String(endTime || '') + '|' + String(opponentTag || opponent.name || '') + '|' + String(clan && (clan.tag || clan.name) || '');
-        if (!seen.has(identity)) {
-          seen.add(identity);
-          all.push(item);
-        }
-        if (endTime) {
-          const parsed = Date.parse(String(endTime).replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:\.(\d+))?Z$/, '$1-$2-$3T$4:$5:$6Z'));
-          if (Number.isFinite(parsed) && (oldestTime === null || parsed < oldestTime.value)) {
-            oldestTime = { value: parsed, raw: endTime };
-          }
-        }
-      }
-
-      // If the provider returned fewer than the requested page size, there
-      // is no evidence of another page. Otherwise move the time boundary back.
-      if (batch.length < pageSize || !oldestTime) break;
-      const nextBefore = new Date(oldestTime.value - 1).toISOString();
-      if (nextBefore === before) break;
-      before = nextBefore;
     }
 
-    all.sort((a, b) => {
-      const getTime = item => Date.parse(String(item && (item.endTime || item.end_time || item.time || item.date || item.startTime) || '').replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:\.(\d+))?Z$/, '$1-$2-$3T$4:$5:$6Z')) || 0;
-      return getTime(b) - getTime(a);
-    });
-    return { items: all, fetched: all.length, pages, source: 'ClashKing v2 stored clan wars' };
+    if (!batch.length) {
+      break;
+    }
+
+    const added = addBatch(batch);
+
+    /* Tidak ada item baru: parameter waktu tidak maju atau halaman
+       identik. Berhenti agar halaman yang sama tidak diminta ulang. */
+    if (!added) {
+      break;
+    }
+
+    let oldest = null;
+    for (const item of batch) {
+      const ms = ckWarEndMs(item);
+      if (ms !== null && (oldest === null || ms < oldest)) {
+        oldest = ms;
+      }
+    }
+
+    if (batch.length < pageSize || oldest === null) {
+      break;
+    }
+
+    const nextBefore = new Date(oldest - 1).toISOString();
+    if (nextBefore === before) {
+      break;
+    }
+    before = nextBefore;
   }
 
-  const legacy = new URL('https://api.clashk.ing/clan/' + encoded + '/join-leave');
-  legacy.searchParams.set('limit', '1000');
-  const body = await requestPage(legacy);
-  const sourceItems = extractItems(body);
-  const items = sourceItems.map(item => ({
-    ...item,
-    name: item.name || item.player_name || 'Unknown',
-    tag: item.tag || item.player_tag || '',
-    time: item.time || item.timestamp || '',
-    type: item.type || item.event || ''
-  }));
-  return { items, available: items.length, source: 'ClashKing legacy public archive' };
+  all.sort(
+    (a, b) => (ckWarEndMs(b) || 0) - (ckWarEndMs(a) || 0)
+  );
+
+  return {
+    items: all,
+    fetched: all.length,
+    pages,
+    partial,
+    source: "ClashKing stored clan wars (v2, fallback legacy)",
+    diagnostics
+  };
+}
+
+async function getClashKingHistory(tag, kind) {
+  const encoded = encodeURIComponent(cleanTag(tag));
+
+  return kind === "warhistory"
+    ? ckWarHistory(encoded)
+    : ckMemberHistory(encoded);
 }
 
 /* =========================================================
