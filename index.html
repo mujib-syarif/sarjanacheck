@@ -2549,10 +2549,6 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
   <footer class="footer">
 
     <div>
-      Sarjana Checker · Clash of Clans Analyzer
-    </div>
-
-    <div>
       Custom Base Nama:
       <a
         class="basenama-link"
@@ -2576,6 +2572,8 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
     </div>
 
   </footer>
+
+  <button type="button" id="backToTop" aria-label="Kembali ke atas" title="Kembali ke atas"><span aria-hidden="true">↑</span></button>
 
 </div>
 
@@ -6381,7 +6379,9 @@ function clanHistoryPanelHTML(kind) {
     }
     const rows=records.map(record=>{
       const stillHere=!record.left&&(record.current===true||currentTags.has(String(record.tag||'').toUpperCase()));
-      return '<tr><td><b>'+escapeHTML(record.name||'Unknown')+'</b><div class="history-tag">'+escapeHTML(record.tag||'')+'</div></td><td>'+clanHistoryDate(record.joined)+'</td><td>'+(stillHere?'<span class="history-current">Masih di klan</span>':clanHistoryDate(record.left))+'</td></tr>';
+      const tag=String(record.tag||'').replace(/^#/,'');
+      const profile=tag?'<a class="history-entity-link" href="https://link.clashofclans.com/en?action=OpenPlayerProfile&amp;tag='+encodeURIComponent(tag)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(record.name||'Unknown')+'</a>':'<b>'+escapeHTML(record.name||'Unknown')+'</b>';
+      return '<tr><td>'+profile+'<div class="history-tag">'+(tag?'#'+escapeHTML(tag):'')+'</div></td><td>'+clanHistoryDate(record.joined)+'</td><td>'+(stillHere?'<span class="history-current">Masih di klan</span>':clanHistoryDate(record.left))+'</td></tr>';
     }).join('');
     return '<section class="section"><div class="section-head"><div class="section-title">Member History</div><div class="section-value">'+records.length+' catatan</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Pemain</th><th>Tanggal masuk</th><th>Tanggal keluar</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="history-source-note">Sumber data: ClashKing.</div></section>';
   }
@@ -7943,10 +7943,7 @@ function warLogSideHTML(side,alignRight) {
         ${warClanLinkHTML(side,name)}
       </div>
 
-      <div class="war-score">
-        ${escapeHTML(number(side.stars))} ★
-        · ${escapeHTML(warLogPercent(side.destructionPercentage))}
-      </div>
+      
 
     </div>
   `;
@@ -8035,7 +8032,7 @@ function warLogDetailHTML(war) {
   return `
     <details class="roster-details">
 
-      <summary>Lihat detail</summary>
+      <summary class="war-detail-button">Detail</summary>
 
       <div class="wl-table">
 
@@ -8090,38 +8087,17 @@ function warLogCardHTML(war) {
   }
 
   return `
-    <div class="round">
-
+    <div class="round war-log-compact">
       <div class="war-result-head ${chip[0]}">
-
-        <div class="wl-date">
-          ${escapeHTML(warLogDate(war.endTime))}
-        </div>
-
-        <div class="round-chip ${chip[0]}">
-          ${chip[1]}
-        </div>
-
+        <div class="wl-date">${escapeHTML(warLogDate(war.endTime))}</div>
+        <div class="round-chip ${chip[0]}">${chip[1]}</div>
       </div>
-
-
       <div class="war">
-
         ${warLogSideHTML(war.clan || {}, false)}
-
         <div class="vs">VS</div>
-
         ${warLogSideHTML(war.opponent || {}, true)}
-
       </div>
-
-
-      ${foot.length
-        ? `<div class="war-foot">${escapeHTML(foot.join(' · '))}</div>`
-        : ''}
-
-      ${warLogDetailHTML(war)}
-
+      <div class="war-log-detail-toggle">${warLogDetailHTML(war)}</div>
     </div>
   `;
 
@@ -9867,5 +9843,15 @@ setMode('player');
 
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  const button=document.getElementById('backToTop');
+  if(!button)return;
+  const update=()=>button.classList.toggle('visible',window.scrollY>320);
+  window.addEventListener('scroll',update,{passive:true});
+  button.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  update();
+});
+</script>
 </body>
 </html>
