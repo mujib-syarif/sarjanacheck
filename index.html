@@ -6295,13 +6295,43 @@ function clanHistoryPanelHTML(kind) {
   if(clanHistoryError&&!cache)return '<section class="section"><div class="error-box"><strong>History gagal dimuat</strong><div>'+escapeHTML(clanHistoryError)+'</div><button type="button" class="retry-btn" onclick="loadClanHistory(\''+kind+'\')">Coba lagi</button></div></section>';
   if(!cache||!items.length)return '<section class="section"><div class="empty">Belum ada arsip '+(isWar?'war':'member')+' yang tersedia untuk klan ini.</div><div class="history-source-note">Sumber: ClashKing. Arsip hanya tersedia sejak klan mulai dipantau.</div></section>';
   if(!isWar){
-    const rows=items.map(item=>{
-      const joined=clanHistoryValue(item,['joinDate','joinedAt','joinTime','joined','startTime','start_time']);
-      const left=clanHistoryValue(item,['leaveDate','leftAt','leaveTime','left','endTime','end_time']);
-      const active=!left||item.isInClan===true||item.current===true;
-      return '<tr><td><b>'+escapeHTML(clanHistoryValue(item,['name','playerName','player_name'])||'Unknown')+'</b><div class="history-tag">'+escapeHTML(clanHistoryValue(item,['tag','playerTag','player_tag'])||'')+'</div></td><td>'+clanHistoryDate(joined)+'</td><td>'+(active?'<span class="history-current">Masih di klan</span>':clanHistoryDate(left))+'</td></tr>';
+    const currentTags=new Set(asArray(currentClan&&currentClan.memberList).map(member=>String(member.tag||'').toUpperCase()));
+    const isEventFeed=items.some(item=>clanHistoryValue(item,['type','eventType','action'])!==null);
+    let records=[];
+    if(isEventFeed){
+      const events=items.slice().sort((a,b)=>String(clanHistoryValue(a,['time','eventTime','date'])||'').localeCompare(String(clanHistoryValue(b,['time','eventTime','date'])||'')));
+      const openByTag=new Map();
+      events.forEach(event=>{
+        const tag=String(clanHistoryValue(event,['tag','playerTag','player_tag'])||'').toUpperCase();
+        const name=clanHistoryValue(event,['name','playerName','player_name'])||'Unknown';
+        const time=clanHistoryValue(event,['time','eventTime','date']);
+        const type=String(clanHistoryValue(event,['type','eventType','action'])||'').toLowerCase();
+        if(!tag||!time)return;
+        if(type.includes('join')||type.includes('add')||type.includes('enter')){
+          const record={tag,name,joined:time,left:null};
+          records.push(record);
+          openByTag.set(tag,record);
+        }else if(type.includes('leave')||type.includes('remove')||type.includes('kick')){
+          const record=openByTag.get(tag);
+          if(record){record.left=time;openByTag.delete(tag);}
+          else records.push({tag,name,joined:null,left:time});
+        }
+      });
+      records.reverse();
+    }else{
+      records=items.map(item=>({
+        tag:clanHistoryValue(item,['tag','playerTag','player_tag']),
+        name:clanHistoryValue(item,['name','playerName','player_name'])||'Unknown',
+        joined:clanHistoryValue(item,['joinDate','joinedAt','joinTime','joined','startTime','start_time']),
+        left:clanHistoryValue(item,['leaveDate','leftAt','leaveTime','left','endTime','end_time']),
+        current:item.isInClan===true||item.current===true
+      }));
+    }
+    const rows=records.map(record=>{
+      const stillHere=!record.left&&(record.current===true||currentTags.has(String(record.tag||'').toUpperCase()));
+      return '<tr><td><b>'+escapeHTML(record.name||'Unknown')+'</b><div class="history-tag">'+escapeHTML(record.tag||'')+'</div></td><td>'+clanHistoryDate(record.joined)+'</td><td>'+(stillHere?'<span class="history-current">Masih di klan</span>':clanHistoryDate(record.left))+'</td></tr>';
     }).join('');
-    return '<section class="section"><div class="section-head"><div class="section-title">Member History</div><div class="section-value">'+items.length+' catatan</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Pemain</th><th>Tanggal masuk</th><th>Tanggal keluar</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="history-source-note">Sumber data: ClashKing.</div></section>';
+    return '<section class="section"><div class="section-head"><div class="section-title">Member History</div><div class="section-value">'+records.length+' catatan</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Pemain</th><th>Tanggal masuk</th><th>Tanggal keluar</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="history-source-note">Sumber data: ClashKing.</div></section>';
   }
   const rows=items.map(war=>{
     const clan=war.clan||war.target||{},opponent=war.opponent||war.enemy||{};
