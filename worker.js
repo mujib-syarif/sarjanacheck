@@ -472,6 +472,12 @@ function normalizeCWLClan(
     warLosses:
       number(clan.warLosses),
 
+    warTies:
+      number(clan.warTies),
+
+    isWarLogPublic:
+      Boolean(clan.isWarLogPublic),
+
     warLeague:
       clan.warLeague || null,
 
@@ -613,6 +619,12 @@ function normalizeClan(
 
     warLosses:
       number(clan.warLosses),
+
+    warTies:
+      number(clan.warTies),
+
+    isWarLogPublic:
+      Boolean(clan.isWarLogPublic),
 
     warLeague:
       clan.warLeague || null,
