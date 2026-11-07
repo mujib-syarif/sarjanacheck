@@ -2474,6 +2474,7 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
 .history-entity-link:visited{color:#174f9b!important;-webkit-text-fill-color:#174f9b!important}
 .history-entity-link:hover{text-decoration:underline}
 .history-tag{color:#687386!important;-webkit-text-fill-color:#687386!important}
+.history-na{color:#687386;font-weight:600}.history-current{color:#0b7a43!important;-webkit-text-fill-color:#0b7a43!important;font-weight:800}.clan-history-tabs button.active{background:#ededf0;color:#10131a;-webkit-text-fill-color:#10131a;border-color:#ededf0}.history-partial{display:inline-block;margin-top:4px;padding:1px 7px;border-radius:999px;background:#fff1cf;color:#8a5a00;font-size:10px;font-weight:800}.history-sources{margin-top:10px;font-size:11px;color:#555e6d}.history-sources summary{cursor:pointer;font-weight:750}.history-sources ul{margin:6px 0 0;padding-left:18px;line-height:1.5}
 .history-pagination{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px;flex-wrap:wrap}
 .history-pagination button{min-height:34px;padding:7px 13px;border:1px solid #cbd2de;border-radius:999px;background:#252832;color:#fff;font-weight:750}
 .history-pagination button:disabled{opacity:.35;cursor:not-allowed}
@@ -3408,6 +3409,111 @@ function escapeHTML(value) {
     .replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#039;');
+
+}
+
+
+/* ============================================================
+   LINK PLAYER INTERNAL
+   Semua nama pemain membuka detail player di Sarjana Checker
+   (loadPlayer), bukan aplikasi atau situs Clash of Clans.
+   Tag divalidasi dan nama di-escape; klik ditangani satu
+   listener (data-player-tag) sehingga tidak ada kutipan
+   inline yang bisa pecah oleh nama khusus.
+============================================================ */
+
+const PLAYER_TAG_PATTERN = /^#[0289PYLQGRJCUV]{3,12}$/;
+
+function validPlayerTag(value) {
+
+  return PLAYER_TAG_PATTERN.test(
+    cleanTag(value)
+  );
+
+}
+
+function openPlayer(tag) {
+
+  const cleaned =
+    cleanTag(tag);
+
+  if (!validPlayerTag(cleaned)) {
+    return;
+  }
+
+  const input =
+    document.getElementById('searchInput');
+
+  if (input) {
+    input.value = cleaned;
+  }
+
+  loadPlayer(cleaned);
+
+}
+
+function playerLinkHTML(name, tag, extraClass) {
+
+  const label =
+    escapeHTML(name || 'Tanpa nama');
+
+  const cleaned =
+    cleanTag(tag);
+
+  if (!validPlayerTag(cleaned)) {
+    return '<span class="' +
+      escapeHTML(extraClass || '') +
+      '">' + label + '</span>';
+  }
+
+  return '<button type="button" class="war-player-link ' +
+    escapeHTML(extraClass || '') +
+    '" data-player-tag="' + escapeHTML(cleaned) +
+    '" title="Buka profil ' + label + '">' +
+    label + '</button>';
+
+}
+
+document.addEventListener(
+  'click',
+  function(event) {
+
+    const target =
+      event.target &&
+      event.target.closest
+        ? event.target.closest('[data-player-tag]')
+        : null;
+
+    if (!target) {
+      return;
+    }
+
+    event.preventDefault();
+
+    openPlayer(
+      target.getAttribute('data-player-tag')
+    );
+
+  }
+);
+
+/* Angka yang boleh kosong: null berarti "tidak tersedia", bukan 0. */
+function nullableNumber(value) {
+
+  if (
+    value === undefined ||
+    value === null ||
+    value === ''
+  ) {
+    return null;
+  }
+
+  const parsed =
+    Number(value);
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
 
 }
 
@@ -6417,7 +6523,7 @@ async function downloadClanShareCard() {
 
 let clanHistoryTab = 'members';
 let clanHistoryPage = 1;
-function setMemberHistoryPage(page){clanHistoryPage=Math.max(1,Number(page)||1);const panel=document.getElementById('clanHistoryPanel');if(panel&&clanHistoryTab==='history')panel.innerHTML=clanHistoryPanelHTML('memberhistory');}
+function setMemberHistoryPage(page){clanHistoryPage=Math.max(1,Number(page)||1);const panel=document.getElementById('clanHistoryPanel');if(panel&&clanHistoryTab==='history'){panel.innerHTML=clanHistoryPanelHTML('memberhistory');if(panel.scrollIntoView)panel.scrollIntoView({block:'start',behavior:'smooth'});}}
 let clanHistoryCache = { memberhistory:null, warhistory:null };
 let clanHistoryError = { memberhistory:'', warhistory:'' };
 let clanHistoryLoading = { memberhistory:false, warhistory:false };
@@ -6441,64 +6547,104 @@ function clanHistoryDate(value) {
   const date=new Date(normalized);
   return Number.isNaN(date.getTime())?escapeHTML(value):date.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
 }
+let memberHistoryMemo = null;
+
+/* Waktu dari ClashKing: ISO, compact CoC (20260930T081502.000Z), epoch detik/ms. */
+function historyTimeMs(value) {
+  if(value===null||value===undefined||value==='')return null;
+  if(typeof value==='number'&&Number.isFinite(value))return value>1e11?value:value*1000;
+  const raw=String(value).trim();
+  if(/^\d{9,13}(\.\d+)?$/.test(raw)){const numeric=Number(raw);return numeric>1e11?numeric:numeric*1000;}
+  const coc=/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:[.](\d{1,3}))?Z$/.exec(raw);
+  const parsed=Date.parse(coc?coc[1]+'-'+coc[2]+'-'+coc[3]+'T'+coc[4]+':'+coc[5]+':'+coc[6]+'.'+(coc[7]||'0').padEnd(3,'0')+'Z':raw.replace(' ','T'));
+  return Number.isFinite(parsed)?parsed:null;
+}
+function historyDateFromMs(ms) {
+  return clanHistoryDate(new Date(ms).toISOString());
+}
+function historyEventType(item) {
+  const raw=String(clanHistoryValue(item,['event','type','eventType','action'])||'').toLowerCase();
+  if(/join|enter|add/.test(raw))return 'join';
+  if(/leave|left|exit|remove|kick/.test(raw))return 'leave';
+  return null;
+}
+
+/* Satu pemain = satu record (kunci: player tag). Tidak ada tanggal yang diperkirakan. */
+function normalizeMemberHistory(raw,currentTags) {
+  const items=clanHistoryItems(raw,['items','join_leave_list','joinLeaveList','events','members','history','results','joinLeave']);
+  const map=new Map();
+  let skipped=0;
+  for(const item of items){
+    if(!item||typeof item!=='object'){skipped++;continue;}
+    const tag=cleanTag(clanHistoryValue(item,['tag','playerTag','player_tag']));
+    const name=clanHistoryValue(item,['name','playerName','player_name']);
+    if(!tag&&!name){skipped++;continue;}
+    const key=tag||('name:'+String(name).toLowerCase());
+    if(!map.has(key))map.set(key,{tag,name:null,joins:[],leaves:[],current:false});
+    const record=map.get(key);
+    if(name&&name!=='Unknown')record.name=name;
+    if(!record.tag&&tag)record.tag=tag;
+    const type=historyEventType(item);
+    if(type){
+      const time=historyTimeMs(clanHistoryValue(item,['time','timestamp','eventTime','date']));
+      if(time===null)skipped++;
+      else (type==='join'?record.joins:record.leaves).push(time);
+    }else{
+      const joined=historyTimeMs(clanHistoryValue(item,['joinDate','joinedAt','joinTime','joined','startTime','start_time']));
+      const left=historyTimeMs(clanHistoryValue(item,['leaveDate','leftAt','leaveTime','left','endTime','end_time']));
+      if(joined!==null)record.joins.push(joined);
+      if(left!==null)record.leaves.push(left);
+      if(joined===null&&left===null)skipped++;
+      if(item.isInClan===true||item.current===true)record.current=true;
+    }
+  }
+  const records=Array.from(map.values()).map(record=>{
+    record.joins.sort((a,b)=>a-b);
+    record.leaves.sort((a,b)=>a-b);
+    const inClan=record.current||(record.tag&&currentTags.has(record.tag));
+    const firstJoin=record.joins.length?record.joins[0]:null;
+    const lastJoin=record.joins.length?record.joins[record.joins.length-1]:null;
+    const lastLeave=record.leaves.length?record.leaves[record.leaves.length-1]:null;
+    const exitMissing=!inClan&&(lastLeave===null||(lastJoin!==null&&lastJoin>lastLeave));
+    const latest=Math.max.apply(null,record.joins.concat(record.leaves,[0]));
+    return {tag:record.tag,name:record.name,firstJoin,lastLeave,inClan:Boolean(inClan),partial:firstJoin===null||exitMissing,latest};
+  });
+  records.sort((a,b)=>b.latest-a.latest||String(a.name||a.tag).localeCompare(String(b.name||b.tag)));
+  return {records,skipped};
+}
+
+function memberHistorySourcesHTML(cache) {
+  const diagnostics=asArray(cache&&cache.archive&&cache.archive.diagnostics);
+  if(!diagnostics.length)return '';
+  const lines=diagnostics.map(d=>'<li>'+escapeHTML(d.endpoint)+': '+(d.ok?'berhasil, '+escapeHTML(d.count)+' catatan':'gagal'+(d.status?' (HTTP '+escapeHTML(d.status)+')':'')+(d.error?' - '+escapeHTML(d.error):''))+'</li>').join('');
+  return '<details class="history-sources"><summary>Detail sumber data</summary><ul>'+lines+'</ul></details>';
+}
 function clanHistoryPanelHTML(kind) {
   const isWar=kind==='warhistory',cache=clanHistoryCache[kind];
-  const items=clanHistoryItems(cache,isWar?['wars','items','history','results']:['items','members','history','results','joinLeave']);
+  const items=clanHistoryItems(cache,isWar?['wars','items','history','results']:['items','join_leave_list','joinLeaveList','events','members','history','results','joinLeave']);
   if(clanHistoryLoading[kind]&&!cache)return '<section class="section"><div class="loading"><div class="spinner"></div><div class="loading-title">Memuat history...</div></div></section>';
   if(clanHistoryError[kind]&&!cache)return '<section class="section"><div class="error-box"><strong>History gagal dimuat</strong><div>'+escapeHTML(clanHistoryError[kind])+'</div><button type="button" class="retry-btn" onclick="loadClanHistory(\''+kind+'\')">Coba lagi</button></div></section>';
   if(!cache||!items.length)return '<section class="section"><div class="empty">Belum ada arsip '+(isWar?'war':'member')+' yang tersedia untuk klan ini.</div><div class="history-source-note">Sumber: ClashKing. Arsip hanya tersedia sejak klan mulai dipantau.</div></section>';
   if(!isWar){
-    const currentTags=new Set(asArray(currentClan&&currentClan.memberList).map(member=>String(member.tag||'').toUpperCase()));
-    const profileLink=(name,rawTag)=>{
-      const tag=String(rawTag||'').replace(/^#/,'');
-      return tag?'<a class="history-entity-link" href="https://link.clashofclans.com/en?action=OpenPlayerProfile&amp;tag='+encodeURIComponent(tag)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(name||'Unknown')+'</a><div class="history-tag">#'+escapeHTML(tag)+'</div>':'<b class="history-player-name">'+escapeHTML(name||'Unknown')+'</b>';
-    };
-    const timestamp=value=>{
-      if(!value)return null;
-      const raw=String(value);
-      const coc=/^(\\d{4})(\\d{2})(\\d{2})T(\\d{2})(\\d{2})(\\d{2})(?:[.](\\d{1,3}))?Z$/.exec(raw);
-      const parsed=Date.parse(coc?coc[1]+'-'+coc[2]+'-'+coc[3]+'T'+coc[4]+':'+coc[5]+':'+coc[6]+'Z':raw);
-      return Number.isFinite(parsed)?parsed:null;
-    };
-    const eventFeed=items.some(item=>clanHistoryValue(item,['type','eventType','action'])!==null);
-    const grouped=new Map();
-    for(const item of items){
-      const tag=String(clanHistoryValue(item,['tag','playerTag','player_tag'])||'').toUpperCase();
-      const name=clanHistoryValue(item,['name','playerName','player_name'])||'Unknown';
-      const key=tag||name.toLowerCase();
-      if(!grouped.has(key))grouped.set(key,{tag,name,joins:[],leaves:[],pairedJoin:null,pairedLeave:null});
-      const record=grouped.get(key);
-      if(name!=='Unknown')record.name=name;
-      if(!record.tag&&tag)record.tag=tag;
-      if(eventFeed){
-        const type=String(clanHistoryValue(item,['type','eventType','action'])||'').toLowerCase();
-        const time=clanHistoryValue(item,['time','eventTime','date']);
-        if(time&&(/join|add|enter/.test(type)))record.joins.push(time);
-        else if(time&&(/leave|remove|kick/.test(type)))record.leaves.push(time);
-      }else{
-        const joined=clanHistoryValue(item,['joinDate','joinedAt','joinTime','joined','startTime','start_time']);
-        const left=clanHistoryValue(item,['leaveDate','leftAt','leaveTime','left','endTime','end_time']);
-        if(joined)record.joins.push(joined);
-        if(left)record.leaves.push(left);
-        record.current=record.current||item.isInClan===true||item.current===true;
-      }
+    const currentTags=new Set(asArray(currentClan&&currentClan.memberList).map(member=>cleanTag(member.tag)));
+    if(!memberHistoryMemo||memberHistoryMemo.source!==cache||memberHistoryMemo.size!==currentTags.size){
+      memberHistoryMemo={source:cache,size:currentTags.size,data:normalizeMemberHistory(cache,currentTags)};
     }
-    const records=Array.from(grouped.values()).map(record=>{
-      record.joins.sort((a,b)=>(timestamp(a)||0)-(timestamp(b)||0));
-      record.leaves.sort((a,b)=>(timestamp(a)||0)-(timestamp(b)||0));
-      return {...record,joined:record.joins[0]||null,left:record.leaves.length?record.leaves[record.leaves.length-1]:null};
-    }).filter(record=>record.joined||record.left||currentTags.has(record.tag));
-    records.sort((a,b)=>(timestamp(b.joined)||timestamp(b.left)||0)-(timestamp(a.joined)||timestamp(a.left)||0));
+    const history=memberHistoryMemo.data,records=history.records;
+    if(!records.length)return '<section class="section"><div class="empty">Arsip join-leave untuk klan ini kosong atau belum bisa dibaca.</div><div class="history-source-note">Sumber: ClashKing. Arsip hanya mencakup periode ketika klan ini dipantau; tidak ada bukti arsip tersedia sejak 2012.</div>'+memberHistorySourcesHTML(cache)+'</section>';
     const pageSize=100,totalPages=Math.max(1,Math.ceil(records.length/pageSize));
     const page=Math.min(totalPages,Math.max(1,Number(clanHistoryPage)||1));
     clanHistoryPage=page;
     const visible=records.slice((page-1)*pageSize,page*pageSize);
+    const na='<span class="history-na">Tidak tersedia</span>';
     const rows=visible.map(record=>{
-      const stillHere=!record.left&&(record.current===true||currentTags.has(record.tag));
-      return '<tr><td>'+profileLink(record.name,record.tag)+'</td><td>'+clanHistoryDate(record.joined)+'</td><td>'+(stillHere?'<span class="history-current">Masih di klan</span>':clanHistoryDate(record.left))+'</td></tr>';
+      const joinedText=record.firstJoin===null?na:escapeHTML(historyDateFromMs(record.firstJoin));
+      const leftText=record.inClan?'<span class="history-current">Masih di klan</span>':(record.lastLeave===null?na:escapeHTML(historyDateFromMs(record.lastLeave)));
+      return '<tr><td>'+playerLinkHTML(record.name,record.tag,'history-entity-link')+'<div class="history-tag">'+escapeHTML(record.tag||'Tag tidak tersedia')+'</div></td><td>'+joinedText+'</td><td>'+leftText+(record.partial?'<div><span class="history-partial">Data tidak lengkap</span></div>':'')+'</td></tr>';
     }).join('');
     const pagination=totalPages>1?'<div class="history-pagination"><button type="button" '+(page<=1?'disabled':'')+' onclick="setMemberHistoryPage('+(page-1)+')">Sebelumnya</button><span>'+((page-1)*pageSize+1)+'-'+Math.min(page*pageSize,records.length)+' dari '+records.length+'</span><button type="button" '+(page>=totalPages?'disabled':'')+' onclick="setMemberHistoryPage('+(page+1)+')">Berikutnya</button></div>':'';
-    return '<section class="section"><div class="section-head"><div class="section-title">Member History</div><div class="section-value">'+records.length+' pemain</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Pemain</th><th>Masuk pertama</th><th>Keluar terakhir</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+pagination+'<div class="history-source-note">Satu baris per pemain. Tanggal masuk memakai catatan pertama dan tanggal keluar memakai catatan terakhir yang tersedia dari ClashKing.</div></section>';
+    const partialCount=records.filter(record=>record.partial).length;
+    return '<section class="section"><div class="section-head"><div class="section-title">Member History</div><div class="section-value">'+records.length+' pemain</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Pemain</th><th>Masuk pertama</th><th>Keluar terakhir</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+pagination+'<div class="history-source-note">Satu baris per pemain (berdasarkan tag). Masuk pertama diambil dari catatan join paling awal dan keluar terakhir dari catatan leave paling akhir yang tersedia di ClashKing. Tanggal yang tidak ada di arsip ditampilkan "Tidak tersedia" dan tidak diperkirakan.'+(partialCount?' '+partialCount+' pemain berstatus data tidak lengkap.':'')+' Arsip hanya mencakup periode ketika klan ini dipantau ClashKing; tidak ada bukti arsip tersedia sejak 2012.</div>'+memberHistorySourcesHTML(cache)+'</section>';
   }
   const rows=items.map(war=>{
     const clan=war.clan||war.target||{},opponent=war.opponent||war.enemy||{};
@@ -6591,7 +6737,7 @@ function renderClan(clan) {
                 <button
                   type="button"
                   class="member"
-                  onclick="loadPlayer('${escapeHTML(member.tag)}')"
+                  data-player-tag="${escapeHTML(cleanTag(member.tag))}"
                 >
 
                   <div class="member-rank">
@@ -7779,6 +7925,7 @@ let currentWarState = null;
 let warLogError = null;
 let warLogFilter = 'all';
 let warLogSort = 'newest';
+let warLogPage = 1;
 
 const WARLOG_FILTERS = [
   { key:'all',  label:'Semua' },
@@ -7788,59 +7935,137 @@ const WARLOG_FILTERS = [
 ];
 
 
-function normalizeArchivedWarItem(item, requestedTag) {
-  const source=item||{};
-  const clan=source.clan||source.home||source.ourClan||{};
-  const opponent=source.opponent||source.enemy||source.away||{};
-  const endTime=firstValue(source.endTime,source.end_time,source.endDate,source.date,source.time,source.startTime);
-  const stars=firstValue(clan.stars,clan.clanStars,source.clanStars,source.stars);
-  const enemyStars=firstValue(opponent.stars,opponent.clanStars,source.opponentStars);
-  const destruction=firstValue(clan.destructionPercentage,clan.destruction,source.destructionPercentage);
-  const enemyDestruction=firstValue(opponent.destructionPercentage,opponent.destruction,source.opponentDestructionPercentage);
-  let result=String(firstValue(source.result,source.outcome,'')).toLowerCase();
-  if(!['win','lose','tie'].includes(result)){
-    if(stars!=null&&enemyStars!=null)result=Number(stars)>Number(enemyStars)?'win':Number(stars)<Number(enemyStars)?'lose':'tie';
-    else if(destruction!=null&&enemyDestruction!=null)result=Number(destruction)>Number(enemyDestruction)?'win':Number(destruction)<Number(enemyDestruction)?'lose':'tie';
-    else result='unknown';
-  }
+/* Nilai kosong tetap null ("-" di UI). Jangan diubah menjadi 0. */
+function warArchiveCount(value) {
+  if (Array.isArray(value)) return value.length;
+  return nullableNumber(value);
+}
+
+function normalizeArchivedWarSide(side, fallbackTag, fallbackName) {
+  const source = side || {};
+  const tag = cleanTag(firstValue(source.tag, source.clanTag, fallbackTag));
+  const members = Array.isArray(source.members) ? source.members : null;
   return {
-    result,
-    endTime:endTime?String(endTime):null,
-    teamSize:number(firstValue(source.teamSize,source.team_size,source.size))||null,
-    attacksPerMember:number(firstValue(source.attacksPerMember,source.attacks_per_member))||null,
-    clan:{
-      tag:cleanTag(firstValue(clan.tag,clan.clanTag,requestedTag)),
-      name:firstValue(clan.name,clan.clanName,'Klan'),
-      stars:number(stars),
-      destructionPercentage:number(destruction),
-      attacks:clan.attacks==null?null:number(clan.attacks),
-      clanLevel:number(clan.clanLevel)
-    },
-    opponent:{
-      tag:cleanTag(firstValue(opponent.tag,opponent.clanTag,source.opponentTag)),
-      name:firstValue(opponent.name,opponent.clanName,source.opponentName,'Lawan'),
-      stars:number(enemyStars),
-      destructionPercentage:number(enemyDestruction),
-      attacks:opponent.attacks==null?null:number(opponent.attacks),
-      clanLevel:number(opponent.clanLevel)
-    },
-    archiveSource:true
+    tag: tag || null,
+    name: firstValue(source.name, source.clanName, fallbackName),
+    badgeUrls: firstValue(source.badgeUrls, source.iconUrls, source.badge),
+    clanLevel: nullableNumber(firstValue(source.clanLevel, source.level)),
+    stars: nullableNumber(firstValue(source.stars, source.clanStars)),
+    destructionPercentage: nullableNumber(firstValue(source.destructionPercentage, source.destruction)),
+    attacks: warArchiveCount(source.attacks),
+    expEarned: nullableNumber(firstValue(source.expEarned, source.exp_earned)),
+    memberCount: members ? members.length : nullableNumber(firstValue(source.memberCount, source.members))
   };
 }
 
-function mergeWarLogSources(officialRaw, archiveRaw, tag) {
-  const official=normalizeWarLogData(officialRaw||{tag,wars:[]});
-  const archiveItems=Array.isArray(archiveRaw)?archiveRaw:asArray(archiveRaw&&archiveRaw.items).length?archiveRaw.items:asArray(archiveRaw&&archiveRaw.wars);
-  const combined=official.wars.slice();
-  const keys=new Set(combined.map(w=>String(w.endTime||'')+'|'+cleanTag(w.opponent&&w.opponent.tag)));
-  archiveItems.forEach(item=>{
-    const war=normalizeArchivedWarItem(item,tag);
-    const key=String(war.endTime||'')+'|'+cleanTag(war.opponent&&war.opponent.tag);
-    if(!war.endTime||!war.opponent.name||!keys.has(key)){combined.push(war);keys.add(key);}
-  });
-  combined.sort((a,b)=>String(b.endTime||'').localeCompare(String(a.endTime||'')));
-  return {tag:official.tag||cleanTag(tag),wars:combined,hiddenCwl:official.hiddenCwl||0,hasMore:official.hasMore||Boolean(archiveRaw&&archiveRaw.hasMore),archiveCount:archiveItems.length,officialCount:official.wars.length};
+function normalizeArchivedWarItem(item, requestedTag) {
+  const source = item || {};
+  const state = String(firstValue(source.state, '')).toLowerCase();
+  /* Perang yang belum selesai bukan riwayat dan hasilnya belum final. */
+  if (state === 'inwar' || state === 'preparation') return null;
+
+  const clan = normalizeArchivedWarSide(source.clan || source.home || source.ourClan, requestedTag, 'Klan');
+  const opponent = normalizeArchivedWarSide(source.opponent || source.enemy || source.away, firstValue(source.opponentTag), firstValue(source.opponentName, 'Lawan'));
+  const endMs = historyTimeMs(firstValue(source.endTime, source.end_time, source.endDate, source.date, source.time, source.startTime));
+
+  let result = String(firstValue(source.result, source.outcome, '')).toLowerCase();
+  result = { won: 'win', victory: 'win', lost: 'lose', loss: 'lose', defeat: 'lose', draw: 'tie', tied: 'tie' }[result] || result;
+  if (!['win', 'lose', 'tie'].includes(result)) {
+    if (clan.stars !== null && opponent.stars !== null && clan.stars !== opponent.stars) {
+      result = clan.stars > opponent.stars ? 'win' : 'lose';
+    } else if (clan.stars !== null && opponent.stars !== null && clan.destructionPercentage !== null && opponent.destructionPercentage !== null) {
+      result = clan.destructionPercentage > opponent.destructionPercentage ? 'win'
+        : clan.destructionPercentage < opponent.destructionPercentage ? 'lose' : 'tie';
+    } else {
+      result = 'unknown';
+    }
+  }
+
+  return {
+    result,
+    endTime: endMs === null ? null : new Date(endMs).toISOString(),
+    teamSize: nullableNumber(firstValue(source.teamSize, source.team_size, source.size)) || null,
+    attacksPerMember: nullableNumber(firstValue(source.attacksPerMember, source.attacks_per_member)) || null,
+    clan,
+    opponent,
+    archiveSource: true
+  };
 }
+
+/* Isi field kosong sebuah sisi dari sisi yang sama di sumber lain. */
+function fillWarSide(target, extra) {
+  ['name', 'tag', 'badgeUrls'].forEach(function(key) {
+    if (!target[key] && extra[key]) target[key] = extra[key];
+  });
+  ['clanLevel', 'attacks', 'expEarned', 'memberCount'].forEach(function(key) {
+    /* official log memakai 0 untuk level yang tidak ada */
+    const missing = target[key] === null || target[key] === undefined || (key === 'clanLevel' && !target[key]);
+    if (missing && extra[key] !== null && extra[key] !== undefined && !(key === 'clanLevel' && !extra[key])) {
+      target[key] = extra[key];
+    }
+  });
+}
+
+function findSameWar(list, war) {
+  const endMs = historyTimeMs(war.endTime);
+  const opponentTag = cleanTag(war.opponent && war.opponent.tag);
+  for (const candidate of list) {
+    const candidateMs = historyTimeMs(candidate.endTime);
+    const candidateTag = cleanTag(candidate.opponent && candidate.opponent.tag);
+    if (opponentTag && candidateTag) {
+      if (opponentTag !== candidateTag) continue;
+      /* Waktu selesai dari dua sumber boleh berbeda beberapa detik. */
+      if (endMs === null || candidateMs === null || Math.abs(endMs - candidateMs) <= 120000) return candidate;
+    } else if (endMs !== null && candidateMs !== null && endMs === candidateMs
+      && String(war.opponent && war.opponent.name || '') === String(candidate.opponent && candidate.opponent.name || '')) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function mergeWarLogSources(officialRaw, archiveRaw, tag) {
+  const official = normalizeWarLogData(officialRaw || { tag, wars: [] });
+  /* Worker membungkus arsip sebagai { archive: { items } }. */
+  const archiveBody = archiveRaw && !Array.isArray(archiveRaw) && archiveRaw.archive ? archiveRaw.archive : archiveRaw;
+  const archiveItems = Array.isArray(archiveBody)
+    ? archiveBody
+    : asArray(archiveBody && archiveBody.items).length ? archiveBody.items : asArray(archiveBody && archiveBody.wars);
+  const combined = official.wars.slice();
+  let added = 0;
+  let enriched = 0;
+  archiveItems.forEach(function(item) {
+    const war = normalizeArchivedWarItem(item, tag);
+    if (!war) return;
+    const match = findSameWar(combined, war);
+    if (match) {
+      const before = JSON.stringify([match.clan, match.opponent]);
+      fillWarSide(match.clan, war.clan);
+      fillWarSide(match.opponent, war.opponent);
+      if (!match.teamSize && war.teamSize) match.teamSize = war.teamSize;
+      if (!match.attacksPerMember && war.attacksPerMember) match.attacksPerMember = war.attacksPerMember;
+      if (before !== JSON.stringify([match.clan, match.opponent])) enriched += 1;
+      return;
+    }
+    combined.push(war);
+    added += 1;
+  });
+  combined.sort(function(a, b) {
+    return (historyTimeMs(b.endTime) || 0) - (historyTimeMs(a.endTime) || 0);
+  });
+  return {
+    tag: official.tag || cleanTag(tag),
+    wars: combined,
+    hiddenCwl: official.hiddenCwl || 0,
+    hasMore: official.hasMore || Boolean(archiveBody && archiveBody.hasMore),
+    archiveCount: archiveItems.length,
+    archiveAdded: added,
+    archiveEnriched: enriched,
+    archivePartial: Boolean(archiveBody && archiveBody.partial),
+    officialCount: official.wars.length
+  };
+}
+
 
 function normalizeWarLogData(raw) {
 
@@ -7949,6 +8174,11 @@ async function loadWarLog(tag) {
 
   warLogFilter = 'all';
   warLogSort = 'newest';
+  warLogPage = 1;
+
+  if (currentWarLog && archiveFail) {
+    currentWarLog.archiveError = archiveFail.message || 'tidak diketahui';
+  }
 
   renderWarLog(
     currentWarLog
@@ -8075,68 +8305,66 @@ function warLogDetailHTML(war) {
   const enemy =
     war.opponent || {};
 
+  /* Tiap sisi dibaca dari strukturnya sendiri. Nilai yang tidak ada
+     ditampilkan "-" dan tidak diganti dengan data sisi lain. */
   const rows = [];
 
-  rows.push([
-    'Bintang',
-    number(mine.stars),
-    number(enemy.stars)
-  ]);
+  const dash = function(value) {
+    return value === null || value === undefined || value === '' ? '-' : String(value);
+  };
 
-  rows.push([
-    'Destruction',
-    warLogPercent(mine.destructionPercentage),
-    warLogPercent(enemy.destructionPercentage)
-  ]);
+  const percentText = function(side) {
+    return nullableNumber(side.destructionPercentage) === null
+      ? '-'
+      : warLogPercent(side.destructionPercentage);
+  };
 
-  if (
-    (mine.attacks !== null && mine.attacks !== undefined) ||
-    (enemy.attacks !== null && enemy.attacks !== undefined)
-  ) {
+  const starsText = function(side) {
+    return dash(nullableNumber(side.stars));
+  };
 
-    const maxAttacks =
-      number(war.teamSize) *
-      number(war.attacksPerMember);
+  const maxAttacks =
+    number(war.teamSize) * number(war.attacksPerMember);
 
-    function attacksText(side) {
-      if (side.attacks === null || side.attacks === undefined) {
-        return '-';
-      }
-
-      return maxAttacks
-        ? side.attacks + '/' + maxAttacks
-        : side.attacks;
+  const attacksText = function(side) {
+    const used = nullableNumber(side.attacks);
+    if (used === null) {
+      return '-';
     }
+    return maxAttacks ? used + '/' + maxAttacks : String(used);
+  };
 
-    rows.push([
-      'Serangan',
-      attacksText(mine),
-      attacksText(enemy)
-    ]);
+  const levelOf = function(side) {
+    const level = nullableNumber(side.clanLevel);
+    return level ? level : null;
+  };
 
+  const known = function(a, b) {
+    return (a !== null && a !== undefined) || (b !== null && b !== undefined);
+  };
+
+  rows.push(['Clan tag', dash(mine.tag), dash(enemy.tag)]);
+  rows.push(['Bintang', starsText(mine), starsText(enemy)]);
+  rows.push(['Destruction', percentText(mine), percentText(enemy)]);
+
+  if (known(nullableNumber(mine.attacks), nullableNumber(enemy.attacks))) {
+    rows.push(['Serangan', attacksText(mine), attacksText(enemy)]);
   }
 
-  if (number(mine.clanLevel) || number(enemy.clanLevel)) {
-
-    rows.push([
-      'Level clan',
-      number(mine.clanLevel) || '-',
-      number(enemy.clanLevel) || '-'
-    ]);
-
+  if (known(levelOf(mine), levelOf(enemy))) {
+    rows.push(['Level clan', dash(levelOf(mine)), dash(levelOf(enemy))]);
   }
 
-  if (
-    mine.expEarned !== null &&
-    mine.expEarned !== undefined
-  ) {
-
+  if (known(nullableNumber(mine.expEarned), nullableNumber(enemy.expEarned))) {
     rows.push([
       'XP clan didapat',
-      formatNumber(mine.expEarned),
-      '-'
+      nullableNumber(mine.expEarned) === null ? '-' : formatNumber(mine.expEarned),
+      nullableNumber(enemy.expEarned) === null ? '-' : formatNumber(enemy.expEarned)
     ]);
+  }
 
+  if (known(nullableNumber(mine.memberCount), nullableNumber(enemy.memberCount))) {
+    rows.push(['Jumlah anggota', dash(nullableNumber(mine.memberCount)), dash(nullableNumber(enemy.memberCount))]);
   }
 
   const mineName =
@@ -8266,8 +8494,40 @@ function renderWarLogList() {
     return;
   }
 
-  const visible =
+  const filtered =
     visibleWarLog();
+
+  const pageSize = 100;
+
+  const totalPages =
+    Math.max(1, Math.ceil(filtered.length / pageSize));
+
+  warLogPage =
+    Math.min(totalPages, Math.max(1, Number(warLogPage) || 1));
+
+  const visible =
+    filtered.slice(
+      (warLogPage - 1) * pageSize,
+      warLogPage * pageSize
+    );
+
+  const pager =
+    document.getElementById('warlogPager');
+
+  if (pager) {
+    pager.innerHTML =
+      totalPages > 1
+        ? '<div class="history-pagination">' +
+            '<button type="button" ' + (warLogPage <= 1 ? 'disabled ' : '') +
+              'onclick="setWarLogPage(' + (warLogPage - 1) + ')">Sebelumnya</button>' +
+            '<span>' + ((warLogPage - 1) * pageSize + 1) + '-' +
+              Math.min(warLogPage * pageSize, filtered.length) +
+              ' dari ' + filtered.length + '</span>' +
+            '<button type="button" ' + (warLogPage >= totalPages ? 'disabled ' : '') +
+              'onclick="setWarLogPage(' + (warLogPage + 1) + ')">Berikutnya</button>' +
+          '</div>'
+        : '';
+  }
 
   list.innerHTML =
     visible.length
@@ -8283,7 +8543,7 @@ function renderWarLogList() {
 
   if (count) {
     count.textContent =
-      visible.length + ' perang';
+      filtered.length + ' perang';
   }
 
   document
@@ -8309,9 +8569,26 @@ function renderWarLogList() {
 }
 
 
+function setWarLogPage(page) {
+
+  warLogPage = Math.max(1, Number(page) || 1);
+
+  renderWarLogList();
+
+  const list =
+    document.getElementById('warlogList');
+
+  if (list && list.scrollIntoView) {
+    list.scrollIntoView({ block:'start', behavior:'smooth' });
+  }
+
+}
+
+
 function setWarLogFilter(key) {
 
   warLogFilter = key;
+  warLogPage = 1;
 
   renderWarLogList();
 
@@ -8321,6 +8598,7 @@ function setWarLogFilter(key) {
 function setWarLogSort(key) {
 
   warLogSort = key;
+  warLogPage = 1;
 
   renderWarLogList();
 
@@ -8384,7 +8662,19 @@ function warLogHeaderHTML(log) {
   }
 
   if (log.archiveCount) {
-    notes.push('Tambahan ' + log.archiveCount + ' catatan arsip ClashKing sebelum digabung dan dideduplikasi.');
+    notes.push(
+      'Arsip ClashKing: ' + log.archiveCount + ' catatan, ' +
+      (log.archiveAdded || 0) + ' perang tambahan, ' +
+      (log.archiveEnriched || 0) + ' perang dilengkapi datanya.'
+    );
+  }
+
+  if (log.archiveError) {
+    notes.push('Arsip ClashKing tidak dapat dimuat: ' + log.archiveError);
+  }
+
+  if (log.archivePartial) {
+    notes.push('Arsip ClashKing hanya termuat sebagian karena ada halaman yang gagal.');
   }
 
   return `
@@ -8545,6 +8835,7 @@ function warLogHistoryHTML(log) {
 
 
       <div id="warlogList"></div>
+      <div id="warlogPager"></div>
 
     </section>
 
@@ -8743,9 +9034,7 @@ function warRosterComparisonHTML(leftSide,rightSide) {
     const th=firstValue(member.townHallLevel,member.townhallLevel,member.townHall,'-');
     const name=escapeHTML(member.name||'-');
     const tag=cleanTag(member.tag);
-    const player=tag
-      ? '<button type="button" class="war-player-link war-roster-player-link" onclick="loadPlayer(\''+escapeHTML(tag)+'\')" title="Buka profil '+name+'">'+name+'</button>'
-      : '<span class="war-roster-player-link">'+name+'</span>';
+    const player=playerLinkHTML(member.name||'-',tag,'war-roster-player-link');
     return '<article class="war-roster-cell"><span class="war-roster-no">'+position+'</span><div class="war-roster-main">'+player+'<small>#'+escapeHTML(tag||'Tag tidak tersedia')+'</small></div><b class="war-roster-th">TH '+escapeHTML(th)+'</b></article>';
   };
   const side=(data,label,members)=>'<section class="war-roster-column"><div class="war-roster-side">'+escapeHTML(firstValue(data&&data.name,label))+' <span>'+members.length+' pemain</span></div>'+members.map(cell).join('')+'</section>';
@@ -8793,9 +9082,7 @@ function currentWarMemberHTML(member,state) {
       <div class="cw-attacks-left">${started ? attackRows : ''}</div>
       <div class="cw-player-center">
         <div class="cw-name">
-          ${member.tag
-            ? `<button type="button" class="war-player-link" onclick="loadPlayer('${escapeHTML(cleanTag(member.tag))}')" title="Buka profil ${escapeHTML(member.name)}">${escapeHTML(member.name)}</button>`
-            : escapeHTML(member.name)}
+          ${playerLinkHTML(member.name,member.tag,'')}
         </div>
         <div class="cw-player-th">TH ${escapeHTML(member.townHallLevel || '-')}</div>
         <div class="cw-player-position">Posisi ${escapeHTML(member.mapPosition || '-')}</div>
@@ -9306,7 +9593,7 @@ function renderClanTownHallTable(
   return `
 
     <div class="table-scroll-hint">
-      ⇄ Geser tabel ke kanan untuk melihat TH lainnya
+      Geser tabel ke kanan atau kiri untuk melihat TH lainnya
     </div>
 
     <div class="table-wrap">
@@ -9546,7 +9833,7 @@ function renderCwl(data) {
                   <button
                     type="button"
                     class="roster-row"
-                    onclick="loadPlayer('${escapeHTML(member.tag)}')"
+                    data-player-tag="${escapeHTML(cleanTag(member.tag))}"
                   >
 
                     <span class="roster-no">
