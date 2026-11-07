@@ -4,6 +4,8 @@
   var originalRenderClan = window.renderClan;
   if (typeof originalRenderClan !== 'function') return;
   var active = 'members';
+  var lastClanTag = ''; 
+  var lastClan = null;
   var memberArchive = null;
   var warArchive = null;
   var loading = false;
@@ -81,7 +83,7 @@
     return '<section class="section"><div class="section-head"><div class="section-title">War History</div><div class="section-value">'+items.length+' perang</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Tanggal</th><th>Lawan</th><th>Hasil</th><th>Bintang</th><th>Destruction</th><th>Peserta</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="history-source-note">Sumber data: ClashKing.</div></section>';
   }
   async function load(kind) {
-    var clan=window.currentClan;
+    var clan=lastClan;
     if (!clan || !clan.tag || typeof window.api!=='function' || loading) return;
     loading=true; failure=''; draw();
     try { var data=await window.api(kind,clan.tag); if(kind==='memberhistory') memberArchive=data; else warArchive=data; }
@@ -89,7 +91,13 @@
     finally {loading=false;draw();}
   }
   document.addEventListener('click',function(e){var b=e.target.closest('[data-retry]');if(b)load(b.dataset.retry);});
-  window.renderClan=function(clan){originalRenderClan(clan);draw();};
+  window.renderClan=function(clan){
+    var tag = clan && clan.tag ? String(clan.tag) : '';
+    if (tag !== lastClanTag) { lastClanTag = tag; lastClan = clan; active = 'members'; memberArchive = null; warArchive = null; failure = ''; }
+    else lastClan = clan;
+    originalRenderClan(clan);
+    draw();
+  };
   var style=document.createElement('style');
   style.textContent='.clan-history-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 0 12px}.clan-history-tab,.clan-history-tabs button{min-height:40px;padding:8px 7px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font-size:12px;font-weight:800}.clan-history-tabs button.active{border-color:var(--accent);background:var(--accent);color:#fff}.history-table-wrap{overflow-x:auto}.history-table{width:100%;border-collapse:collapse;font-size:12px}.history-table th,.history-table td{padding:10px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;white-space:nowrap}.history-table th{color:var(--muted);font-size:10px}.history-tag{color:var(--muted);font-size:10px}.history-current{color:var(--green);font-weight:800}.history-source-note{color:var(--muted);font-size:11px;margin-top:10px;line-height:1.5}@media(max-width:420px){.clan-history-tabs button{font-size:10px}}';
   document.head.appendChild(style);
