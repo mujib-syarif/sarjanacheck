@@ -2377,7 +2377,8 @@ async function getClashKingHistory(tag, kind) {
     ? '/clan/' + encoded + '/join-leave'
     : '/war/' + encoded + '/previous';
   const url = new URL('https://api.clashk.ing' + path);
-  url.searchParams.set('limit', '100');
+  // Request the largest practical archive page; the provider may still cap results.
+  url.searchParams.set('limit', '1000');
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12000);
