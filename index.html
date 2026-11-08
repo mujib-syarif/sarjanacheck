@@ -2491,6 +2491,10 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
 #backToTop.visible{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
 #backToTop.bottom-center{right:auto;left:50%;bottom:14px;transform:translate(-50%,0)}
 #backToTop span{font-size:23px;line-height:1}
+
+#backToBottom{position:fixed;right:18px;bottom:76px;z-index:9998;width:46px;height:46px;border:1px solid #c8ced8;border-radius:50%;background:#252832;color:#fff;box-shadow:0 5px 18px rgba(0,0,0,.22);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s,visibility .2s}
+#backToBottom.visible{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
+#backToBottom span{font-size:23px;line-height:1}
 </style>
 <style>
 /* Shared roster presentation for Classic War and CWL */
@@ -2674,6 +2678,7 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
 
   </footer>
 
+  <button type="button" id="backToBottom" aria-label="Ke bagian bawah" title="Ke bagian bawah"><span aria-hidden="true">↓</span></button>
   <button type="button" id="backToTop" aria-label="Kembali ke atas" title="Kembali ke atas"><span aria-hidden="true">↑</span></button>
 
 </div>
@@ -10260,11 +10265,20 @@ setMode('player');
 
 <script>
 document.addEventListener('DOMContentLoaded',function(){
-  const button=document.getElementById('backToTop');
-  if(!button)return;
-  const update=()=>{const scrolling=window.scrollY>80;const atBottom=window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-8;button.classList.toggle('visible',scrolling);button.classList.toggle('bottom-center',scrolling&&atBottom);};
+  const upButton=document.getElementById('backToTop');
+  const downButton=document.getElementById('backToBottom');
+  if(!upButton||!downButton)return;
+  const update=()=>{
+    const scrolling=window.scrollY>80;
+    const atBottom=window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-8;
+    upButton.classList.toggle('visible',scrolling);
+    upButton.classList.toggle('bottom-center',scrolling&&atBottom);
+    downButton.classList.toggle('visible',scrolling&&!atBottom);
+  };
   window.addEventListener('scroll',update,{passive:true});
-  button.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  window.addEventListener('resize',update);
+  upButton.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  downButton.addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
   update();
 });
 </script>
