@@ -6610,17 +6610,28 @@ function normalizeMemberHistory(raw,currentTags) {
     const lastJoin=record.joins.length?record.joins[record.joins.length-1]:null;
     const lastLeave=record.leaves.length?record.leaves[record.leaves.length-1]:null;
     const exitMissing=!inClan&&(lastLeave===null||(lastJoin!==null&&lastJoin>lastLeave));
+    /* Event pertama yang terekam adalah keluar: ada masa di klan sebelum arsip,
+       jadi "masuk pertama" yang terlihat bukan masuk yang sebenarnya pertama. */
+    const earliestLeave=record.leaves.length>0&&(firstJoin===null||record.leaves[0]<firstJoin);
     const latest=Math.max.apply(null,record.joins.concat(record.leaves,[0]));
-    return {tag:record.tag,name:record.name,firstJoin,lastLeave,inClan:Boolean(inClan),partial:firstJoin===null||exitMissing,latest};
+    return {tag:record.tag,name:record.name,firstJoin,lastLeave,inClan:Boolean(inClan),partial:firstJoin===null||exitMissing||earliestLeave,latest};
   });
   records.sort((a,b)=>b.latest-a.latest||String(a.name||a.tag).localeCompare(String(b.name||b.tag)));
   return {records,skipped};
 }
 
+function memberHistoryRangeHTML(cache) {
+  const archive=cache&&cache.archive;
+  if(!archive||!archive.earliest||!archive.latest)return '';
+  let html='<div class="history-source-note">Rentang arsip yang diterima: '+escapeHTML(clanHistoryDate(archive.earliest))+' sampai '+escapeHTML(clanHistoryDate(archive.latest))+' ('+escapeHTML(archive.available)+' catatan).';
+  if(archive.truncated)html+=' Jumlah catatan mencapai batas sumber dan kelanjutannya tidak bisa diambil, sehingga riwayat di luar rentang ini mungkin belum termuat. Tanggal masuk dan keluar terbaru bisa saja belum tampil.';
+  return html+'</div>';
+}
+
 function memberHistorySourcesHTML(cache) {
   const diagnostics=asArray(cache&&cache.archive&&cache.archive.diagnostics);
   if(!diagnostics.length)return '';
-  const lines=diagnostics.map(d=>'<li>'+escapeHTML(d.endpoint)+': '+(d.ok?'berhasil, '+escapeHTML(d.count)+' catatan':'gagal'+(d.status?' (HTTP '+escapeHTML(d.status)+')':'')+(d.error?' - '+escapeHTML(d.error):''))+'</li>').join('');
+  const lines=diagnostics.map(d=>'<li>'+escapeHTML(d.endpoint)+': '+(d.ok?'berhasil, '+escapeHTML(d.count)+' catatan'+(d.added!==null&&d.added!==undefined?' ('+escapeHTML(d.added)+' baru)':''):'gagal'+(d.status?' (HTTP '+escapeHTML(d.status)+')':'')+(d.error?' - '+escapeHTML(d.error):''))+'</li>').join('');
   return '<details class="history-sources"><summary>Detail sumber data</summary><ul>'+lines+'</ul></details>';
 }
 function clanHistoryPanelHTML(kind) {
@@ -6648,7 +6659,7 @@ function clanHistoryPanelHTML(kind) {
     }).join('');
     const pagination=totalPages>1?'<div class="history-pagination"><button type="button" '+(page<=1?'disabled':'')+' onclick="setMemberHistoryPage('+(page-1)+')">Sebelumnya</button><span>'+((page-1)*pageSize+1)+'-'+Math.min(page*pageSize,records.length)+' dari '+records.length+'</span><button type="button" '+(page>=totalPages?'disabled':'')+' onclick="setMemberHistoryPage('+(page+1)+')">Berikutnya</button></div>':'';
     const partialCount=records.filter(record=>record.partial).length;
-    return '<section class="section"><div class="section-head"><div class="section-title">Member History</div><div class="section-value">'+records.length+' pemain</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Pemain</th><th>Masuk pertama</th><th>Keluar terakhir</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+pagination+'<div class="history-source-note">Satu baris per pemain (berdasarkan tag). Masuk pertama diambil dari catatan join paling awal dan keluar terakhir dari catatan leave paling akhir yang tersedia di ClashKing. Tanggal yang tidak ada di arsip ditampilkan "Tidak tersedia" dan tidak diperkirakan.'+(partialCount?' '+partialCount+' pemain berstatus data tidak lengkap.':'')+' Arsip hanya mencakup periode ketika klan ini dipantau ClashKing; tidak ada bukti arsip tersedia sejak 2012.</div>'+memberHistorySourcesHTML(cache)+'</section>';
+    return '<section class="section"><div class="section-head"><div class="section-title">Member History</div><div class="section-value">'+records.length+' pemain</div></div><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Pemain</th><th>Masuk pertama</th><th>Keluar terakhir</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+pagination+'<div class="history-source-note">Satu baris per pemain (berdasarkan tag). Masuk pertama diambil dari catatan join paling awal dan keluar terakhir dari catatan leave paling akhir yang tersedia di ClashKing. Tanggal yang tidak ada di arsip ditampilkan "Tidak tersedia" dan tidak diperkirakan.'+(partialCount?' '+partialCount+' pemain berstatus data tidak lengkap.':'')+' Arsip hanya mencakup periode ketika klan ini dipantau ClashKing; tidak ada bukti arsip tersedia sejak 2012.</div>'+memberHistoryRangeHTML(cache)+memberHistorySourcesHTML(cache)+'</section>';
   }
   const rows=items.map(war=>{
     const clan=war.clan||war.target||{},opponent=war.opponent||war.enemy||{};
