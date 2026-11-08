@@ -2468,7 +2468,7 @@ function ckExtractItems(body) {
   return [];
 }
 
-async function ckRequest(url) {
+async function ckRequest(url, extraHeaders) {
   const controller = new AbortController();
   const timer = setTimeout(
     () => controller.abort(),
@@ -2478,7 +2478,7 @@ async function ckRequest(url) {
   try {
     const response = await fetch(url.toString(), {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: Object.assign({ Accept: "application/json" }, extraHeaders || {}),
       signal: controller.signal
     });
 
@@ -2531,6 +2531,7 @@ function ckDiagnostic(label, url, outcome) {
     ok: outcome.ok,
     status: outcome.status || null,
     count: outcome.count || 0,
+    added: outcome.added === undefined ? null : outcome.added,
     error: outcome.error || null
   };
 }
@@ -2574,53 +2575,19 @@ function ckNormalizeMemberEvent(item) {
   };
 }
 
-async function ckMemberHistory(encoded) {
-  const sources = [
-    {
-      label: "v2 clan join-leave",
-      url: new URL(CK_BASE + "/v2/clan/" + encoded + "/join-leave")
-    },
-    {
-      label: "legacy clan join-leave",
-      url: (() => {
-        const legacy = new URL(
-          CK_BASE + "/clan/" + encoded + "/join-leave"
-        );
-        legacy.searchParams.set("limit", "1000");
-        return legacy;
-      })()
-    }
-  ];
+/* Batas halaman legacy join-leave. Respons nyata dari ClashKing memotong
+   tepat di batas ini (1000 catatan), sehingga catatan yang lebih baru
+   tidak ikut. Karena itu Worker mencoba mengambil kelanjutannya. */
+const CK_MEMBER_PAGE = 1000;
+const CK_MEMBER_EXTRA_REQUESTS = 6;
 
-  const settled = await Promise.allSettled(
-    sources.map(source => ckRequest(source.url))
-  );
-
+async function ckMemberHistory(encoded, env) {
   const diagnostics = [];
   const events = [];
   const seen = new Set();
-  let firstError = null;
-  let anySuccess = false;
 
-  settled.forEach((result, index) => {
-    const { label, url } = sources[index];
-
-    if (result.status === "rejected") {
-      firstError = firstError || result.reason;
-      diagnostics.push(
-        ckDiagnostic(label, url, {
-          ok: false,
-          status: result.reason && result.reason.status,
-          error: result.reason && result.reason.message
-        })
-      );
-      return;
-    }
-
-    anySuccess = true;
-    const items = ckExtractItems(result.value);
+  const addEvents = items => {
     let added = 0;
-
     for (const item of items) {
       const event = ckNormalizeMemberEvent(item);
       if (!event) {
@@ -2641,18 +2608,133 @@ async function ckMemberHistory(encoded) {
       events.push(event);
       added += 1;
     }
+    return added;
+  };
 
-    diagnostics.push(
-      ckDiagnostic(label, url, {
-        ok: true,
-        status: 200,
-        count: items.length
-      })
+  const legacyUrl = params => {
+    const legacy = new URL(CK_BASE + "/clan/" + encoded + "/join-leave");
+    Object.keys(params).forEach(key =>
+      legacy.searchParams.set(key, String(params[key]))
     );
-  });
+    return legacy;
+  };
 
-  if (!anySuccess) {
-    throw firstError || new Error("ClashKing tidak merespons.");
+  const run = async (label, url, headers) => {
+    try {
+      const body = await ckRequest(url, headers);
+      const items = ckExtractItems(body);
+      const added = addEvents(items);
+      diagnostics.push(
+        ckDiagnostic(label, url, {
+          ok: true,
+          status: 200,
+          count: items.length,
+          added
+        })
+      );
+      return { ok: true, count: items.length, added };
+    } catch (error) {
+      diagnostics.push(
+        ckDiagnostic(label, url, {
+          ok: false,
+          status: error && error.status,
+          error: error && error.message
+        })
+      );
+      return { ok: false, error, count: 0, added: 0 };
+    }
+  };
+
+  /* v2 butuh token ClashKing. Tanpa token, jangan buang request sia-sia. */
+  const token = env && env.CLASHKING_TOKEN;
+  const v2Url = new URL(CK_BASE + "/v2/clan/" + encoded + "/join-leave");
+  let v2 = null;
+
+  if (token) {
+    v2 = await run(
+      "v2 clan join-leave",
+      v2Url,
+      { Authorization: "Bearer " + token }
+    );
+  } else {
+    diagnostics.push({
+      endpoint: "v2 clan join-leave",
+      path: v2Url.pathname,
+      ok: false,
+      status: null,
+      count: 0,
+      added: 0,
+      error: "Dilewati: v2 membutuhkan token ClashKing (secret CLASHKING_TOKEN belum diatur)."
+    });
+  }
+
+  const first = await run(
+    "legacy clan join-leave",
+    legacyUrl({ limit: CK_MEMBER_PAGE })
+  );
+
+  if (!first.ok && !(v2 && v2.ok)) {
+    throw first.error;
+  }
+
+  let extended = false;
+  let stillTruncated = first.ok && first.count >= CK_MEMBER_PAGE;
+
+  /* Halaman penuh = kemungkinan masih ada catatan di luar jendela.
+     Cari ke arah lebih baru lalu lebih lama memakai batas waktu (detik).
+     Jika parameter diabaikan, tidak ada event baru dan perulangan berhenti. */
+  if (stillTruncated) {
+    let requests = 0;
+
+    for (const direction of ["newer", "older"]) {
+      while (requests < CK_MEMBER_EXTRA_REQUESTS) {
+        const times = events
+          .map(event => ckParseTime(event.time))
+          .filter(ms => ms !== null);
+
+        if (!times.length) {
+          break;
+        }
+
+        const edge =
+          direction === "newer"
+            ? Math.floor(Math.max(...times) / 1000)
+            : Math.ceil(Math.min(...times) / 1000);
+
+        const params =
+          direction === "newer"
+            ? { limit: CK_MEMBER_PAGE, timestamp_start: edge }
+            : { limit: CK_MEMBER_PAGE, timestamp_end: edge };
+
+        requests += 1;
+        const page = await run(
+          "legacy clan join-leave (" +
+            (direction === "newer" ? "lebih baru" : "lebih lama") + ")",
+          legacyUrl(params)
+        );
+
+        if (!page.ok || !page.added) {
+          /* Tidak ada tambahan: arah ini sudah habis (atau parameter
+             tidak didukung). */
+          if (page.ok && page.count < CK_MEMBER_PAGE) {
+            /* Halaman tidak penuh dan tidak menambah apa pun: ujung data. */
+          }
+          break;
+        }
+
+        extended = true;
+
+        if (page.count < CK_MEMBER_PAGE) {
+          /* Halaman terakhir arah ini tidak penuh: sudah mencapai ujung. */
+          break;
+        }
+      }
+    }
+
+    /* Dianggap lengkap hanya jika ada perluasan berhasil dan halaman
+       terakhir tidak penuh. Selain itu tetap diberi tanda terpotong. */
+    const last = diagnostics[diagnostics.length - 1];
+    stillTruncated = !(extended && last && last.ok && last.count < CK_MEMBER_PAGE);
   }
 
   events.sort(
@@ -2660,10 +2742,17 @@ async function ckMemberHistory(encoded) {
       (ckParseTime(b.time) || 0) - (ckParseTime(a.time) || 0)
   );
 
+  const stamps = events
+    .map(event => ckParseTime(event.time))
+    .filter(ms => ms !== null);
+
   return {
     items: events,
     available: events.length,
-    source: "ClashKing join-leave (v2 + legacy, digabung dan dideduplikasi)",
+    earliest: stamps.length ? new Date(Math.min(...stamps)).toISOString() : null,
+    latest: stamps.length ? new Date(Math.max(...stamps)).toISOString() : null,
+    truncated: stillTruncated,
+    source: "ClashKing join-leave (" + (v2 && v2.ok ? "v2 + " : "") + "legacy, digabung dan dideduplikasi)",
     diagnostics
   };
 }
@@ -2851,12 +2940,12 @@ async function ckWarHistory(encoded) {
   };
 }
 
-async function getClashKingHistory(tag, kind) {
+async function getClashKingHistory(tag, kind, env) {
   const encoded = encodeURIComponent(cleanTag(tag));
 
   return kind === "warhistory"
     ? ckWarHistory(encoded)
-    : ckMemberHistory(encoded);
+    : ckMemberHistory(encoded, env);
 }
 
 /* =========================================================
@@ -3330,7 +3419,7 @@ export default {
         const kind = pathname === "/memberhistory" ? "memberhistory" : "warhistory";
         return cachedJson(request, "/__cache/" + kind + "/" + encodeURIComponent(tag), 300, async () => {
           try {
-            const archive = await getClashKingHistory(tag, kind);
+            const archive = await getClashKingHistory(tag, kind, env);
             return json({ ok: true, tag, source: "ClashKing", archive }, request);
           } catch (error) {
             const status = Number(error && error.status) || 502;
