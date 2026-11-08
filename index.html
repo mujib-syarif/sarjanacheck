@@ -7961,6 +7961,14 @@ function normalizeArchivedWarSide(side, fallbackTag, fallbackName) {
 function normalizeArchivedWarItem(item, requestedTag) {
   const source = item || {};
   const state = String(firstValue(source.state, '')).toLowerCase();
+  const warType = String(firstValue(source.type, source.warType, source.war_type, '')).toLowerCase();
+  /* ClashKing/CoC menandai CWL dengan WarTag (field tag); pisahkan dari Classic War. */
+  const isCwl = Boolean(
+    source.tag || source.warTag || source.war_tag ||
+    source.leagueGroup || source.league_group ||
+    warType === 'cwl' || warType === 'league'
+  );
+  if (isCwl) return null;
   /* Perang yang belum selesai bukan riwayat dan hasilnya belum final. */
   if (state === 'inwar' || state === 'preparation') return null;
 
