@@ -2100,15 +2100,30 @@ function normalizeWarLog(raw) {
     const opponent =
       item.opponent || {};
 
+    /* ClanWar.tag adalah WarTag CWL; Classic War tidak memilikinya. */
+    const warType = String(firstValue(item.type, item.warType, item.war_type, '')).toLowerCase();
+    const isCwl = Boolean(
+      item.tag || item.warTag || item.war_tag ||
+      item.leagueGroup || item.league_group ||
+      warType === "cwl" || warType === "league"
+    );
+
+    if (isCwl) {
+      hiddenCwl += 1;
+      hiddenCwlEntries.push({
+        endTime: cocTimeToIso(item.endTime),
+        teamSize: number(item.teamSize) || null,
+        resultAvailable: Boolean(result),
+        warTag: item.tag || item.warTag || item.war_tag || null
+      });
+      continue;
+    }
+
     /*
-     * CWL muncul di war log tanpa hasil dan tanpa
-     * lawan yang jelas. Itu bukan Classic War.
+     * Entri tanpa hasil dan tanpa lawan yang jelas bukan
+     * Classic War yang dapat ditampilkan sebagai pertandingan.
      */
-    if (
-      !result &&
-      !opponent.tag &&
-      !opponent.name
-    ) {
+    if (!result && !opponent.tag && !opponent.name) {
       hiddenCwl += 1;
       hiddenCwlEntries.push({
         endTime: cocTimeToIso(item.endTime),
