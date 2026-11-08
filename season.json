@@ -1,4 +1,13 @@
 {
   "id": "2026-11",
-  "name": "Hammer Jam · Builder Swarm"
+  "name": "Hammer Jam · Builder Swarm",
+  "heroes": {
+    "barbarian king": "titan_bk_pose01.png",
+    "archer queen": "titan_aq_pose02.png",
+    "grand warden": "titan_gw_pose03.png",
+    "royal champion": "titan_rc_pose01.png",
+    "minion prince": "titan_mp_pose01.png",
+    "dragon duke": "titan_dd_pose04.png"
+  },
+  "background": "BG_2026_HammerJam_BuilderSwarm.png"
 }
