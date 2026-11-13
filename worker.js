@@ -2797,7 +2797,7 @@ function ckWarEndMs(item) {
   );
 }
 
-async function ckWarHistory(encoded) {
+async function ckWarHistory(encoded, env) {
   const all = [];
   const seen = new Set();
   const diagnostics = [];
@@ -2839,31 +2839,46 @@ async function ckWarHistory(encoded) {
     }
 
     let batch = [];
+    const token = env && env.CLASHKING_TOKEN;
 
-    try {
-      const body = await ckRequest(url);
-      batch = ckExtractItems(body);
-      diagnostics.push(
-        ckDiagnostic("v2 clan wars (halaman " + (page + 1) + ")", url, {
-          ok: true,
-          status: 200,
-          count: batch.length
-        })
-      );
-    } catch (error) {
-      diagnostics.push(
-        ckDiagnostic("v2 clan wars (halaman " + (page + 1) + ")", url, {
-          ok: false,
-          status: error && error.status,
-          error: error && error.message
-        })
-      );
+    if (token) {
+      try {
+        const body = await ckRequest(url, {
+          Authorization: "Bearer " + token
+        });
+        batch = ckExtractItems(body);
+        diagnostics.push(
+          ckDiagnostic("v2 clan wars (halaman " + (page + 1) + ")", url, {
+            ok: true,
+            status: 200,
+            count: batch.length
+          })
+        );
+      } catch (error) {
+        diagnostics.push(
+          ckDiagnostic("v2 clan wars (halaman " + (page + 1) + ")", url, {
+            ok: false,
+            status: error && error.status,
+            error: error && error.message
+          })
+        );
 
-      if (page > 0) {
-        /* Halaman lama sudah terkumpul; jangan buang hasilnya. */
-        partial = true;
-        break;
+        if (page > 0) {
+          /* Halaman lama sudah terkumpul; jangan buang hasilnya. */
+          partial = true;
+          break;
+        }
       }
+    } else {
+      diagnostics.push({
+        endpoint: "v2 clan wars (halaman " + (page + 1) + ")",
+        path: url.pathname,
+        ok: false,
+        status: null,
+        count: 0,
+        added: null,
+        error: "Dilewati: v2 membutuhkan token ClashKing (secret CLASHKING_TOKEN belum diatur)."
+      });
     }
 
     pages += 1;
@@ -2944,7 +2959,7 @@ async function getClashKingHistory(tag, kind, env) {
   const encoded = encodeURIComponent(cleanTag(tag));
 
   return kind === "warhistory"
-    ? ckWarHistory(encoded)
+    ? ckWarHistory(encoded, env)
     : ckMemberHistory(encoded, env);
 }
 
