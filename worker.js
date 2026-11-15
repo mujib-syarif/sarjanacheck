@@ -2532,7 +2532,10 @@ function ckDiagnostic(label, url, outcome) {
     status: outcome.status || null,
     count: outcome.count || 0,
     added: outcome.added === undefined ? null : outcome.added,
-    error: outcome.error || null
+    /* Pesan mentah upstream tidak dikirim ke klien (respons ini ikut di-cache); cukup status HTTP. */
+    error: outcome.error
+      ? (outcome.status ? "HTTP " + outcome.status : "Permintaan gagal")
+      : null
   };
 }
 
@@ -2579,7 +2582,7 @@ function ckNormalizeMemberEvent(item) {
    tepat di batas ini (1000 catatan), sehingga catatan yang lebih baru
    tidak ikut. Karena itu Worker mencoba mengambil kelanjutannya. */
 const CK_MEMBER_PAGE = 1000;
-const CK_MEMBER_EXTRA_REQUESTS = 6;
+const CK_MEMBER_EXTRA_REQUESTS = 4; /* per arah (lebih baru / lebih lama), total subrequest tetap jauh di bawah batas */
 
 async function ckMemberHistory(encoded, env) {
   const diagnostics = [];
@@ -2684,9 +2687,9 @@ async function ckMemberHistory(encoded, env) {
      Cari ke arah lebih baru lalu lebih lama memakai batas waktu (detik).
      Jika parameter diabaikan, tidak ada event baru dan perulangan berhenti. */
   if (stillTruncated) {
-    let requests = 0;
-
     for (const direction of ["newer", "older"]) {
+      let requests = 0;
+
       while (requests < CK_MEMBER_EXTRA_REQUESTS) {
         const times = events
           .map(event => ckParseTime(event.time))
@@ -3423,14 +3426,13 @@ export default {
             return json({ ok: true, tag, source: "ClashKing", archive }, request);
           } catch (error) {
             const status = Number(error && error.status) || 502;
-            const detail = error && error.message
-              ? String(error.message).slice(0, 220)
-              : "Unknown ClashKing error";
+            /* Pesan mentah upstream hanya masuk log Worker, tidak ke klien (dan tidak ke cache). */
+            console.error("ClashKing " + kind + " gagal", status, error && error.message ? String(error.message).slice(0, 300) : "");
             return errorResponse(
               request,
               "ClashKing gagal mengambil " +
                 (kind === "memberhistory" ? "member history" : "war history") +
-                ". HTTP " + status + ": " + detail,
+                ". HTTP " + status + ".",
               status >= 400 && status <= 599 ? status : 502,
               status === 401 || status === 403 ? "clashKingAccessError" : "clashKingHistoryError"
             );
@@ -3449,14 +3451,12 @@ export default {
       );
 
     } catch (error) {
+      console.error("Unhandled worker error", error instanceof Error ? error.message : String(error));
       return errorResponse(
         request,
-
-        error instanceof Error
-          ? error.message
-          : String(error),
-
-        500
+        "Terjadi kesalahan pada server.",
+        500,
+        "internalError"
       );
     }
   }
