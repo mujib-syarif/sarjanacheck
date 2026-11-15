@@ -7,6 +7,12 @@
   <meta name="description" content="Clash of Clans Player, Clan, CWL & War Log Analyzer">
   <link rel="canonical" href="https://mujib-syarif.github.io/sarjanacheck/">
   <meta name="theme-color" content="#123b83">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Sarjana Checker">
+  <meta property="og:description" content="Clash of Clans Player, Clan, CWL & War Log Analyzer">
+  <meta property="og:url" content="https://mujib-syarif.github.io/sarjanacheck/">
+  <meta property="og:image" content="https://mujib-syarif.github.io/sarjanacheck/assets/logo/logo-192.png">
+  <meta name="twitter:card" content="summary">
 
   <!-- Favicon (path relatif, aman untuk GitHub Pages di /sarjanacheck/) -->
   <link rel="icon" href="assets/icons/favicon.ico" sizes="any">
@@ -64,7 +70,7 @@
     }
 
     .app {
-      width:min(100%,1400px);
+      width:min(100%,1180px);
       margin:0 auto;
       padding:24px 16px 32px;
     }
@@ -233,6 +239,7 @@
       border:1px solid var(--line);
       border-radius:10px;
       padding:10px 12px;
+      min-height:44px;
       outline:none;
     }
 
@@ -2165,7 +2172,7 @@ body {
   background:rgba(255,255,255,.055);
   border:1px solid rgba(255,255,255,.14);
   color:#ededf0;
-  min-height:42px;
+  min-height:44px;
   padding:10px 16px;
   font-weight:650;
   transition:background .18s ease,border-color .18s ease;
@@ -2524,13 +2531,16 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
 
     <img
       class="logo"
-      src="assets/logo/og-thumbnail.png"
+      src="assets/logo/logo-192.png"
       alt="Sarjana Checker"
+      width="52"
+      height="52"
+      decoding="async"
       onerror="this.style.display='none'"
     >
 
     <div>
-      <div class="brand-title">
+      <div class="brand-title" role="heading" aria-level="1">
         Sarjana Checker
       </div>
 
@@ -2588,6 +2598,7 @@ input::placeholder,textarea::placeholder { color:#737986!important; opacity:1; }
       <input
         id="searchInput"
         type="text"
+        aria-label="Player tag atau clan tag"
         autocomplete="off"
         placeholder="Masukkan Player Tag"
       >
@@ -10143,14 +10154,28 @@ function applySeason(season) {
   const root =
     document.documentElement.style;
 
+  /* Nama berkas polos (tanpa folder) diarahkan ke assets/heroes atau assets/bg,
+     supaya season.json tidak mati diam-diam saat aset dipindah. */
+  const seasonAsset = function(folder, value) {
+    const text = String(value || '');
+    return text && text.indexOf('/') === -1 && !/^https?:/i.test(text)
+      ? 'assets/' + folder + '/' + text
+      : text;
+  };
+
   if (
     season.heroes &&
     typeof season.heroes === 'object'
   ) {
 
+    const heroes = {};
+    Object.keys(season.heroes).forEach(function(name) {
+      heroes[name] = seasonAsset('heroes', season.heroes[name]);
+    });
+
     Object.assign(
       HERO_ASSET_INDEX,
-      indexedAssets(season.heroes)
+      indexedAssets(heroes)
     );
 
   }
@@ -10218,7 +10243,7 @@ function applySeason(season) {
       root.setProperty(
         '--season-bg',
         'url("' +
-        encodeURI(season.background) +
+        encodeURI(seasonAsset('bg', season.background)) +
         '")'
       );
 
@@ -10228,7 +10253,7 @@ function applySeason(season) {
 
     };
 
-    image.src = season.background;
+    image.src = seasonAsset('bg', season.background);
 
   }
 
