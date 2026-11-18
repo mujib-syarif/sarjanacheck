@@ -4682,6 +4682,24 @@ function normalizePlayer(raw) {
         )
       ),
 
+    bestTrophies:
+      number(firstValue(player.bestTrophies, player.best_trophies)),
+
+    attackWins:
+      number(firstValue(player.attackWins, player.attack_wins)),
+
+    defenseWins:
+      number(firstValue(player.defenseWins, player.defense_wins)),
+
+    donations:
+      number(firstValue(player.donations, player.donated)),
+
+    donationsReceived:
+      number(firstValue(player.donationsReceived, player.donations_received)),
+
+    builderBaseTrophies:
+      number(firstValue(player.builderBaseTrophies, player.versusTrophies)),
+
     builderHallLevel:
       number(
         firstValue(
@@ -5804,6 +5822,21 @@ function renderPlayer(player) {
 
     </div>
 
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title">Player Statistics</div>
+        <div class="section-value">Lifetime counters</div>
+      </div>
+      <div class="summary">
+        <div class="meta">Best Trophies<strong>${formatNumber(player.bestTrophies)}</strong></div>
+        <div class="meta">Attack Wins<strong>${formatNumber(player.attackWins)}</strong></div>
+        <div class="meta">Defense Wins<strong>${formatNumber(player.defenseWins)}</strong></div>
+        <div class="meta">Donated<strong>${formatNumber(player.donations)}</strong></div>
+        <div class="meta">Received<strong>${formatNumber(player.donationsReceived)}</strong></div>
+        <div class="meta">Builder Trophies<strong>${formatNumber(player.builderBaseTrophies)}</strong></div>
+      </div>
+      <div class="section-note">Statistik kumulatif dari profil pemain Clash of Clans.</div>
+    </section>
 
     <section class="section">
 
@@ -6209,7 +6242,28 @@ function normalizeClan(raw) {
     warWinStreak:
       clan.warWinStreak === undefined || clan.warWinStreak === null
         ? null
-        : number(clan.warWinStreak)
+        : number(clan.warWinStreak),
+
+    warWins:
+      clan.warWins == null ? null : number(clan.warWins),
+
+    warLosses:
+      clan.warLosses == null ? null : number(clan.warLosses),
+
+    warTies:
+      clan.warTies == null ? null : number(clan.warTies),
+
+    clanPoints:
+      clan.clanPoints == null ? null : number(clan.clanPoints),
+
+    clanCapitalPoints:
+      clan.clanCapitalPoints == null ? null : number(clan.clanCapitalPoints),
+
+    warLeague:
+      clan.warLeague || null,
+
+    isWarLogPublic:
+      typeof clan.isWarLogPublic === 'boolean' ? clan.isWarLogPublic : null
 
   };
 
@@ -6905,6 +6959,26 @@ function renderClan(clan) {
         </div>
 
       </div>
+
+      ${(() => {
+        const wins = clan.warWins;
+        const losses = clan.warLosses;
+        const ties = clan.warTies;
+        const known = wins !== null && losses !== null && ties !== null;
+        const total = known ? wins + losses + ties : 0;
+        const winRate = known && total > 0 ? (wins / total * 100).toFixed(1) + '%' : '-';
+        return `
+          <div class="summary">
+            <div class="meta">War Wins<strong>${known ? formatNumber(wins) : '-'}</strong></div>
+            <div class="meta">War Losses<strong>${known ? formatNumber(losses) : '-'}</strong></div>
+            <div class="meta">War Ties<strong>${known ? formatNumber(ties) : '-'}</strong></div>
+            <div class="meta">Win Rate<strong>${winRate}</strong></div>
+            <div class="meta">Clan Points<strong>${clan.clanPoints == null ? '-' : formatNumber(clan.clanPoints)}</strong></div>
+            <div class="meta">Capital Points<strong>${clan.clanCapitalPoints == null ? '-' : formatNumber(clan.clanCapitalPoints)}</strong></div>
+          </div>
+          <div class="section-note">Win rate dihitung dari total war tercatat (menang + kalah + seri), bukan dari sampel war log terbaru.</div>
+        `;
+      })()}
 
     </div>
 
