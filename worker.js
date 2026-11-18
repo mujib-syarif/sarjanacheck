@@ -305,7 +305,8 @@ function townHallBreakdown(
 ) {
   const result = {};
 
-  for (let i = 1; i <= 18; i++) {
+  // TH19 is supported; keep this range aligned with the current game cap.
+  for (let i = 1; i <= 19; i++) {
     result[String(i)] = 0;
   }
 
@@ -318,7 +319,7 @@ function townHallBreakdown(
       )
     );
 
-    if (th >= 1 && th <= 18) {
+    if (th >= 1 && th <= 19) {
       result[String(th)]++;
     }
   }

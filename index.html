@@ -4682,6 +4682,24 @@ function normalizePlayer(raw) {
         )
       ),
 
+    bestTrophies:
+      number(firstValue(player.bestTrophies, player.best_trophies)),
+
+    attackWins:
+      number(firstValue(player.attackWins, player.attack_wins)),
+
+    defenseWins:
+      number(firstValue(player.defenseWins, player.defense_wins)),
+
+    donations:
+      number(firstValue(player.donations, player.donated)),
+
+    donationsReceived:
+      number(firstValue(player.donationsReceived, player.donations_received)),
+
+    builderBaseTrophies:
+      number(firstValue(player.builderBaseTrophies, player.versusTrophies)),
+
     builderHallLevel:
       number(
         firstValue(
@@ -5804,6 +5822,21 @@ function renderPlayer(player) {
 
     </div>
 
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title">Player Statistics</div>
+        <div class="section-value">Lifetime counters</div>
+      </div>
+      <div class="summary">
+        <div class="meta">Best Trophies<strong>${formatNumber(player.bestTrophies)}</strong></div>
+        <div class="meta">Attack Wins<strong>${formatNumber(player.attackWins)}</strong></div>
+        <div class="meta">Defense Wins<strong>${formatNumber(player.defenseWins)}</strong></div>
+        <div class="meta">Donated<strong>${formatNumber(player.donations)}</strong></div>
+        <div class="meta">Received<strong>${formatNumber(player.donationsReceived)}</strong></div>
+        <div class="meta">Builder Trophies<strong>${formatNumber(player.builderBaseTrophies)}</strong></div>
+      </div>
+      <div class="section-note">Statistik kumulatif dari profil pemain Clash of Clans.</div>
+    </section>
 
     <section class="section">
 
@@ -5990,6 +6023,21 @@ function normalizeMembers(source) {
                 member.trophy
               )
             ),
+
+          warStars:
+            number(firstValue(member.warStars, member.war_stars)),
+
+          attackWins:
+            number(firstValue(member.attackWins, member.attack_wins)),
+
+          defenseWins:
+            number(firstValue(member.defenseWins, member.defense_wins)),
+
+          donations:
+            number(firstValue(member.donations, member.donated)),
+
+          donationsReceived:
+            number(firstValue(member.donationsReceived, member.donations_received)),
 
           clanRank:
             number(
@@ -6209,7 +6257,28 @@ function normalizeClan(raw) {
     warWinStreak:
       clan.warWinStreak === undefined || clan.warWinStreak === null
         ? null
-        : number(clan.warWinStreak)
+        : number(clan.warWinStreak),
+
+    warWins:
+      clan.warWins == null ? null : number(clan.warWins),
+
+    warLosses:
+      clan.warLosses == null ? null : number(clan.warLosses),
+
+    warTies:
+      clan.warTies == null ? null : number(clan.warTies),
+
+    clanPoints:
+      clan.clanPoints == null ? null : number(clan.clanPoints),
+
+    clanCapitalPoints:
+      clan.clanCapitalPoints == null ? null : number(clan.clanCapitalPoints),
+
+    warLeague:
+      clan.warLeague || null,
+
+    isWarLogPublic:
+      typeof clan.isWarLogPublic === 'boolean' ? clan.isWarLogPublic : null
 
   };
 
@@ -6353,6 +6422,22 @@ function sortClanMembers(members) {
             number(a.clanRank) -
             number(b.clanRank);
 
+        }
+
+        if (clanSort === 'donation-desc') {
+          result =
+            number(b.donations) -
+            number(a.donations) ||
+            number(a.clanRank) -
+            number(b.clanRank);
+        }
+
+        if (clanSort === 'warstars-desc') {
+          result =
+            number(b.warStars) -
+            number(a.warStars) ||
+            number(a.clanRank) -
+            number(b.clanRank);
         }
 
         if (clanSort === 'xp-desc') {
@@ -6779,11 +6864,13 @@ function renderClan(clan) {
                     </div>
 
                     <div class="member-detail">
-                      ${formatNumber(member.trophies)}
-                      trophies ·
-                      <span class="role-chip ${roleClass}">
-                        ${role}
-                      </span>
+                      ${formatNumber(member.trophies)} trophies ·
+                      ${formatNumber(member.warStars)} War Stars ·
+                      ${formatNumber(member.donations)} donated
+                    </div>
+                    <div class="member-detail">
+                      <span class="role-chip ${roleClass}">${role}</span>
+                      ${member.attackWins ? ' · ' + formatNumber(member.attackWins) + ' attack wins' : ''}
                     </div>
 
                   </div>
@@ -6906,6 +6993,35 @@ function renderClan(clan) {
 
       </div>
 
+      ${(() => {
+        const wins = clan.warWins;
+        const losses = clan.warLosses;
+        const ties = clan.warTies;
+        const known = wins !== null && losses !== null && ties !== null;
+        const total = known ? wins + losses + ties : 0;
+        const winRate = known && total > 0 ? (wins / total * 100).toFixed(1) + '%' : '-';
+        const roster = Array.isArray(clan.memberList) ? clan.memberList : [];
+        const totalDonations = roster.reduce((sum, member) => sum + number(member.donations), 0);
+        const totalWarStars = roster.reduce((sum, member) => sum + number(member.warStars), 0);
+        const th19Count = roster.filter(member => number(member.townHallLevel) === 19).length;
+        const averageDonations = roster.length ? Math.round(totalDonations / roster.length) : 0;
+        return `
+          <div class="summary">
+            <div class="meta">War Wins<strong>${known ? formatNumber(wins) : '-'}</strong></div>
+            <div class="meta">War Losses<strong>${known ? formatNumber(losses) : '-'}</strong></div>
+            <div class="meta">War Ties<strong>${known ? formatNumber(ties) : '-'}</strong></div>
+            <div class="meta">Win Rate<strong>${winRate}</strong></div>
+            <div class="meta">Clan Points<strong>${clan.clanPoints == null ? '-' : formatNumber(clan.clanPoints)}</strong></div>
+            <div class="meta">Capital Points<strong>${clan.clanCapitalPoints == null ? '-' : formatNumber(clan.clanCapitalPoints)}</strong></div>
+            <div class="meta">TH19 Members<strong>${formatNumber(th19Count)}</strong></div>
+            <div class="meta">Total War Stars<strong>${formatNumber(totalWarStars)}</strong></div>
+            <div class="meta">Total Donations<strong>${formatNumber(totalDonations)}</strong></div>
+            <div class="meta">Avg. Donations<strong>${formatNumber(averageDonations)}</strong></div>
+          </div>
+          <div class="section-note">Win rate dihitung dari total war tercatat (menang + kalah + seri). Donasi dan War Stars anggota merupakan total dari roster saat ini, bukan histori sepanjang masa clan.</div>
+        `;
+      })()}
+
     </div>
 
     <nav class="clan-history-tabs" aria-label="Clan sections">
@@ -6952,6 +7068,20 @@ function renderClan(clan) {
               ${clanSort === 'role' ? 'selected' : ''}
             >
               Role - Rank
+            </option>
+
+            <option
+              value="donation-desc"
+              ${clanSort === 'donation-desc' ? 'selected' : ''}
+            >
+              Donasi tertinggi
+            </option>
+
+            <option
+              value="warstars-desc"
+              ${clanSort === 'warstars-desc' ? 'selected' : ''}
+            >
+              War Stars tertinggi
             </option>
 
             <option
