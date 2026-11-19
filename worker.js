@@ -246,6 +246,20 @@ function number(value) {
 }
 
 
+// Preserve unavailable API counters as null instead of treating them as zero.
+function nullableNumber(value) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const n = Number(value);
+
+  return Number.isFinite(n)
+    ? n
+    : null;
+}
+
+
 function cleanTag(value) {
   return String(value || "")
     .trim()
@@ -712,16 +726,16 @@ function normalizeClan(
       number(clan.clanCapitalPoints),
 
     warWins:
-      number(clan.warWins),
+      nullableNumber(clan.warWins),
 
     warWinStreak:
-      number(clan.warWinStreak),
+      nullableNumber(clan.warWinStreak),
 
     warLosses:
-      number(clan.warLosses),
+      nullableNumber(clan.warLosses),
 
     warTies:
-      number(clan.warTies),
+      nullableNumber(clan.warTies),
 
     isWarLogPublic:
       Boolean(clan.isWarLogPublic),
