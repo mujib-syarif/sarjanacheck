@@ -35,6 +35,8 @@ jobs:
           java-version: "21"
       - name: Siapkan web
         run: node app/prepare-www.mjs app/android/www "$APP_VERSION"
+      - name: Pasang ImageMagick (buat ikon)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick
       - name: Buat project Android
         working-directory: app/android
         run: |
