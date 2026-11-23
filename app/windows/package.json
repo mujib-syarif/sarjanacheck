@@ -1,0 +1,32 @@
+{
+  "name": "sarjanacheck-desktop",
+  "productName": "SarjanaCheck",
+  "version": "1.0.0",
+  "description": "SarjanaCheck untuk Windows",
+  "author": "mujib-syarif",
+  "private": true,
+  "main": "main.js",
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "io.github.mujibsyarif.sarjanacheck",
+    "productName": "SarjanaCheck",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["main.js", "preload.js", "www/**/*"],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "artifactName": "SarjanaCheck-Setup-${version}.${ext}"
+    },
+    "publish": [{ "provider": "github", "owner": "mujib-syarif", "repo": "sarjanacheck" }]
+  }
+}

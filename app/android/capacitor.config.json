@@ -1,0 +1,9 @@
+{
+  "appId": "io.github.mujibsyarif.sarjanacheck",
+  "appName": "SarjanaCheck",
+  "webDir": "www",
+  "backgroundColor": "#10131a",
+  "plugins": {
+    "CapacitorHttp": { "enabled": true }
+  }
+}
