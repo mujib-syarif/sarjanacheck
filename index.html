@@ -6677,6 +6677,7 @@ async function loadClanWws(tag) {
 
 let clanExportRoleFilter = 'all';
 let clanExportThFilter = 'all';
+let clanExportFilterTag = '';
 let clanExportColumns = ['name','tag','role','th','xp','trophies','warStars','donations'];
 
 const clanExportFieldDefs = [
@@ -6900,9 +6901,9 @@ function clanExportToolsHTML() {
     ['Leader','Leader'],['Co-Leader','Co-Leader'],['Elder','Elder'],['Member','Member']
   ].map(item=>'<option value="'+item[0]+'" '+(clanExportRoleFilter===item[0]?'selected':'')+'>'+item[1]+'</option>').join('');
   const columns = clanExportFieldDefs.map(field=>'<label class="clan-export-column"><input type="checkbox" value="'+field.key+'" '+(clanExportColumns.includes(field.key)?'checked':'')+' onchange="setClanExportColumn(this.value,this.checked)"><span>'+field.label+'</span></label>').join('');
-  const counts = new Map();
-  rows.forEach(member=>counts.set(member.th,(counts.get(member.th)||0)+1));
-  const distribution = Array.from(counts.entries()).filter(entry=>entry[0]!==null).sort((a,b)=>b[0]-a[0]);
+  const distributionMap = new Map();
+  rows.forEach(member=>{if(member.th!==null)distributionMap.set(member.th,(distributionMap.get(member.th)||0)+1);});
+  const distribution = Array.from(distributionMap.entries()).sort((a,b)=>b[0]-a[0]);
   const maxCount = distribution.reduce((max,entry)=>Math.max(max,entry[1]),0)||1;
   const chart = distribution.length
     ? '<div class="clan-export-chart">'+distribution.map(entry=>'<div class="clan-export-bar-row"><span>TH '+entry[0]+'</span><div class="clan-export-bar-track"><i style="width:'+(entry[1]/maxCount*100)+'%"></i></div><b>'+entry[1]+'</b></div>').join('')+'</div>'
@@ -7141,6 +7142,13 @@ async function loadClanHistory(kind) {
 }
 
 function renderClan(clan) {
+
+  const exportTag = cleanTag(clan && clan.tag);
+  if (clanExportFilterTag !== exportTag) {
+    clanExportRoleFilter = 'all';
+    clanExportThFilter = 'all';
+    clanExportFilterTag = exportTag;
+  }
 
   clanShareData = clan;
   clanHistoryTab = 'members';
