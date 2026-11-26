@@ -6650,7 +6650,23 @@ async function loadClanWws(tag) {
    CLAN MEMBER EXPORT
 ============================================================ */
 
-function clanMemberExportRows() {
+let clanExportRoleFilter = 'all';
+let clanExportThFilter = 'all';
+let clanExportColumns = ['name','tag','role','th','xp','trophies','warStars','donations'];
+
+const clanExportFieldDefs = [
+  {key:'name',label:'Nama'},
+  {key:'tag',label:'Player Tag'},
+  {key:'role',label:'Role'},
+  {key:'th',label:'TH'},
+  {key:'xp',label:'XP'},
+  {key:'trophies',label:'Trophy'},
+  {key:'warStars',label:'War Stars'},
+  {key:'donations',label:'Donasi'},
+  {key:'rank',label:'Rank Clan'}
+];
+
+function clanMemberExportAllRows() {
   const clan = clanShareData;
   if (!clan) return [];
   return sortClanMembers(asArray(clan.memberList)).map(function(member,index) {
@@ -6659,34 +6675,59 @@ function clanMemberExportRows() {
       name:String(member.name || '-'),
       tag:String(member.tag || '-'),
       role:roleName(member.role),
-      th:number(member.townHallLevel) || '-',
-      xp:number(member.expLevel) || '-',
-      trophies:number(member.trophies),
-      warStars:number(member.warStars),
-      donations:number(member.donations)
+      th:nullableNumber(member.townHallLevel),
+      xp:nullableNumber(member.expLevel),
+      trophies:nullableNumber(member.trophies),
+      warStars:nullableNumber(member.warStars),
+      donations:nullableNumber(member.donations),
+      rank:nullableNumber(member.clanRank)
     };
+  });
+}
+
+function clanMemberExportRows() {
+  return clanMemberExportAllRows().filter(function(member) {
+    const roleMatch = clanExportRoleFilter === 'all'
+      || (clanExportRoleFilter === 'leadership' && ['Leader','Co-Leader','Elder'].includes(member.role))
+      || member.role === clanExportRoleFilter;
+    const thMatch = clanExportThFilter === 'all' || String(member.th) === clanExportThFilter;
+    return roleMatch && thMatch;
+  }).map(function(member,index) {
+    return {...member,no:index+1};
+  });
+}
+
+function clanExportValue(member,key) {
+  const value = member[key];
+  if (value === null || value === undefined || value === '') return '—';
+  if (key === 'th') return 'TH ' + value;
+  return String(value);
+}
+
+function clanExportSelectedFields() {
+  return clanExportFieldDefs.filter(function(field) {
+    return clanExportColumns.includes(field.key);
   });
 }
 
 function clanMemberExportText() {
   const clan = clanShareData;
   const rows = clanMemberExportRows();
-  if (!clan || !rows.length) return '';
+  const fields = clanExportSelectedFields();
+  if (!clan || !rows.length || !fields.length) return '';
   const lines = [
     String(clan.name || 'Clan') + ' (' + String(clan.tag || '') + ')',
-    'SARJANA CHECKER | DAFTAR MEMBER',
-    'Member: ' + rows.length + '/50 | Clan Level: ' + String(clan.clanLevel || '-'),
+    'SARJANA CHECKER | EKSPOR ROSTER',
+    'Member: ' + rows.length + '/' + clanMemberExportAllRows().length + ' | Clan Level: ' + String(clan.clanLevel || '-'),
+    'Filter: ' + (clanExportRoleFilter === 'all' ? 'Semua role' : clanExportRoleFilter === 'leadership' ? 'Pengurus' : clanExportRoleFilter) + ' | ' + (clanExportThFilter === 'all' ? 'Semua TH' : 'TH ' + clanExportThFilter),
     'Diekspor: ' + new Date().toLocaleString('id-ID'),
     '',
-    'NO. | NAMA | PLAYER TAG | ROLE | TH | XP | TROPHY | WAR STARS | DONASI'
+    ['NO.'].concat(fields.map(field=>field.label.toUpperCase())).join(' | ')
   ];
-  rows.forEach(function(m) {
-    lines.push([
-      String(m.no).padStart(2,'0'),m.name,m.tag,m.role,
-      'TH'+m.th,m.xp,m.trophies,m.warStars,m.donations
-    ].join(' | '));
+  rows.forEach(function(member) {
+    lines.push([String(member.no).padStart(2,'0')].concat(fields.map(field=>clanExportValue(member,field.key))).join(' | '));
   });
-  lines.push('', 'Data diambil dari roster clan saat ekspor.', 'https://mujib-syarif.github.io/sarjanacheck/');
+  lines.push('', 'War Stars “—” berarti tidak disediakan oleh data roster clan.', 'Data diambil dari roster clan saat ekspor.', 'https://mujib-syarif.github.io/sarjanacheck/');
   return lines.join('\n');
 }
 
@@ -6703,7 +6744,7 @@ function saveClanExportBlob(blob, filename) {
 
 async function copyClanMemberList() {
   const text = clanMemberExportText();
-  if (!text) { alert('Data member belum tersedia.'); return; }
+  if (!text) { alert('Tidak ada anggota yang cocok dengan filter, atau belum ada kolom ekspor yang dipilih.'); return; }
   try {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);
@@ -6718,7 +6759,7 @@ async function copyClanMemberList() {
       area.remove();
       if (!copied) throw new Error('Clipboard tidak tersedia');
     }
-    alert('Daftar member berhasil disalin.');
+    alert('Hasil filter berhasil disalin.');
   } catch (_) {
     downloadClanMemberText();
   }
@@ -6726,20 +6767,21 @@ async function copyClanMemberList() {
 
 function downloadClanMemberText() {
   const text = clanMemberExportText();
-  if (!text) { alert('Data member belum tersedia.'); return; }
+  if (!text) { alert('Tidak ada anggota yang cocok dengan filter, atau belum ada kolom ekspor yang dipilih.'); return; }
   const clan = clanShareData || {};
   const safeName = String(clan.name || 'clan').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-|-$/g,'');
-  saveClanExportBlob(new Blob(['\ufeff',text],{type:'text/plain;charset=utf-8'}),safeName+'-members.txt');
+  saveClanExportBlob(new Blob(['\ufeff',text],{type:'text/plain;charset=utf-8'}),safeName+'-roster.txt');
 }
 
 function downloadClanMemberImage() {
   const clan = clanShareData;
   const rows = clanMemberExportRows();
-  if (!clan || !rows.length) { alert('Data member belum tersedia.'); return; }
+  const fields = clanExportSelectedFields();
+  if (!clan || !rows.length || !fields.length) { alert('Tidak ada anggota yang cocok dengan filter, atau belum ada kolom ekspor yang dipilih.'); return; }
   const width = 1400;
-  const headerHeight = 300;
+  const headerHeight = 270;
   const rowHeight = 58;
-  const footerHeight = 90;
+  const footerHeight = 100;
   const height = headerHeight + rows.length * rowHeight + footerHeight;
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -6761,55 +6803,91 @@ function downloadClanMemberImage() {
   ctx.font = '800 25px Arial';
   ctx.fillText('SARJANA CHECKER  /  CLAN ROSTER',64,72);
   ctx.fillStyle = '#fff';
-  ctx.font = '800 48px Arial';
+  ctx.font = '800 46px Arial';
   ctx.fillText(String(clan.name || 'Clan').slice(0,34),64,137);
   ctx.fillStyle = '#b9c9dc';
-  ctx.font = '600 23px Arial';
-  ctx.fillText(String(clan.tag || '')+'   •   '+rows.length+'/50 MEMBER   •   CLAN LEVEL '+String(clan.clanLevel || '-'),66,181);
+  ctx.font = '600 21px Arial';
+  const roleLabel = clanExportRoleFilter === 'all' ? 'SEMUA ROLE' : clanExportRoleFilter === 'leadership' ? 'PENGURUS' : clanExportRoleFilter.toUpperCase();
+  const thLabel = clanExportThFilter === 'all' ? 'SEMUA TH' : 'TH ' + clanExportThFilter;
+  ctx.fillText(String(clan.tag || '')+'   •   '+rows.length+'/'+clanMemberExportAllRows().length+' MEMBER   •   '+roleLabel+'   •   '+thLabel,66,181);
   ctx.fillStyle = '#e2bd62';
   ctx.font = '700 16px Arial';
-  ctx.fillText('NO.',66,252);
-  ctx.fillText('PLAYER',142,252);
-  ctx.fillText('ROLE',650,252);
-  ctx.fillText('TH',830,252);
-  ctx.fillText('TROPHY',930,252);
-  ctx.fillText('WAR STARS',1070,252);
-  ctx.fillText('DONASI',1230,252);
 
-  rows.forEach(function(m,index) {
+  const left = 64;
+  const right = width - 64;
+  const totalWidth = right - left;
+  const weights = fields.map(field => field.key === 'name' ? 2.1 : field.key === 'tag' ? 1.7 : field.key === 'role' ? 1.1 : 0.85);
+  const weightTotal = weights.reduce((sum,value)=>sum+value,0);
+  const widths = weights.map(value=>totalWidth*value/weightTotal);
+  const positions = [];
+  let cursor = left;
+  fields.forEach(function(field,index) {
+    positions.push(cursor);
+    ctx.fillText(field.label.toUpperCase(),cursor,245);
+    cursor += widths[index];
+  });
+
+  rows.forEach(function(member,index) {
     const y = headerHeight + index*rowHeight;
     ctx.fillStyle = index%2===0 ? 'rgba(255,255,255,.085)' : 'rgba(255,255,255,.035)';
     ctx.fillRect(52,y,width-104,rowHeight-3);
     ctx.fillStyle = '#e2bd62';
-    ctx.font = '700 19px Arial';
-    ctx.fillText(String(m.no).padStart(2,'0'),66,y+35);
-    ctx.fillStyle = '#fff';
-    ctx.font = '700 20px Arial';
-    ctx.fillText(m.name.slice(0,31),142,y+27);
-    ctx.fillStyle = '#b9c9dc';
-    ctx.font = '500 14px Arial';
-    ctx.fillText(m.tag,142,y+46);
-    ctx.fillStyle = '#fff';
-    ctx.font = '600 17px Arial';
-    ctx.fillText(m.role,650,y+34);
-    ctx.fillStyle = '#e2bd62';
-    ctx.font = '800 18px Arial';
-    ctx.fillText('TH '+m.th,830,y+34);
-    ctx.fillStyle = '#fff';
-    ctx.font = '600 17px Arial';
-    ctx.fillText(formatNumber(m.trophies),930,y+34);
-    ctx.fillText(formatNumber(m.warStars),1070,y+34);
-    ctx.fillText(formatNumber(m.donations),1230,y+34);
+    ctx.font = '700 17px Arial';
+    ctx.fillText(String(member.no).padStart(2,'0'),24,y+34);
+    fields.forEach(function(field,fieldIndex) {
+      const key = field.key;
+      ctx.fillStyle = key === 'th' ? '#e2bd62' : '#fff';
+      ctx.font = key === 'name' ? '700 17px Arial' : '600 15px Arial';
+      ctx.fillText(clanExportValue(member,key),positions[fieldIndex],y+34,Math.max(35,widths[fieldIndex]-12));
+    });
   });
 
   ctx.fillStyle = '#b9c9dc';
   ctx.font = '500 15px Arial';
-  ctx.fillText('Diperbarui saat ekspor: '+new Date().toLocaleString('id-ID')+'  |  mujib-syarif.github.io/sarjanacheck',64,height-48);
+  ctx.fillText('War Stars “—” berarti data tidak disediakan roster clan. Diekspor: '+new Date().toLocaleString('id-ID'),64,height-60);
+  ctx.fillText('mujib-syarif.github.io/sarjanacheck',64,height-36);
   const safeName = String(clan.name || 'clan').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-|-$/g,'');
   canvas.toBlob(function(blob) {
-    if (blob) saveClanExportBlob(blob,safeName+'-members.png');
+    if (blob) saveClanExportBlob(blob,safeName+'-roster.png');
     else alert('Gagal membuat gambar daftar member.');
   },'image/png');
+}
+
+function setClanExportFilter(kind,value) {
+  if(kind==='role')clanExportRoleFilter=value;
+  if(kind==='th')clanExportThFilter=value;
+  refreshClanExportTools();
+}
+
+function setClanExportColumn(key,checked) {
+  if(checked&&!clanExportColumns.includes(key))clanExportColumns.push(key);
+  if(!checked)clanExportColumns=clanExportColumns.filter(item=>item!==key);
+  refreshClanExportTools();
+}
+
+function clanExportToolsHTML() {
+  const allRows = clanMemberExportAllRows();
+  const rows = clanMemberExportRows();
+  const thValues = Array.from(new Set(allRows.map(member=>member.th).filter(value=>value!==null))).sort((a,b)=>b-a);
+  const thOptions = '<option value="all">Semua TH</option>' + thValues.map(value=>'<option value="'+value+'" '+(clanExportThFilter===String(value)?'selected':'')+'>TH '+value+'</option>').join('');
+  const roleOptions = [
+    ['all','Semua role'],['leadership','Pengurus (Leader + Co-Leader + Elder)'],
+    ['Leader','Leader'],['Co-Leader','Co-Leader'],['Elder','Elder'],['Member','Member']
+  ].map(item=>'<option value="'+item[0]+'" '+(clanExportRoleFilter===item[0]?'selected':'')+'>'+item[1]+'</option>').join('');
+  const columns = clanExportFieldDefs.map(field=>'<label class="clan-export-column"><input type="checkbox" value="'+field.key+'" '+(clanExportColumns.includes(field.key)?'checked':'')+' onchange="setClanExportColumn(this.value,this.checked)"><span>'+field.label+'</span></label>').join('');
+  const counts = new Map();
+  rows.forEach(member=>counts.set(member.th,(counts.get(member.th)||0)+1));
+  const distribution = Array.from(counts.entries()).filter(entry=>entry[0]!==null).sort((a,b)=>b[0]-a[0]);
+  const maxCount = distribution.reduce((max,entry)=>Math.max(max,entry[1]),0)||1;
+  const chart = distribution.length
+    ? '<div class="clan-export-chart">'+distribution.map(entry=>'<div class="clan-export-bar-row"><span>TH '+entry[0]+'</span><div class="clan-export-bar-track"><i style="width:'+(entry[1]/maxCount*100)+'%"></i></div><b>'+entry[1]+'</b></div>').join('')+'</div>'
+    : '<div class="clan-export-empty">Tidak ada data TH untuk filter ini.</div>';
+  return '<div class="clan-export-panel"><div class="clan-export-panel-head"><strong>Filter & statistik ekspor</strong><span>'+rows.length+' dari '+allRows.length+' anggota</span></div><div class="clan-export-filters"><label>Role<select class="sort-select" onchange="setClanExportFilter(\\'role\\',this.value)">'+roleOptions+'</select></label><label>Town Hall<select class="sort-select" onchange="setClanExportFilter(\\'th\\',this.value)">'+thOptions+'</select></label></div><div class="clan-export-chart-head"><strong>Distribusi Town Hall</strong><span>mengikuti filter aktif</span></div>'+chart+'<div class="clan-export-columns-head"><strong>Kolom yang diekspor</strong><span>pilih minimal satu</span></div><div class="clan-export-columns">'+columns+'</div><div class="clan-export-note">War Stars tidak tersedia pada data roster clan jika sumber tidak mengirim field tersebut. Tanda “—” bukan nilai nol; angka War Stars individual tetap dapat dilihat pada profil pemain.</div></div>';
+}
+
+function refreshClanExportTools() {
+  const root = document.getElementById('clanExportTools');
+  if(root)root.innerHTML=clanExportToolsHTML();
 }
 
 /* ============================================================
