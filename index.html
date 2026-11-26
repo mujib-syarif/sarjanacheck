@@ -1756,6 +1756,55 @@
       font-weight:600;
     }
 
+    .account-age-card {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-top:12px;
+      padding:12px;
+      border:1px solid rgba(198,154,58,.42);
+      border-radius:12px;
+      background:linear-gradient(110deg,#f7faff,#fffaf0);
+    }
+
+    .account-age-copy {
+      min-width:0;
+    }
+
+    .account-age-title {
+      color:var(--text);
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .account-age-desc {
+      margin-top:3px;
+      color:var(--muted);
+      font-size:10px;
+      line-height:1.45;
+    }
+
+    .account-age-link {
+      flex:0 0 auto;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:34px;
+      padding:7px 11px;
+      border:1px solid var(--accent);
+      border-radius:9px;
+      background:var(--accent);
+      color:#fff;
+      font-size:10px;
+      font-weight:800;
+      text-decoration:none;
+    }
+
+    .account-age-link:hover {
+      background:var(--accent-dark);
+    }
+
     /* =========================
        MOBILE
     ========================= */
@@ -5788,7 +5837,17 @@ function renderPlayer(player) {
         ${escapeHTML(player.tag)}
       </div>
 
-
+      <div class="account-age-card">
+        <div class="account-age-copy">
+          <div class="account-age-title">Perkiraan Tahun Dibuat</div>
+          <div class="account-age-desc">Estimasi berdasarkan Player Tag dari Clashma. Bukan tanggal resmi Supercell.</div>
+        </div>
+        <a class="account-age-link"
+           href="https://clashma.com/tracker/age?tag=${encodeURIComponent(String(player.tag || '').replace(/^#/,''))}"
+           target="_blank"
+           rel="noopener noreferrer"
+           aria-label="Lihat perkiraan tahun pembuatan akun di Clashma">Cek usia akun</a>
+      </div>
 
       ${clanHTML}
 
