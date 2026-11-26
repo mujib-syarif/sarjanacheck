@@ -668,8 +668,10 @@ function normalizeMember(member) {
         member.donationsReceived
       ),
 
+    // ClanMember schema does not provide warStars.
+    // Keep it unavailable instead of fabricating a zero.
     warStars:
-      number(member.warStars),
+      nullableNumber(member.warStars),
 
     attackWins:
       number(member.attackWins),
