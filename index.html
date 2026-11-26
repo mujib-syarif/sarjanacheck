@@ -1069,6 +1069,31 @@
       color:#fff;
     }
 
+    .clan-export-panel {
+      margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;
+      background:linear-gradient(135deg,#f8fbff,#edf4fc);
+    }
+    .clan-export-panel-head,.clan-export-chart-head,.clan-export-columns-head {
+      display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px;font-size:12px;
+    }
+    .clan-export-panel-head span,.clan-export-chart-head span,.clan-export-columns-head span {
+      color:var(--muted);font-size:10px;font-weight:700;
+    }
+    .clan-export-filters { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:13px; }
+    .clan-export-filters label { display:grid;gap:5px;color:var(--muted);font-size:10px;font-weight:800; }
+    .clan-export-filters select { width:100%;min-width:0; }
+    .clan-export-chart { display:grid;gap:6px;margin:8px 0 14px; }
+    .clan-export-bar-row { display:grid;grid-template-columns:48px minmax(0,1fr) 26px;gap:7px;align-items:center;font-size:10px;font-weight:800; }
+    .clan-export-bar-track { height:9px;overflow:hidden;border-radius:99px;background:#d7e3f1; }
+    .clan-export-bar-track i { display:block;height:100%;min-width:2px;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent3)); }
+    .clan-export-bar-row b { text-align:right;color:var(--accent2); }
+    .clan-export-empty { padding:10px 0;color:var(--muted);font-size:11px; }
+    .clan-export-columns { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:8px 0 10px; }
+    .clan-export-column { display:flex;align-items:center;gap:5px;min-width:0;color:var(--text);font-size:10px;font-weight:700; }
+    .clan-export-column input { width:15px;height:15px;accent-color:var(--accent);flex:0 0 auto; }
+    .clan-export-note { color:var(--muted);font-size:10px;line-height:1.5; }
+    @media(max-width:480px) { .clan-export-columns { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
     /* =========================
        CLAN LINK
     ========================= */
@@ -6108,7 +6133,7 @@ function normalizeMembers(source) {
             ),
 
           warStars:
-            number(firstValue(member.warStars, member.war_stars)),
+            nullableNumber(firstValue(member.warStars, member.war_stars)),
 
           attackWins:
             number(firstValue(member.attackWins, member.attack_wins)),
@@ -6882,7 +6907,7 @@ function clanExportToolsHTML() {
   const chart = distribution.length
     ? '<div class="clan-export-chart">'+distribution.map(entry=>'<div class="clan-export-bar-row"><span>TH '+entry[0]+'</span><div class="clan-export-bar-track"><i style="width:'+(entry[1]/maxCount*100)+'%"></i></div><b>'+entry[1]+'</b></div>').join('')+'</div>'
     : '<div class="clan-export-empty">Tidak ada data TH untuk filter ini.</div>';
-  return '<div class="clan-export-panel"><div class="clan-export-panel-head"><strong>Filter & statistik ekspor</strong><span>'+rows.length+' dari '+allRows.length+' anggota</span></div><div class="clan-export-filters"><label>Role<select class="sort-select" onchange="setClanExportFilter(\\'role\\',this.value)">'+roleOptions+'</select></label><label>Town Hall<select class="sort-select" onchange="setClanExportFilter(\\'th\\',this.value)">'+thOptions+'</select></label></div><div class="clan-export-chart-head"><strong>Distribusi Town Hall</strong><span>mengikuti filter aktif</span></div>'+chart+'<div class="clan-export-columns-head"><strong>Kolom yang diekspor</strong><span>pilih minimal satu</span></div><div class="clan-export-columns">'+columns+'</div><div class="clan-export-note">War Stars tidak tersedia pada data roster clan jika sumber tidak mengirim field tersebut. Tanda “—” bukan nilai nol; angka War Stars individual tetap dapat dilihat pada profil pemain.</div></div>';
+  return '<div class="clan-export-panel"><div class="clan-export-panel-head"><strong>Filter & statistik ekspor</strong><span>'+rows.length+' dari '+allRows.length+' anggota</span></div><div class="clan-export-filters"><label>Role<select class="sort-select" onchange="setClanExportFilter(\'role\',this.value)">'+roleOptions+'</select></label><label>Town Hall<select class="sort-select" onchange="setClanExportFilter(\'th\',this.value)">'+thOptions+'</select></label></div><div class="clan-export-chart-head"><strong>Distribusi Town Hall</strong><span>mengikuti filter aktif</span></div>'+chart+'<div class="clan-export-columns-head"><strong>Kolom yang diekspor</strong><span>pilih minimal satu</span></div><div class="clan-export-columns">'+columns+'</div><div class="clan-export-note">War Stars tidak tersedia pada data roster clan jika sumber tidak mengirim field tersebut. Tanda “—” bukan nilai nol; angka War Stars individual tetap dapat dilihat pada profil pemain.</div></div>';
 }
 
 function refreshClanExportTools() {
@@ -7192,7 +7217,7 @@ function renderClan(clan) {
 
                     <div class="member-detail">
                       ${formatNumber(member.trophies)} trophies ·
-                      ${formatNumber(member.warStars)} War Stars ·
+                      ${member.warStars === null ? 'War Stars —' : formatNumber(member.warStars) + ' War Stars'} ·
                       ${formatNumber(member.donations)} donated
                     </div>
                     <div class="member-detail">
@@ -7266,9 +7291,9 @@ function renderClan(clan) {
 
 
       <div class="clan-export-actions" aria-label="Ekspor data clan">
-        <button type="button" class="clan-export-btn" onclick="copyClanMemberList()">Salin teks</button>
+        <button type="button" class="clan-export-btn" onclick="copyClanMemberList()">Salin hasil filter</button>
         <button type="button" class="clan-export-btn" onclick="downloadClanMemberText()">Unduh TXT</button>
-        <button type="button" class="clan-export-btn primary" onclick="downloadClanMemberImage()">Unduh daftar PNG</button>
+        <button type="button" class="clan-export-btn primary" onclick="downloadClanMemberImage()">Unduh PNG</button>
         <button id="clanShareCardBtn" type="button" class="clan-export-btn" onclick="downloadClanShareCard()">Clan Card PNG</button>
       </div>
 
@@ -7332,7 +7357,8 @@ function renderClan(clan) {
         const winRate = known && total > 0 ? (wins / total * 100).toFixed(1) + '%' : '-';
         const roster = Array.isArray(clan.memberList) ? clan.memberList : [];
         const totalDonations = roster.reduce((sum, member) => sum + number(member.donations), 0);
-        const totalWarStars = roster.reduce((sum, member) => sum + number(member.warStars), 0);
+        const knownWarStars = roster.filter(member => nullableNumber(member.warStars) !== null);
+        const totalWarStars = knownWarStars.reduce((sum, member) => sum + number(member.warStars), 0);
         const th19Count = roster.filter(member => number(member.townHallLevel) === 19).length;
         const averageDonations = roster.length ? Math.round(totalDonations / roster.length) : 0;
         return `
@@ -7344,11 +7370,11 @@ function renderClan(clan) {
             <div class="meta">Clan Points<strong>${clan.clanPoints == null ? '-' : formatNumber(clan.clanPoints)}</strong></div>
             <div class="meta">Capital Points<strong>${clan.clanCapitalPoints == null ? '-' : formatNumber(clan.clanCapitalPoints)}</strong></div>
             <div class="meta">TH19 Members<strong>${formatNumber(th19Count)}</strong></div>
-            <div class="meta">Total War Stars<strong>${formatNumber(totalWarStars)}</strong></div>
+            <div class="meta">Total War Stars<strong>${knownWarStars.length ? formatNumber(totalWarStars) : "-"}</strong></div>
             <div class="meta">Total Donations<strong>${formatNumber(totalDonations)}</strong></div>
             <div class="meta">Avg. Donations<strong>${formatNumber(averageDonations)}</strong></div>
           </div>
-          <div class="section-note">Win rate dihitung dari total war tercatat (menang + kalah + seri). Donasi dan War Stars anggota merupakan total dari roster saat ini, bukan histori sepanjang masa clan.</div>
+          <div class="section-note">Win rate dihitung dari total war tercatat (menang + kalah + seri). Donasi merupakan total roster saat ini. War Stars hanya dijumlahkan jika sumber roster menyediakannya; tanda “-” berarti data tidak tersedia, bukan nol.</div>
         `;
       })()}
 
@@ -7463,6 +7489,8 @@ function renderClan(clan) {
       </div>
 
 
+      <div id="clanExportTools"></div>
+
       <div class="member-list">
         ${memberHTML}
       </div>
@@ -7471,6 +7499,8 @@ function renderClan(clan) {
 
   `;
 
+
+  refreshClanExportTools();
 
   window.scrollTo({
     top:0,
