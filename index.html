@@ -1045,6 +1045,30 @@
       background:#fff0b8;
     }
 
+    .clan-export-actions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
+      margin:12px 0 4px;
+    }
+
+    .clan-export-btn {
+      min-height:36px;
+      padding:7px 11px;
+      border:1px solid var(--line);
+      border-radius:9px;
+      background:var(--card2);
+      color:var(--text);
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .clan-export-btn.primary {
+      border-color:var(--accent);
+      background:var(--accent);
+      color:#fff;
+    }
+
     /* =========================
        CLAN LINK
     ========================= */
@@ -6564,6 +6588,172 @@ async function loadClanWws(tag) {
 }
 
 /* ============================================================
+   CLAN MEMBER EXPORT
+============================================================ */
+
+function clanMemberExportRows() {
+  const clan = clanShareData;
+  if (!clan) return [];
+  return sortClanMembers(asArray(clan.memberList)).map(function(member,index) {
+    return {
+      no:index+1,
+      name:String(member.name || '-'),
+      tag:String(member.tag || '-'),
+      role:roleName(member.role),
+      th:number(member.townHallLevel) || '-',
+      xp:number(member.expLevel) || '-',
+      trophies:number(member.trophies),
+      warStars:number(member.warStars),
+      donations:number(member.donations)
+    };
+  });
+}
+
+function clanMemberExportText() {
+  const clan = clanShareData;
+  const rows = clanMemberExportRows();
+  if (!clan || !rows.length) return '';
+  const lines = [
+    String(clan.name || 'Clan') + ' (' + String(clan.tag || '') + ')',
+    'SARJANA CHECKER | DAFTAR MEMBER',
+    'Member: ' + rows.length + '/50 | Clan Level: ' + String(clan.clanLevel || '-'),
+    'Diekspor: ' + new Date().toLocaleString('id-ID'),
+    '',
+    'NO. | NAMA | PLAYER TAG | ROLE | TH | XP | TROPHY | WAR STARS | DONASI'
+  ];
+  rows.forEach(function(m) {
+    lines.push([
+      String(m.no).padStart(2,'0'),m.name,m.tag,m.role,
+      'TH'+m.th,m.xp,m.trophies,m.warStars,m.donations
+    ].join(' | '));
+  });
+  lines.push('', 'Data diambil dari roster clan saat ekspor.', 'https://mujib-syarif.github.io/sarjanacheck/');
+  return lines.join('\n');
+}
+
+function saveClanExportBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); },1500);
+}
+
+async function copyClanMemberList() {
+  const text = clanMemberExportText();
+  if (!text) { alert('Data member belum tersedia.'); return; }
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      const copied = document.execCommand('copy');
+      area.remove();
+      if (!copied) throw new Error('Clipboard tidak tersedia');
+    }
+    alert('Daftar member berhasil disalin.');
+  } catch (_) {
+    downloadClanMemberText();
+  }
+}
+
+function downloadClanMemberText() {
+  const text = clanMemberExportText();
+  if (!text) { alert('Data member belum tersedia.'); return; }
+  const clan = clanShareData || {};
+  const safeName = String(clan.name || 'clan').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-|-$/g,'');
+  saveClanExportBlob(new Blob(['\ufeff',text],{type:'text/plain;charset=utf-8'}),safeName+'-members.txt');
+}
+
+function downloadClanMemberImage() {
+  const clan = clanShareData;
+  const rows = clanMemberExportRows();
+  if (!clan || !rows.length) { alert('Data member belum tersedia.'); return; }
+  const width = 1400;
+  const headerHeight = 300;
+  const rowHeight = 58;
+  const footerHeight = 90;
+  const height = headerHeight + rows.length * rowHeight + footerHeight;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) { alert('Browser tidak mendukung ekspor gambar.'); return; }
+
+  const bg = ctx.createLinearGradient(0,0,width,height);
+  bg.addColorStop(0,'#07152f');
+  bg.addColorStop(.55,'#123b83');
+  bg.addColorStop(1,'#081126');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,width,height);
+  ctx.strokeStyle = 'rgba(226,189,98,.7)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(22,22,width-44,height-44);
+
+  ctx.fillStyle = '#e2bd62';
+  ctx.font = '800 25px Arial';
+  ctx.fillText('SARJANA CHECKER  /  CLAN ROSTER',64,72);
+  ctx.fillStyle = '#fff';
+  ctx.font = '800 48px Arial';
+  ctx.fillText(String(clan.name || 'Clan').slice(0,34),64,137);
+  ctx.fillStyle = '#b9c9dc';
+  ctx.font = '600 23px Arial';
+  ctx.fillText(String(clan.tag || '')+'   •   '+rows.length+'/50 MEMBER   •   CLAN LEVEL '+String(clan.clanLevel || '-'),66,181);
+  ctx.fillStyle = '#e2bd62';
+  ctx.font = '700 16px Arial';
+  ctx.fillText('NO.',66,252);
+  ctx.fillText('PLAYER',142,252);
+  ctx.fillText('ROLE',650,252);
+  ctx.fillText('TH',830,252);
+  ctx.fillText('TROPHY',930,252);
+  ctx.fillText('WAR STARS',1070,252);
+  ctx.fillText('DONASI',1230,252);
+
+  rows.forEach(function(m,index) {
+    const y = headerHeight + index*rowHeight;
+    ctx.fillStyle = index%2===0 ? 'rgba(255,255,255,.085)' : 'rgba(255,255,255,.035)';
+    ctx.fillRect(52,y,width-104,rowHeight-3);
+    ctx.fillStyle = '#e2bd62';
+    ctx.font = '700 19px Arial';
+    ctx.fillText(String(m.no).padStart(2,'0'),66,y+35);
+    ctx.fillStyle = '#fff';
+    ctx.font = '700 20px Arial';
+    ctx.fillText(m.name.slice(0,31),142,y+27);
+    ctx.fillStyle = '#b9c9dc';
+    ctx.font = '500 14px Arial';
+    ctx.fillText(m.tag,142,y+46);
+    ctx.fillStyle = '#fff';
+    ctx.font = '600 17px Arial';
+    ctx.fillText(m.role,650,y+34);
+    ctx.fillStyle = '#e2bd62';
+    ctx.font = '800 18px Arial';
+    ctx.fillText('TH '+m.th,830,y+34);
+    ctx.fillStyle = '#fff';
+    ctx.font = '600 17px Arial';
+    ctx.fillText(formatNumber(m.trophies),930,y+34);
+    ctx.fillText(formatNumber(m.warStars),1070,y+34);
+    ctx.fillText(formatNumber(m.donations),1230,y+34);
+  });
+
+  ctx.fillStyle = '#b9c9dc';
+  ctx.font = '500 15px Arial';
+  ctx.fillText('Diperbarui saat ekspor: '+new Date().toLocaleString('id-ID')+'  |  mujib-syarif.github.io/sarjanacheck',64,height-48);
+  const safeName = String(clan.name || 'clan').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-|-$/g,'');
+  canvas.toBlob(function(blob) {
+    if (blob) saveClanExportBlob(blob,safeName+'-members.png');
+    else alert('Gagal membuat gambar daftar member.');
+  },'image/png');
+}
+
+/* ============================================================
    RENDER CLAN
 ============================================================ */
 
@@ -6938,8 +7128,11 @@ function renderClan(clan) {
       }
 
 
-      <div style="margin:12px 0">
-        <button id="clanShareCardBtn" type="button" class="search-btn" onclick="downloadClanShareCard()">Download Clan Share Card PNG</button>
+      <div class="clan-export-actions" aria-label="Ekspor data clan">
+        <button type="button" class="clan-export-btn" onclick="copyClanMemberList()">Salin teks</button>
+        <button type="button" class="clan-export-btn" onclick="downloadClanMemberText()">Unduh TXT</button>
+        <button type="button" class="clan-export-btn primary" onclick="downloadClanMemberImage()">Unduh daftar PNG</button>
+        <button id="clanShareCardBtn" type="button" class="clan-export-btn" onclick="downloadClanShareCard()">Clan Card PNG</button>
       </div>
 
       <div class="clan-meta">
